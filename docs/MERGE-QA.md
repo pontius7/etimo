@@ -43,12 +43,16 @@ exactly the expected number of times. 59 patches apply, 0 fail.
 
 ## New colours
 
-| family | light | dark | pin shape |
-|---|---|---|---|
-| Caucasian | `#d05418` | `#ea702c` | hexagon |
-| Turkic | `#5b5500` | `#e1f15d` | triangle (point down) |
-| Uralic | `#06899d` | `#44d4e2` | plus |
-| Mongolic | `#8b186c` | `#d553ac` | star |
+| family | light | dark |
+|---|---|---|
+| Caucasian | `#d05418` | `#ea702c` |
+| Turkic | `#5b5500` | `#e1f15d` |
+| Uralic | `#06899d` | `#44d4e2` |
+| Mongolic | `#8b186c` | `#d553ac` |
+
+Map pins have no family shapes any more (user decision): every pin is the same round marker,
+filled with its language's colour, so family and language are carried by colour alone, as in the
+rest of the interface (bar-shaped family dots).
 
 Per-language shades for the 131 Devter languages follow Etimo's pattern: the hue walks across the
 family's band in tree order while lightness cycles through Etimo's levels (`palette.language_shades`).
@@ -85,3 +89,42 @@ family's band in tree order while lightness cycles through Etimo's levels (`pale
 - German strings that Etimo already had remain in the bundle but are unreachable.
 - The A-Z key for Devter Latin-script words is the spelling (as in Devter); Etimo's own Latin
   words still sort by their IPA (existing Etimo behaviour, unchanged).
+
+## Nested areas (follow-up, 2026-11-07)
+
+A smaller area lying inside a larger area of the same family (>= 80% of a polygon, >= 95% of a
+fallback circle; 34 languages, listed by `check-overlaps.py`) rests in its outermost same-family
+parent's colour, so it blends in. It stays its own zone: hover shows its own outline and name,
+click/tap selects it, selecting it from search or lists works the same, and the selected area
+switches to its own colour and the map zooms to its own bounds (Etimo's padding and easing; the
+minimum frame is 1/24 of the view instead of 1/10 so small areas really fill the view). Clearing
+the selection restores the blended look. Cross-family overlaps keep "smaller area wins".
+
+| case | rest colour = parent | hover = own name | click selects it | own colour when selected | zoom to own bounds | result |
+|---|---|---|---|---|---|---|
+| Catalan in Spanish | yes | yes | yes | yes, back to Spanish colour on clear | yes | PASS (overlap-catalan-*.png) |
+| Montenegrin in Serbian | yes | yes | yes | yes (also via #map-montenegrin) | yes | PASS (overlap-montenegrin-selected.png) |
+| Albanian dialect circles (Central Gheg etc.) | yes | n/a | n/a | n/a | n/a | N/A: Etimo's `regional-layer.js` hides these circles and pins (its dialect overlay draws them); that file belongs to the other branch (overlap-gheg-resting.png) |
+| Svan circle in Georgian (substitute circle case) | yes | yes | yes | yes | yes | PASS (overlap-svan-selected.png) |
+| Karakalpak in Uzbek (Devter) | yes | yes | yes | yes | yes | PASS (overlap-karakalpak-*.png) |
+
+Console errors during these runs: 0.
+
+## Interface colour: obsidian navy (2026-11-07)
+
+Etimo's teal-green interface (headers, buttons, active tabs, tints, the greenish dark-mode
+background and land) is re-hued to obsidian/navy in both themes by `navy_ui()` in
+apply-patches.py (104 colour values; lightness kept or darkened, hue 262). Family colours and the
+per-language colour tables are data colours and stay as they are, so Slavic is still green.
+Not recoloured: `country-sources.css` and `regional-layer.js` (owned by the other branch).
+Screenshots: 08-navy-*.jpg. Console errors: 0.
+
+## Adding words yourself
+
+`content/` + `./scripts/add-words.sh` (instructions in `content/README.md`): drop CSV word lists
+in `content/words/`, optional new languages in `content/languages/*.json` (family, lat/lon,
+optional area ring: the map pin, colour, zone and wheel branch follow automatically), optional new
+meanings in `content/meanings.csv`. The script rebuilds, checks the map, and reports for each
+word its language, map position and browse category (with suggestions for unmatched meanings).
+Tested end to end with a throwaway language and 5 words (pin, zone, colour, search, category and
+IPA all worked), then removed.

@@ -127,17 +127,109 @@ fs.writeFileSync(process.argv[4],JSON.stringify(out));
 '''
 
 
-def devter_romanize(lex):
+def devter_romanize(lex, path=None):
+    """Run Devter's own aN() over lexicon records (default: Devter's lexicon.json)."""
     with tempfile.TemporaryDirectory() as td:
         js = os.path.join(td, 'romanize.js')
         out = os.path.join(td, 'out.json')
         with open(js, 'w', encoding='utf-8') as f:
             f.write(NODE_SRC)
-        subprocess.run(['node', js, D_HTML, os.path.join(D_DIR, 'lexicon.json'), out], check=True)
+        if path is None:
+            path = os.path.join(D_DIR, 'lexicon.json')
+        subprocess.run(['node', js, D_HTML, path, out], check=True)
         with open(out, encoding='utf-8') as f:
             res = json.load(f)
-    assert len(res) == len(lex)
+    if lex is not None:
+        assert len(res) == len(lex)
     return res
+
+
+# ---------------------------------------------------------------- your additions (content/)
+CONTENT = os.path.join(ROOT, 'content')
+FAMILIES = ['Slavic', 'Iranian', 'Albanian', 'Greek', 'Romance', 'Caucasian', 'Turkic', 'Uralic', 'Mongolic']
+_AREAS = {}
+_NEWFAM = {}
+
+
+def add_content(langs, lex):
+    """Add languages from content/languages/*.json and words from content/words/*.csv.
+
+    See content/README.md. Errors stop the build with the file and row that caused them.
+    Returns the number of words added."""
+    import csv
+    import glob
+    by_lang = {r['lang']: r for r in lex}
+    for f in sorted(glob.glob(os.path.join(CONTENT, 'languages', '*.json'))):
+        defs = json.load(open(f, encoding='utf-8'))
+        for d in (defs if isinstance(defs, list) else [defs]):
+            where = f'{os.path.relpath(f, ROOT)}: {d.get("name")}'
+            for k in ('name', 'family', 'lat', 'lon', 'place', 'path'):
+                assert d.get(k) not in (None, '', []), f'{where}: missing "{k}"'
+            assert d['family'] in FAMILIES, f'{where}: family must be one of {FAMILIES}'
+            assert d['name'] not in langs, f'{where}: language already exists'
+            assert -180 <= d['lon'] <= 180 and -90 <= d['lat'] <= 90, f'{where}: lat/lon out of range'
+            langs[d['name']] = {'gc': d.get('glottocode'), 'lat': d['lat'], 'lon': d['lon'],
+                                'cc': d.get('countries', []), 'path': d['path'],
+                                'sp': ({'v': d['speakers'], 'y': d.get('speakers_year', ''),
+                                        'src': d.get('speakers_source', '')} if d.get('speakers') else None),
+                                'lv': d.get('status'), 'an': d.get('self_name'), 'coordSrc': d.get('source')}
+            rec = {'lang': d['name'], 'place': d['place'], 'family': d['family'], 'entries': []}
+            _NEWFAM[d['name']] = d['family']
+            if d.get('glottocode'):
+                rec['gc'] = d['glottocode']
+            lex.append(rec)
+            by_lang[d['name']] = rec
+            if d.get('area'):
+                _AREAS[d['name']] = d['area']
+    new = []
+    for f in sorted(glob.glob(os.path.join(CONTENT, 'words', '*.csv'))):
+        with open(f, encoding='utf-8-sig', newline='') as fh:
+            for i, row in enumerate(csv.DictReader(fh), start=2):
+                row = {(k or '').strip().lower(): (v or '').strip() for k, v in row.items()}
+                if not any(row.values()):
+                    continue
+                where = f'{os.path.relpath(f, ROOT)} line {i}'
+                for k in ('language', 'word', 'meaning'):
+                    assert row.get(k), f'{where}: missing "{k}"'
+                rec = by_lang.get(row['language'])
+                assert rec, f'{where}: unknown language "{row["language"]}" (add it in content/languages/)'
+                if any(e['word'] == row['word'] and e['meaning'] == row['meaning'] for e in rec['entries']):
+                    continue  # already present: rerunning never duplicates
+                ent = {'word': row['word'], 'lat': row.get('latin') or None, 'meaning': row['meaning'],
+                       'src': [row.get('source') or os.path.splitext(os.path.basename(f))[0]]}
+                if row.get('ipa'):
+                    ent['ipa'] = row['ipa'].strip('/')
+                rec['entries'].append(ent)
+                new.append((rec, ent))
+    if new:  # same reading rules as the Devter words: Cyrillic -> Latin, Latin script -> IPA
+        tmp = [{'lang': r['lang'], 'entries': [e]} for r, e in new]
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False, encoding='utf-8') as t:
+            json.dump(tmp, t, ensure_ascii=False)
+        try:
+            res = devter_romanize(None, t.name)
+        finally:
+            os.unlink(t.name)
+        for (rec, ent), [[kind, shown]] in zip(new, res):
+            if kind == 'c' and not ent['lat']:
+                ent['lat'] = shown or None
+            elif kind == 'x':
+                if not ent.get('ipa') and shown.startswith('/') and len(shown) > 2:
+                    ent['ipa'] = shown[1:-1]
+                if not ent['lat']:
+                    ent['lat'] = ent['word']
+    print(f'  content/: {len(_AREAS)} new language areas, +{len(new)} words')
+    return len(new)
+
+
+def add_content_areas(terr, langs):
+    """Optional home-area polygon for a new language ([[lon,lat],...] ring) -> terr.json entry."""
+    from shapely.geometry import Polygon
+    for name, ring in _AREAS.items():
+        pts = [ETIMO.fwd(lon, lat) for lon, lat in ring]
+        g = Polygon(pts).buffer(0)
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        terr[name] = {'d': _geom_path(g, 0), 'a': round(g.area * 6.371 ** 2),
+                      'b': [round(min(xs), 1), round(min(ys), 1), round(max(xs), 1), round(max(ys), 1)]}
 
 
 # ---------------------------------------------------------------- steps
@@ -202,7 +294,10 @@ def merge_terr(langs):
         nv['d'] = path
         nv['b'] = [round(min(xs), 1), round(min(ys), 1), round(max(xs), 1), round(max(ys), 1)]
         out[k] = nv
-    add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
+    add_content_areas(out, langs)
+    nest = add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
+    for k, n in nest.items():
+        langs[k]['nest'] = n
     return out
 
 
@@ -287,27 +382,76 @@ def add_visual_partition(terr, etimo_keys, langs, etimo_langs):
     Languages with no area polygon are drawn by the app as an approximate circle (radius from the
     speaker count, clipped to the language's Voronoi cell). Those circles are rebuilt here in the
     same frame with the same rule and also cut out of the larger zones underneath.
+
+    Nested areas (user decision 2026-11-07): a smaller area lying inside a larger area of the SAME
+    family (>= 80% of a polygon, >= 95% of a fallback circle) is a "nested" language. Its drawn
+    shape is clipped to that parent and it does not cut other same-family zones; the app paints
+    it in the colour of its outermost same-family ancestor (`info.nest`) until it is selected,
+    then in its own colour. Returns {language: outermost same-family ancestor}.
     """
     from shapely import union_all
     G = {k: _path_geom(v['d']) for k, v in terr.items()}
     circles = approx_circles(langs, terr)
+    fam = family_of()
+    parent = {}
+    for k, g in list(G.items()) + list(circles.items()):
+        if g is None or g.area == 0:
+            continue
+        need = 0.95 if k in circles else 0.8
+        best = None
+        for m, h in G.items():
+            if m == k or h is None or fam[m] != fam[k] or (k in terr and terr[m]['a'] <= terr[k]['a']):
+                continue
+            if g.intersects(h):
+                f = g.intersection(h).area / g.area
+                if f >= need and (best is None or f > best[1]):
+                    best = (m, f)
+        if best:
+            parent[k] = best[0]
+
+    def root(k):
+        seen = set()
+        while k in parent and k not in seen:
+            seen.add(k)
+            k = parent[k]
+        return k
     keys = sorted(terr, key=lambda k: (terr[k]['a'], k))  # small -> large
-    changed = 0
-    for i, k in enumerate(keys):
+    plain = [k for k in keys if k not in parent]
+    V = {}
+    # pass 1: non-nested zones; smaller wins, fallback circles win
+    for i, k in enumerate(plain):
         g = G[k]
         if g is None:
             continue
-        cut = [G[m] for m in keys[:i]
-               if G[m] is not None and g.intersects(G[m])]
-        cut += [c for m, c in circles.items() if g.intersects(c)]
-        if not cut:
-            continue
-        rest = g.difference(union_all(cut))
-        if abs(rest.area - g.area) < 0.5:
+        cut = [G[m] for m in plain[:i] if G[m] is not None and g.intersects(G[m])]
+        cut += [c for c in circles.values() if g.intersects(c)]
+        V[k] = g.difference(union_all(cut)) if cut else g
+    # pass 2: nested zones (outermost first) take their spot out of the parent's drawn shape only
+    for k in sorted((k for k in keys if k in parent), key=lambda k: (-terr[k]['a'], k)):
+        g = G[k]
+        cut = [G[m] for m in plain if terr[m]['a'] < terr[k]['a'] and G[m] is not None and g.intersects(G[m])]
+        cut += [c for c in circles.values() if g.intersects(c)]
+        own = (g.difference(union_all(cut)) if cut else g).intersection(V[parent[k]])
+        V[parent[k]] = V[parent[k]].difference(own)
+        V[k] = own
+    changed = 0
+    for k, rest in V.items():
+        if abs(rest.area - G[k].area) < 0.5:
             continue
         terr[k]['v'] = _geom_path(rest)
         changed += 1
-    print(f'  terr: non-overlapping drawn shapes for {changed} languages')
+    nest = {k: root(k) for k in parent}
+    print(f'  terr: non-overlapping drawn shapes for {changed} languages; nested same-family: {len(nest)}')
+    return nest
+
+
+def family_of():
+    fam = {}
+    for d in (E_DIR, D_DIR):
+        for r in load(d, 'lexicon.json'):
+            fam[r['lang']] = r['family']
+    fam.update(_NEWFAM)
+    return fam
 
 
 def merge_dia(terr, langs):
@@ -416,11 +560,12 @@ def main():
     langs, el, dl = merge_languages()
     lex = merge_lexicon(langs)
     assert len(lex) == len(langs) == len(el) + len(dl)
-    assert all(r['lang'] in langs for r in lex)
+    added = add_content(langs, lex)
+    terr = merge_terr(langs)  # also sets langs[*]['nest']; includes content/ areas
     dump('languages.json', langs)
     dump('lexicon.json', lex)
-    terr = merge_terr(langs)
     dump('terr.json', terr)
+    assert len(lex) == len(langs) and all(r['lang'] in langs for r in lex)
     dump('dia.json', merge_dia(terr, langs))
     dump('today.json', merge_today())
     for n in ('adm2.json', 'micro.json', 'ethno.json'):

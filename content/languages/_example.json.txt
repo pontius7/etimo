@@ -1,0 +1,17 @@
+{
+  "name": "Example Language",
+  "family": "Uralic",
+  "lat": 61.0,
+  "lon": 60.0,
+  "place": "Region shown under the name",
+  "path": ["Uralic", "Branch", "Sub-branch"],
+  "self_name": "optional native name",
+  "glottocode": "optional",
+  "countries": ["RU"],
+  "speakers": "≈ 12,000",
+  "speakers_year": "2021",
+  "speakers_source": "where the figure comes from",
+  "status": "endangered",
+  "source": "where the coordinates come from",
+  "area": [[58, 60], [62, 60], [62, 62], [58, 62], [58, 60]]
+}
