@@ -1,12 +1,38 @@
 /* Verified counts and separate qualitative evidence. Original visual controls are retained. */
+/* Data is split by country and language (scripts/build-regional.py): only Montenegro loads up front;
+   other municipalities load when a language with regional counts is selected. */
 let loading;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const get=(name,opt)=>fetch('data/'+name,opt).then(r=>{if(!r.ok)throw Error(name+': '+r.status);return r.json();});
+// Quantised TopoJSON (object "regions") -> GeoJSON features, same properties as the original GeoJSON.
+const topoFeatures=(topo,cc)=>{
+ const tr=topo.transform,arcs=topo.arcs.map(a=>{if(!tr)return a;let x=0,y=0;return a.map(([dx,dy])=>[(x+=dx)*tr.scale[0]+tr.translate[0],(y+=dy)*tr.scale[1]+tr.translate[1]]);});
+ const ring=idx=>{const pts=[];for(const i of idx){const a=i<0?arcs[~i].slice().reverse():arcs[i];for(let j=pts.length?1:0;j<a.length;j++)pts.push(a[j]);}return pts;};
+ return topo.objects.regions.geometries.map(g=>({type:'Feature',properties:{...g.properties,country_code:cc},geometry:g.type==='Polygon'?{type:'Polygon',coordinates:g.arcs.map(ring)}:{type:'MultiPolygon',coordinates:g.arcs.map(p=>p.map(ring))}}));
+};
+const geoCache=new Map(),langCache=new Map(),langReady=new Map(),pending=new Map();
+const geoFor=cc=>{if(!geoCache.has(cc))geoCache.set(cc,get('regional/geo/'+cc+'.json').then(t=>topoFeatures(t,cc)).catch(e=>{geoCache.delete(cc);throw e;}));return geoCache.get(cc);};
+// One language: its rows per country joined to that country's features. Stale language requests are aborted.
+const langFor=(key,index)=>{
+ const info=index.languages[key];if(!info)return null;
+ for(const [k,c] of pending)if(k!==key){c.abort();pending.delete(k);langCache.delete(k);}
+ if(!langCache.has(key)){const ctl=new AbortController();pending.set(key,ctl);
+  langCache.set(key,Promise.all([get('regional/lang/'+info.file+'.json',{signal:ctl.signal}),...info.countries.map(geoFor)]).then(([data,...geos])=>{
+   const byCC=new Map();info.countries.forEach((cc,i)=>{const feats=geos[i];byCC.set(cc,(data.rows[cc]||[]).map(([ix,m,count,percentage,denominator])=>{const [observation_period,measure,source_id]=data.meta[m];return [feats[ix],[{language_id:key,count,percentage,denominator,observation_period,measure,source_id}]];}));});
+   langReady.set(key,byCC);if(pending.get(key)===ctl)pending.delete(key);return byCC;
+  }).catch(e=>{langCache.delete(key);if(pending.get(key)===ctl)pending.delete(key);throw e;}));}
+ return langCache.get(key);
+};
 export async function attachRegionalEvidence({host,parent,path,current,languages,color,tooltip,hideTooltip}) {
- const get=name=>fetch('data/'+name).then(r=>{if(!r.ok)throw Error(name+': '+r.status);return r.json();});
- loading ||= Promise.all([get('regional-boundaries.geojson'),Promise.all(["regional-observations-1.json", "regional-observations-2.json", "regional-observations-3.json"].map(get)).then(p=>Object.assign({},...p)),get('regional-sources.json'),get('greece-regions.geojson'),get('countries/GR.json')]);
- const [geometry,values,sources,greece,grData]=await loading;
+ loading ||= Promise.all([get('regional/index.json'),geoFor('ME'),get('regional/ME.json'),get('regional-sources.json'),get('regional/geo/GR-regions.json').then(t=>({type:'FeatureCollection',features:topoFeatures(t,'GR')})),get('tables/GR.json')]).catch(e=>{loading=null;throw e;});
+ const [index,me,values,sources,greece,grData]=await loading;
  if(!parent.node().isConnected)return;
- const me=geometry.features.filter(f=>f.properties.country_code==='ME');const gr=Object.fromEntries(grData.regions.map(r=>[r.id,r]));
+ // While the map moves (the app sets svg.zooming), region strokes are dropped. They are invisible anyway (stroke-opacity 0),
+ // but with vector-effect:non-scaling-stroke the browser re-measures every path's stroke on each frame.
+ if(!document.getElementById('regional-motion-css')){const s=document.createElement('style');s.id='regional-motion-css';s.textContent='.mapbox svg.zooming g.regional-evidence path{stroke:none;vector-effect:none}';document.head.append(s);}
+ const gr=Object.fromEntries(grData.regions.map(r=>[r.id,r]));
+ const langBy=new Map();for(const l of languages)if(!langBy.has(l.lang))langBy.set(l.lang,l);
+ const dCache=new Map();const dOf=f=>{const k=f.properties.region_id;let d=dCache.get(k);if(d===undefined){d=path(f);dCache.set(k,d);}return d;};
  const id='regional-'+Math.random().toString(36).slice(2);const defs=parent.append('defs');
  // Erase outdated schematic language areas inside Montenegro and Greece only.
  const mask=defs.append('mask').attr('id',id+'-mask').attr('maskUnits','userSpaceOnUse').attr('x',-10000).attr('y',-10000).attr('width',20000).attr('height',20000);
@@ -40,9 +66,14 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  const labelLayer=parent.insert('g','g.adm').attr('class','municipality-labels').attr('pointer-events','none');
  labelLayer.selectAll('text').data(me).join('text').attr('x',f=>path.centroid(f)[0]).attr('y',f=>path.centroid(f)[1]).attr('text-anchor','middle').attr('font-family','var(--sans,system-ui)').attr('font-size',1.1).attr('fill','var(--ink,#263e32)').attr('stroke','var(--bg,#fff)').attr('stroke-width',.3).attr('paint-order','stroke').attr('data-pri',f=>PRIORITY.has(f.properties.region_id)?1:0).text(f=>NAMES[f.properties.region_id]||f.properties.name);
  const KPRI=12,KALL=40;
- const updateLabels=()=>{const t=parent.attr('transform')||'';const k=Number(t.match(/scale\(([^,)]+)/)?.[1]||1);labelLayer.attr('visibility',k>=KPRI?'visible':'hidden');labelLayer.selectAll('text').attr('display',function(){return k>=KALL||this.dataset.pri==='1'?null:'none';}).attr('font-size',10.5/k).attr('stroke-width',3/k);requestAnimationFrame(dedupe);};
+ // Runs on every zoom frame: while the labels are hidden (k<12) nothing else is touched, and at most one dedupe runs per frame.
+ let dq=0;
+ const updateLabels=()=>{const t=parent.attr('transform')||'';const k=Number(t.match(/scale\(([^,)]+)/)?.[1]||1);labelLayer.attr('visibility',k>=KPRI?'visible':'hidden');if(k<KPRI)return;labelLayer.selectAll('text').attr('display',function(){return k>=KALL||this.dataset.pri==='1'?null:'none';}).attr('font-size',10.5/k).attr('stroke-width',3/k);if(!dq)dq=requestAnimationFrame(()=>{dq=0;dedupe();});};
  // Skip a name the map already prints as a city label, so the same word is never drawn twice.
- const dedupe=()=>{const cities=[...parent.selectAll('g.acities text,g.cities text').nodes()].filter(n=>{const s=getComputedStyle(n);return n.getBoundingClientRect().width>0&&s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)>.05;}).map(n=>n.textContent.trim());labelLayer.selectAll('text').each(function(){if(this.getAttribute('display')==='none')return;if(cities.includes(this.textContent.trim()))this.setAttribute('display','none');});};
+ // Only city labels with the same text as a shown municipality label are measured (avoids styling/measuring ~800 nodes per frame); checkVisibility() answers "is it rendered" without forcing a layout.
+ const dedupe=()=>{const names=new Set();labelLayer.selectAll('text').each(function(){if(this.getAttribute('display')!=='none')names.add(this.textContent.trim());});if(!names.size)return;
+  const cities=new Set([...parent.selectAll('g.acities text,g.cities text').nodes()].filter(n=>{if(!names.has(n.textContent.trim()))return false;const s=getComputedStyle(n);return (n.checkVisibility?n.checkVisibility():n.getBoundingClientRect().width>0)&&s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)>.05;}).map(n=>n.textContent.trim()));
+  labelLayer.selectAll('text').each(function(){if(this.getAttribute('display')==='none')return;if(cities.has(this.textContent.trim()))this.setAttribute('display','none');});};
  const observer=new MutationObserver(updateLabels);observer.observe(parent.node(),{attributes:true,attributeFilter:['transform']});updateLabels();
  function open(event,row){hideTooltip();if(event.type==='keydown'){const b=event.currentTarget.getBoundingClientRect();event.currentTarget.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:b.x+b.width/2,clientY:b.y+b.height/2}));}}
  let last;
@@ -171,39 +202,47 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   }}
   paintBase();
  }).catch(()=>{});
+ let curSel=null,waiting=null;
  const famFactor=r=>{if(r.qualitative)return 1;const fam=r.language&&r.language.family;if(albMode())return fam==='Albanian'?1:(r.over?.5:.22);if(famSel)return fam===famSel?1:.28;return 1;};
  const draw=()=>{
   if(!parent.node().isConnected){host.removeEventListener('ksel',onKsel);for(const t of ['pointerup','click','keyup'])host.removeEventListener(t,later);observer.disconnect();return;}
-  const selected=current();last=selected?selected.lang:null;paintDialects();paintBase();
-  const rows=geometry.features.map(feature=>{
-   const records=values[feature.properties.region_id]||[];const isME=feature.properties.country_code==='ME';
+  const selected=current();last=selected?selected.lang:null;curSel=selected;paintDialects();paintBase();
+  // Features in original order: Montenegro always; elsewhere only regions with a record for the selected language.
+  const key=selected?(ALBSET.has(selected.lang)?'Albanian':selected.lang):null;const ready=key&&langReady.get(key);
+  if(key&&!ready&&waiting!==key){const p=langFor(key,index);if(p){waiting=key;p.then(()=>{if(waiting===key)waiting=null;const s=current();if(parent.node().isConnected&&s&&(ALBSET.has(s.lang)?'Albanian':s.lang)===key)draw();},()=>{if(waiting===key)waiting=null;});}}
+  const feats=[];for(const cc of index.countries){if(cc==='ME')for(const f of me)feats.push([f,values[f.properties.region_id]||[]]);else if(ready&&ready.has(cc))for(const x of ready.get(cc))feats.push(x);}
+  const rows=feats.map(([feature,records])=>{
+   const isME=feature.properties.country_code==='ME';
    const observation=selected?records.find(o=>o.language_id===(ALBSET.has(selected.lang)?'Albanian':selected.lang)):isME?[...records].filter(o=>o.percentage!=null).sort((a,b)=>b.percentage-a.percentage)[0]:null;
    const eff=selected&&ALBSET.has(selected.lang)?albObj:selected;
    const top=isME?[...records].filter(o=>o.percentage!=null).sort((a,b)=>b.percentage-a.percentage)[0]:null;
    const own=eff?records.find(o=>o.language_id===eff.lang):observation;
    const over=!!(eff&&isME&&own&&own.percentage>=2&&top&&top.language_id!==eff.lang);
-   return {feature,observation:own||observation,over,top,eff,language:over?(languages.find(l=>l.lang===top.language_id)||eff):(eff||languages.find(l=>l.lang===observation?.language_id))};
+   return {feature,observation:own||observation,over,top,eff,language:over?(langBy.get(top.language_id)||eff):(eff||langBy.get(observation?.language_id))};
   }).filter(row=>(row.observation||row.feature.properties.country_code==='ME')&&!(albMode()&&['AL','XK','MK','GR'].includes(row.feature.properties.country_code)));
   if(!albMode())for(const feature of greece.features){const region=gr[feature.properties.region_id];const presence=selected?region.presence.filter(p=>p.language===selected.lang):region.presence;rows.push({feature,presence,language:selected,qualitative:true});}
   const fill=row=>row.qualitative?'transparent':color(row.language)||'var(--ink,#60796a)';
   // Where the selected language is a minority, it shows as stripes over the majority colour.
   const overRows=rows.filter(r=>r.over);
   hatchLine.attr('stroke',overRows.length?color(overRows[0].eff)||'#9e2b2b':'#9e2b2b');
-  hatchLayer.selectAll('path').data(overRows,r=>r.feature.properties.region_id).join('path').attr('d',r=>path(r.feature)).attr('fill','url(#'+id+'-hatch)').attr('fill-opacity',r=>Math.min(.85,.2+r.observation.percentage/40));
-  layer.selectAll('path').data(rows,r=>r.feature.properties.region_id).join('path')
-   .attr('d',r=>path(r.feature)).attr('fill',fill)
-   .attr('fill-opacity',r=>famFactor(r)*(r.qualitative?.001:r.over?(r.top.percentage>50?.75:.45):r.observation?.percentage==null?.04:r.observation.percentage>50?.75:r.observation.percentage>10?.5:r.observation.percentage>1?.3:r.observation.percentage>0?.14:.05))
-   .attr('stroke',r=>r.qualitative?'var(--ink,#60796a)':color(r.language)||'var(--ink,#60796a)').attr('stroke-opacity',0).attr('stroke-width',.3).attr('vector-effect','non-scaling-stroke')
+  hatchLayer.selectAll('path').data(overRows,r=>r.feature.properties.region_id).join(e=>e.append('path').attr('d',r=>dOf(r.feature))).attr('fill','url(#'+id+'-hatch)').attr('fill-opacity',r=>Math.min(.85,.2+r.observation.percentage/40));
+  // Geometry, static attributes and listeners are set once per path (enter); each redraw only restyles.
+  layer.selectAll('path').data(rows,r=>r.feature.properties.region_id).join(enter=>enter.append('path')
+   .attr('d',r=>dOf(r.feature))
+   .attr('stroke-opacity',0).attr('stroke-width',.3).attr('vector-effect','non-scaling-stroke')
    .attr('data-region',r=>r.feature.properties.region_id).attr('role','button').attr('tabindex',r=>['ME','GR'].includes(r.feature.properties.country_code)?0:-1).attr('aria-label',r=>r.feature.properties.name+' · regional language data')
    .on('click',open).on('keydown',(event,row)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event,row);}})
-   .on('pointermove',(event,row)=>{
+   .on('pointermove',(event,row)=>{const selected=curSel;
     if(row.qualitative){tooltip(event,'<b>'+esc(row.feature.properties.name)+' · Greece</b><span>'+esc(row.presence.length?row.presence.map(p=>p.language).join(', '):'No matching regional evidence in this package')+'</span><span>Documented presence · no current regional speaker counts</span><span>Hatching is not a majority or population-share estimate.</span>');return;}
     const o=row.observation;
     if(!o){tooltip(event,'<b>'+esc(row.feature.properties.name)+'</b><span>No published value for this selected language in the mapped table.</span><span>Click for all census responses.</span>');return;}
     const source=sources[o.source_id];const value=o.count==null?'Not published / unavailable':o.count.toLocaleString('en')+(o.denominator==null?'':' of '+o.denominator.toLocaleString('en'))+(o.percentage==null?'':' ('+o.percentage.toFixed(2)+'%)');
     const status=o.percentage==null?'Unknown':o.percentage>50?'Numerical majority':o.percentage===50?'Exactly half':o.percentage>0?(selected?'Below half':'Largest reported group; below half'):'Reported zero';
     tooltip(event,'<b>'+esc(row.feature.properties.name)+' · '+esc(o.language_id)+'</b><span>'+esc(value)+'</span><span>'+esc(o.observation_period+' · '+o.measure.replaceAll('_',' '))+'</span><span>'+esc(status)+'</span><span>'+esc(source?.population_scope)+'</span><span>'+esc(row.feature.properties.country_code==='ME'?'MONSTAT counts · © OpenStreetMap contributors; indicative boundaries':'Official regional table · © EuroGeographics / GISCO boundaries')+'</span>');
-   }).on('pointerleave',hideTooltip);
+   }).on('pointerleave',hideTooltip))
+   .attr('fill',fill)
+   .attr('fill-opacity',r=>famFactor(r)*(r.qualitative?.001:r.over?(r.top.percentage>50?.75:.45):r.observation?.percentage==null?.04:r.observation.percentage>50?.75:r.observation.percentage>10?.5:r.observation.percentage>1?.3:r.observation.percentage>0?.14:.05))
+   .attr('stroke',r=>r.qualitative?'var(--ink,#60796a)':color(r.language)||'var(--ink,#60796a)');
  };
  const sync=()=>{if(!parent.node().isConnected)return;const c=current();const key=c?c.lang:null;if(key!==last)draw();};
  const later=()=>{setTimeout(sync,60);setTimeout(sync,450);setTimeout(cityFilter,500);};
