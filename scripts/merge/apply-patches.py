@@ -376,6 +376,10 @@ def build():
     for k, v in LIT['rC']['val'].items():
         assert k not in jr, k
         jr[k] = v
+    # deeper Devter branch names (Devter itself showed them in English): sr + sq translations
+    for k, v in load(os.path.join(HERE, 'devter-path-names.json')).items():
+        assert k not in jr, k
+        jr[k] = v
     p.rep('P15-Jr', ',Jr=' + LIT['Jr']['src'], ',Jr=' + jsdump(jr))
     xr = dict(LIT['Xr']['val'])
     for k in ('extinct', 'historical'):
