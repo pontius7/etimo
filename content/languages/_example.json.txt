@@ -1,5 +1,8 @@
 {
   "name": "Example Language",
+  "name_sr": "Primerski",
+  "name_sq": "Shembullisht",
+  "region": "volga",
   "family": "Uralic",
   "lat": 61.0,
   "lon": 60.0,

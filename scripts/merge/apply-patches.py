@@ -312,6 +312,10 @@ def build():
     dag = [r['lang'] for r in D_LEX if 'Dagestan' in (r.get('place') or '')]
     groups.update({'nord': nord, 'cauc': ag['cauc'], 'dag': dag, 'volga': ag['volga'], 'casia2': ag['casia'],
                    'sib': ag['sib']})
+    for c in CONTENT_LANGS:  # your languages: optional "region" = one of the tab keys
+        if c.get('region'):
+            assert c['region'] in groups, f'{c["name"]}: region must be one of {sorted(groups)}'
+            groups[c['region']] = groups[c['region']] + [c['name']]
     every = {x for v in groups.values() for x in v}
     missing = sorted(set(D_LANGS) - every)
     assert not missing, f'Devter languages without a region tab: {missing}'
@@ -393,12 +397,17 @@ def build():
     for k, v in LIT['rT']['val'].items():
         assert k not in ta, k
         ta[k] = v
+    for c in CONTENT_LANGS:  # names in Serbian/Albanian for your languages (fallback: English)
+        ta[c['name']] = [c.get('name_sr') or '', c.get('name_sq') or '', '']
     p.rep('F17-ta', ',ta=' + LIT['ta']['src'], ',ta=' + jsdump(ta))
     na = dict(LIT['na']['val'])
     for k, v in LIT['rL']['val'].items():
         if k in na:
             assert na[k] == v, (k, na[k], v)
         na[k] = v
+    for c in CONTENT_LANGS:
+        if c.get('place_sr') or c.get('place_sq'):
+            na.setdefault(c['place'], [c.get('place_sr') or c['place'], c.get('place_sq') or c['place'], ''])
     p.rep('F18-na', ',na=' + LIT['na']['src'], ',na=' + jsdump(na))
 
     # ---- P14 taxonomy: 41 Devter meanings placed in Etimo's subcategories + synonyms ------
@@ -466,6 +475,7 @@ def build():
 
     # ---- P12 per-language colours (inline P map) for Devter languages ----------------------
     shades = devter_language_shades()
+    shades.update(content_language_shades())
     p.rep('P12-inline-P', '"Wakhi":"#655811","Sarikoli":"#b59e27"};',
           '"Wakhi":"#655811","Sarikoli":"#b59e27",' + jsdump(shades)[1:-1] + '};')
 
@@ -527,6 +537,44 @@ def navy_ui(text):
     text = _re.sub(r'#[0-9a-fA-F]{6}\b', hexsub, text)
     text = _re.sub(r'(rgba?)\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,[^)]*)?\)', rgbsub, text)
     return text, n
+
+
+def load_content_languages():
+    import glob
+    out = []
+    for f in sorted(glob.glob(os.path.join(ROOT, 'content', 'languages', '*.json'))):
+        d = load(f)
+        out += d if isinstance(d, list) else [d]
+    return out
+
+
+CONTENT_LANGS = load_content_languages()
+
+
+def content_language_shades():
+    """Map colour for each of your languages: a shade of its family colour, in the same tonal
+    steps Etimo uses (family hue, lightness cycling), so it reads as part of the family on the map,
+    wheel and cards. Optional "color": "#rrggbb" in the JSON overrides it."""
+    out = {}
+    count = {}
+    for c in CONTENT_LANGS:
+        if c.get('color'):
+            out[c['name']] = c['color']
+            continue
+        fam = c['family']
+        i = count[fam] = count.get(fam, 0) + 1
+        base = palette.ETIMO['light'].get(fam) or palette.FAM['light'][fam]
+        L0, C0, H0 = palette.rgb2oklch(palette.hex2rgb(base))
+        L = palette.LEVELS[(i * 3) % len(palette.LEVELS)]
+        H = H0 + ((i % 5) - 2) * 4
+        C = min(.17, C0)
+        while True:
+            rgb, ok = palette.oklch2rgb(L, C, H)
+            if ok or C < .05:
+                break
+            C -= .005
+        out[c['name']] = palette.rgb2hex(rgb)
+    return out
 
 
 def devter_language_shades():

@@ -26,6 +26,17 @@ Mongolic (that gives it its colour). `lat`/`lon` place the pin. `area` is option
 `[lon, lat]` points for its home region; without it the map draws an approximate circle sized by
 speakers. `path` builds its branch in the wheel and tree.
 
+Everything else updates by itself: the pin, zone and wheel slice get a shade of the family colour
+(in Etimo's tonal steps), the language joins search, A-Z, lists and its family filter. Optional
+extra fields:
+
+| field | effect |
+|---|---|
+| `name_sr`, `name_sq` | language name in Serbian (Latin; Cyrillic is derived) and Albanian |
+| `place_sr`, `place_sq` | the `place` text in Serbian and Albanian |
+| `region` | adds it to a region tab: `west`, `ital`, `cee`, `east`, `nord`, `balk`, `grk`, `cauc`, `dag`, `volga`, `iran`, `casia`, `casia2`, `sib` |
+| `color` | your own map colour `#rrggbb` instead of the automatic shade |
+
 ## 3. New meanings (optional)
 
 A meaning the site doesn't know is still searchable but not listed under a category. To place it,
