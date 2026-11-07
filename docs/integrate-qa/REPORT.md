@@ -1,0 +1,15 @@
+# Integrated build QA — http://localhost:8094 (Chrome, 2026-11-07)
+
+| # | Check | Result | Evidence |
+|---|-------|--------|----------|
+| 1 | First load clean | PASS | Only console error: `Failed to load resource: 404 (File not found)` = /favicon.ico (cosmetic). No other 4xx/5xx. Initial local transfer ~6.1 MB (lexicon.json 5.1 MB, terr.json 0.6 MB, world-50s 0.18 MB, languages 0.10 MB) + Google Fonts. |
+| 2 | Czech regional layer, small per-country files | PASS | Requests: regional/index.json, regional/geo/CZ.json (1.8 MB) + neighbours HR/LI/SK/RO, regional/lang/N.json, tables/CZ.json, tables/CZ/0.json, tables/CZ/64.json. No regional-boundaries.geojson / regional-observations-*.json. Note: Czech click also pulls today.json 3.5 MB, dia.json, adm2.json 1 MB, shade.webp 2 MB (pre-existing map layers, first Explore visit). |
+| 3 | Czechia modal | PASS | "Regions & municipalities" opens; "6254 municipality records · showing 50"; search "Brno" -> 2 records (Úsobrno, Brno); opening Brno shows 2 tables (Brno 82.53% Czech, population base 398,510). |
+| 4 | Montenegrin / Albanian | PASS (Montenegrin) / n/a (Gheg) | Montenegrin: census 215,299 (34.52%) 2023, overlay (.regional-evidence 592 nodes, hatch 23, labels 25), loads geo/ME.json + ME.json. Gheg Albanian has no census/regional section (data not present, not a bug as such). |
+| 5 | Devter languages | PASS | Avar: card + district pins (Untsukul', Khebda, Siukh...), adm2 overlay, Words list (#l-avar) with entries. Georgian: card, PLACES list (Tbilisi, Kutaisi...). Kazakh: card + place buttons (Saryaghash...). |
+| 6 | Dictionary "voda" / "წყალი" | PASS (with note) | voda: Croatian, Czech, Serbian, Slovak, Bulgarian, Macedonian, Russian, Ukrainian, Slovene... plus Caucasian look-alikes (Akhvakh, Bezhta, Kubachi, Udi). წყალი: Georgian, Old Georgian, Mingrelian (Caucasian only - expected, script-specific). |
+| 7 | UI languages | FAIL (partial) | Menu offers: English, Shqip, Српски (3). Nav/search/chips translate fine in sq and sr. Failures: (a) Czechia modal fully English in sq and sr ("REGIONS & MUNICIPALITIES", "Find a region", "municipality records", "majority"). (b) sq panel census line: "8.996.475 only Czech · 9.213.987 with second answers". (c) sr panel: same English string run through Latin->Cyrillic transliteration = garbage "онлy Цзецх · ... wитх сецонд ансwерс"; also Latin-script labels in Cyrillic UI: "OBLAST", "POPIS", "U BLIZINI, ISTA PORODICA". |
+| 8 | Dark + 390px | PASS | Night mode on (bg rgb(8,15,13)); 390x844 no horizontal page overflow (scrollWidth 390); panel/nav/chips fit. Screenshots 08-*.png. |
+| 9 | Pan/zoom with Czech | PASS | Wheel zoom (scale ->5.3), drag, +/- buttons: no new errors. Only a11y warning: "Blocked aria-hidden on an element because its descendant retained focus ... Element with focus: <input#sq> Ancestor: <div#root>". |
+
+Screenshots: 03-modal.png, 04-montenegrin.png, 07-sq-czech-modal.png, 08-dark-desktop.png, 08-dark-mobile.png (02 failed to save: tool path restriction, so files saved via cwd then moved).
