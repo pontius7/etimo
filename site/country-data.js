@@ -4,8 +4,13 @@ const documentIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const aliases=Object.fromEntries('ALB:AL BIH:BA BGR:BG HRV:HR GRC:GR XKX:XK KOS:XK MNE:ME MKD:MK ROU:RO SRB:RS SVN:SI TUR:TR AUT:AT CZE:CZ DEU:DE HUN:HU LIE:LI POL:PL SVK:SK CHE:CH BLR:BY EST:EE LVA:LV LTU:LT MDA:MD RUS:RU UKR:UA ITA:IT'.split(' ').map(x=>x.split(':')));
 Object.assign(aliases,{'Bosnia and Herz.':'BA','Republic of Serbia':'RS','Czech Republic':'CZ','Türkiye':'TR','Italy':'IT','South Tyrol':'IT','Macedonia':'MK','Republic of Moldova':'MD','Russian Federation':'RU'});
 const registry=fetch('data/country-sources.json').then(r=>r.json()).then(r=>{for(const c of Object.values(r)){aliases[c.country]=c.code;aliases[c.code]=c.code;}return r;});
-const cache=new Map();
-function load(code){if(!cache.has(code))cache.set(code,fetch('data/countries/'+code+'.json').then(r=>{if(!r.ok)throw Error('Country table unavailable');return r.json();}).then(async data=>{if(data.parts){const parts=await Promise.all(data.parts.map(name=>fetch('data/countries/'+name).then(r=>{if(!r.ok)throw Error('Regional table part unavailable');return r.json();})));data.regions=parts.flat();}return data;}).catch(e=>{cache.delete(code);throw e;}));return cache.get(code);}
+// data/tables/<CC>.json: small countries hold the full table; large ones ("chunked") hold one index row per
+// region (name, level, leading language per question/year) and keep the census rows in data/tables/<CC>/<n>.json.
+const cache=new Map(),parts=new Map(),partData=new Map();
+function load(code){if(!cache.has(code))cache.set(code,fetch('data/tables/'+code+'.json').then(r=>{if(!r.ok)throw Error('Country table unavailable');return r.json();}).then(data=>{data.file=code;if(data.chunked)data.regions=data.regions.map(([id,name,level,part,lead])=>({id,name,level:data.levels[level],part,lead}));return data;}).catch(e=>{cache.delete(code);throw e;}));return cache.get(code);}
+function part(data,n){const key=data.file+'/'+n;if(!parts.has(key))parts.set(key,fetch('data/tables/'+key+'.json').then(r=>{if(!r.ok)throw Error('Regional table part unavailable');return r.json();}).then(p=>{partData.set(key,p);return p;}).catch(e=>{parts.delete(key);throw e;}));return parts.get(key);}
+const loaded=(data,r)=>!data.chunked?r.observations:partData.get(data.file+'/'+r.part)?.[r.id];
+const observations=(data,r)=>data.chunked?part(data,r.part).then(p=>p[r.id]||[]):Promise.resolve(r.observations);
 const number=v=>v==null?'Not published':v.toLocaleString('en',{maximumFractionDigits:2});
 const group=s=>s.measure+'|'+s.observation_period;
 const readable=s=>({'0':'Country','1':'Entity / Brčko District','2':'Canton','3':'Municipality / city','gmina':'Municipality (gmina)','powiat':'District (powiat)'}[s]||s.replaceAll('_',' '));
@@ -42,20 +47,23 @@ function fill(data,selectedRegion){
  const selectedRecord=data.regions.find(r=>r.id===selected);if(selectedRecord&&level)level.value=selectedRecord.level;
  function update(){
   const term=normal(search.value),lev=level?.value||preferred,grp=measure?.value;
-  const matches=data.regions.filter(r=>(!lev||r.level===lev)&&(!term||normal(r.name).includes(term))).map(r=>({...r,visibleRows:r.observations.filter(o=>!grp||group(data.sources[o.source])===grp)})).filter(r=>r.visibleRows.length||data.qualitative);
+  const gi=data.chunked?String(data.groups.indexOf(grp??'*')):null,inGroup=o=>!grp||group(data.sources[o.source])===grp;
+  const matches=data.regions.filter(r=>(!lev||r.level===lev)&&(!term||normal(r.name).includes(term))).map(r=>data.chunked?{...r,entry:r.lead[gi]}:{...r,visibleRows:r.observations.filter(inGroup)}).filter(r=>data.chunked?r.entry!==undefined:r.visibleRows.length||data.qualitative);
   if(selected){const ix=matches.findIndex(r=>r.id===selected);if(ix>=limit)limit=Math.ceil((ix+1)/50)*50;}
   const shown=matches.slice(0,limit);
   list.innerHTML=shown.map(r=>{
-   const sorted=r.visibleRows.filter(o=>o.kind==='language_response'&&o.percentage!=null).sort((a,b)=>b.percentage-a.percentage);const lead=sorted[0];
+   const lead=data.chunked?(r.entry?{language:data.names[r.entry[0]],percentage:r.entry[1]}:undefined):r.visibleRows.filter(o=>o.kind==='language_response'&&o.percentage!=null).sort((a,b)=>b.percentage-a.percentage)[0];
    return '<details class="country-region" data-region-id="'+esc(r.id)+'"'+(selected===r.id?' open':'')+'><summary><span>'+esc(r.name)+'</span><small>'+(lead?esc(lead.language)+' '+lead.percentage.toFixed(2)+'%'+(lead.percentage>50?' · majority':' · largest reported group'):data.qualitative?'Documented presence':'Counts / responses')+'</small></summary><div class="country-region-body"></div></details>';
   }).join('');
   for(const d of list.querySelectorAll('details.country-region')){
-   const r=shown.find(r=>r.id===d.dataset.regionId);const populate=()=>{const body=d.querySelector('.country-region-body');if(d.open&&!body.innerHTML)body.innerHTML=data.qualitative?qualitativeRows(r):renderRows(r.visibleRows,data);};d.addEventListener('toggle',populate);populate();
+   const r=shown.find(r=>r.id===d.dataset.regionId);const populate=()=>{const body=d.querySelector('.country-region-body');if(!d.open||body.innerHTML)return;if(data.qualitative){body.innerHTML=qualitativeRows(r);return;}const obs=loaded(data,r);if(obs){body.innerHTML=renderRows(data.chunked?obs.filter(inGroup):r.visibleRows,data);return;}observations(data,r).then(populate,()=>{});};d.addEventListener('toggle',populate);populate();
   }
   modal.querySelector('.country-results').textContent=matches.length?matches.length+' '+(lev?readable(lev).toLowerCase()+' '+(matches.length===1?'record':'records'):'regions')+(shown.length<matches.length?' · showing '+shown.length:''):'No matching regional table is available in this package.';
   more.hidden=shown.length>=matches.length;
   if(selected){list.querySelector('[open]')?.scrollIntoView({block:'nearest'});selected=null;}
  }
+ // Start fetching a region's census rows as soon as the pointer or focus reaches its row.
+ if(data.chunked){const byId=new Map(data.regions.map(r=>[r.id,r]));const warm=e=>{const r=byId.get(e.target.closest?.('details.country-region')?.dataset.regionId);if(r&&!loaded(data,r))part(data,r.part).catch(()=>{});};list.addEventListener('pointerover',warm);list.addEventListener('focusin',warm);}
  search.addEventListener('input',()=>{limit=50;update();});level?.addEventListener('change',()=>{limit=50;update();});measure?.addEventListener('change',update);more.addEventListener('click',()=>{limit+=50;update();});update();
  modal.querySelector('[data-close-country]').focus({preventScroll:true});
 }
@@ -63,7 +71,7 @@ async function openCountry(raw,trigger,region){
  ensureModal();opener=trigger;const id=++requestId;
  modal.innerHTML='<header><h2 id="country-data-title">Regional language data</h2><button class="ib" data-close-country aria-label="Close country">×</button></header><p role="status">Loading tables…</p>';
  if(!modal.open)modal.showModal();
- try{await registry;const code=aliases[raw];if(!code)throw Error('This country is outside the source register');const data=await load(code);if(id===requestId)fill(data,region);}catch(e){if(id===requestId)modal.querySelector('[role=status]').textContent=e.message;}
+ try{await registry;const code=aliases[raw];if(!code)throw Error('This country is outside the source register');const data=await load(code);const pick=region&&data.chunked&&data.regions.find(r=>r.id===region);if(pick)await observations(data,pick).catch(()=>{});if(id===requestId)fill(data,region);}catch(e){if(id===requestId)modal.querySelector('[role=status]').textContent=e.message;}
 }
 document.addEventListener('etimo:country-data',e=>openCountry(e.detail.country,e.detail.trigger,e.detail.region));
 document.addEventListener('click',e=>{const b=e.target.closest('[data-country-data]');if(b){e.preventDefault();e.stopPropagation();openCountry(b.dataset.countryData,b);}});
@@ -80,12 +88,14 @@ function decorate(){
  for(const panel of document.querySelectorAll('.kpanel[data-region-id]'))census(panel);
 }
 const CEN={en:['Census','mother tongue','language','majority'],sr:['Popis','maternji jezik','jezik','većina'],sc:['Popis','maternji jezik','jezik','većina'],sq:['Regjistrimi','gjuha amtare','gjuha','shumicë']};
+// cenNone: remembers a region without census rows, so the observer does not re-add and remove the section endlessly.
 function census(panel){
- const rid=panel.dataset.regionId,raw=panel.dataset.sourceCountry,code=aliases[raw];if(!rid||!code||!panel.querySelector('.phd.preg')||panel.querySelector('.rg-cen'))return;
+ const rid=panel.dataset.regionId,raw=panel.dataset.sourceCountry,code=aliases[raw];if(!rid||!code||!panel.querySelector('.phd.preg')||panel.querySelector('.rg-cen')||panel.dataset.cenNone===rid)return;
  const sec=document.createElement('section');sec.className='psec pcen rg-cen';sec.dataset.rid=rid;
  const after=panel.querySelector('.country-regions-launch')||panel.querySelector('.phd.preg');after.after(sec);
- load(code).then(data=>{if(!sec.isConnected||panel.dataset.regionId!==rid){sec.remove();return;}
-  const r=data.regions.find(x=>x.id===rid);const obs=r&&r.observations.filter(o=>o.kind==='language_response'&&(o.count>0||o.percentage>0));if(!obs||!obs.length){sec.remove();return;}
+ load(code).then(async data=>{if(!sec.isConnected||panel.dataset.regionId!==rid){sec.remove();return;}
+  const r=data.regions.find(x=>x.id===rid);const all=r&&await observations(data,r);if(!sec.isConnected||panel.dataset.regionId!==rid){sec.remove();return;}
+  const obs=all&&all.filter(o=>o.kind==='language_response'&&(o.count>0||o.percentage>0));if(!obs||!obs.length){panel.dataset.cenNone=rid;sec.remove();return;}
   const src=data.sources[obs[0].source]||{};const grp=group(src);const rows=obs.filter(o=>group(data.sources[o.source]||{})===grp).sort((a,b)=>(b.percentage??-1)-(a.percentage??-1));
   let L='en';try{L=localStorage.getItem('khl-ui')||'en'}catch(e){}const T=CEN[L]||CEN.en,k=window.__ka||(x=>x),dn=window.__dn||(x=>x);
   const meas=src.measure==='mother_tongue'?T[1]:src.measure==='language'?T[2]:readable(src.measure||'');
