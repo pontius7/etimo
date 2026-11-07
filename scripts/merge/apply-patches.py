@@ -483,6 +483,10 @@ def build():
     p.s, n_navy = navy_ui(p.s)
     p.log.append(('UI-navy', n_navy))
 
+    # ---- cache-busting for the on-demand regional scripts (perf/regional-data branch)
+    p.rep('P-cache-regional', 'regional-layer.js?v=34', 'regional-layer.js?v=35')
+    p.rep('P-cache-country', 'country-data.js?v=4', 'country-data.js?v=5')
+
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(p.s)
     print(f'wrote {os.path.relpath(OUT, ROOT)} ({len(p.s):,} chars); {len(p.log)} patches applied')
