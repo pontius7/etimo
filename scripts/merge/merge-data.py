@@ -16,6 +16,12 @@ Steps
                        so Etimo's display function ai() shows exactly what Devter showed.
   3. terr.json/dia.json  Devter paths re-projected from Devter's reference frame
                      (conic conformal [42,66] rot -72) into Etimo's ([35,60] rot -30), then unioned.
+                     terr entries also get `v`, a non-overlapping shape used for drawing (see
+                     add_visual_partition); `d` stays the full area for hover/selection.
+
+Requires shapely (scripts/merge/requirements.txt):
+  python3 -m venv .venv && .venv/bin/pip install -r scripts/merge/requirements.txt
+  .venv/bin/python scripts/merge/merge-data.py
   4. today.json      Etimo topology kept; for countries where Devter has regions Etimo lacks,
                      that country's regions are taken from Devter (arcs decoded + appended);
                      Devter-only countries appended.
@@ -185,7 +191,7 @@ def merge_lexicon(langs):
     return out
 
 
-def merge_terr():
+def merge_terr(langs):
     e, d = load(E_DIR, 'terr.json'), load(D_DIR, 'terr.json')
     assert not (set(e) & set(d)), set(e) & set(d)
     out = dict(e)
@@ -196,10 +202,115 @@ def merge_terr():
         nv['d'] = path
         nv['b'] = [round(min(xs), 1), round(min(ys), 1), round(max(xs), 1), round(max(ys), 1)]
         out[k] = nv
+    add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
     return out
 
 
-def merge_dia():
+def _path_geom(d):
+    """SVG path (absolute M/L/Z rings, even-odd) -> shapely geometry."""
+    from shapely.geometry import Polygon
+    from shapely.validation import make_valid
+    g = None
+    for ring in d.split('M'):
+        ring = ring.replace('Z', '').strip()
+        if not ring:
+            continue
+        pts = [tuple(map(float, p.split(','))) for p in ring.split('L')]
+        if len(pts) < 3:
+            continue
+        p = make_valid(Polygon(pts))
+        g = p if g is None else g.symmetric_difference(p)
+    return make_valid(g) if g is not None else None
+
+
+def _geom_path(g, min_area=0.3):
+    from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
+    polys = []
+    stack = [g]
+    while stack:
+        x = stack.pop()
+        if isinstance(x, Polygon):
+            polys.append(x)
+        elif isinstance(x, (MultiPolygon, GeometryCollection)):
+            stack.extend(x.geoms)
+    out = []
+    for p in polys:
+        if p.area < min_area:
+            continue
+        for ring in [p.exterior, *p.interiors]:
+            c = list(ring.coords)[:-1]
+            if len(c) >= 3:
+                out.append('M' + 'L'.join(f'{x:.1f},{y:.1f}' for x, y in c) + 'Z')
+    return ''.join(out)
+
+
+def approx_circles(langs, terr):
+    """The app's fallback circles (index.html F(): radius by speakers, clipped to Voronoi cells)."""
+    from shapely.geometry import Point, MultiPoint, Polygon
+    from shapely.ops import voronoi_diagram
+
+    def speakers(info):
+        if info.get('sz'):
+            return info['sz']
+        sp = info.get('sp')
+        if not sp:
+            return 5000
+        m = re.search(r'\d+', re.sub(r'[,.](?=\d{3})', '', sp.get('v') or ''))
+        return int(m.group(0)) if m else 5000
+    pts = {k: ETIMO.fwd(v['lon'], v['lat']) for k, v in langs.items() if v.get('lat') is not None}
+    vor = voronoi_diagram(MultiPoint(list(pts.values())))
+    cells = list(vor.geoms)
+    out = {}
+    for k, xy in pts.items():
+        if k in terr and terr[k].get('d'):
+            continue
+        a = speakers(langs[k])
+        i = 15 if a < 1e3 else 25 if a < 1e4 else 40 if a < 1e5 else 70 if a < 1e6 else 140 if a < 1e7 else 200
+        top = ETIMO.fwd(langs[k]['lon'], langs[k]['lat'] + i / 111)
+        r = math.hypot(top[0] - xy[0], top[1] - xy[1])
+        circ = Polygon([(xy[0] + r * math.cos(t / 72 * 2 * math.pi), xy[1] + r * math.sin(t / 72 * 2 * math.pi))
+                        for t in range(72)])
+        p = Point(xy)
+        cell = next((c for c in cells if c.contains(p)), None)
+        out[k] = circ.intersection(cell) if cell is not None else circ
+    return out
+
+
+def add_visual_partition(terr, etimo_keys, langs, etimo_langs):
+    """Add `v` = the drawn shape, so that coloured zones never overlap.
+
+    Each language keeps its full home area in `d` (used for hover/selection tests). For drawing,
+    a larger area gives way to every smaller one it overlaps (Etimo already draws small areas on
+    top of large ones), so each spot of the map is painted by exactly one language. This applies
+    to every pair, Etimo's own included (user decision 2026-11-07: no overlapping colours).
+
+    Languages with no area polygon are drawn by the app as an approximate circle (radius from the
+    speaker count, clipped to the language's Voronoi cell). Those circles are rebuilt here in the
+    same frame with the same rule and also cut out of the larger zones underneath.
+    """
+    from shapely import union_all
+    G = {k: _path_geom(v['d']) for k, v in terr.items()}
+    circles = approx_circles(langs, terr)
+    keys = sorted(terr, key=lambda k: (terr[k]['a'], k))  # small -> large
+    changed = 0
+    for i, k in enumerate(keys):
+        g = G[k]
+        if g is None:
+            continue
+        cut = [G[m] for m in keys[:i]
+               if G[m] is not None and g.intersects(G[m])]
+        cut += [c for m, c in circles.items() if g.intersects(c)]
+        if not cut:
+            continue
+        rest = g.difference(union_all(cut))
+        if abs(rest.area - g.area) < 0.5:
+            continue
+        terr[k]['v'] = _geom_path(rest)
+        changed += 1
+    print(f'  terr: non-overlapping drawn shapes for {changed} languages')
+
+
+def merge_dia(terr, langs):
     e, d = load(E_DIR, 'dia.json'), load(D_DIR, 'dia.json')
     out = {k: dict(v) for k, v in e.items()}
     for grp, items in d.items():
@@ -207,7 +318,31 @@ def merge_dia():
         for k, path in items.items():
             assert k not in tgt, f'dia collision {grp}/{k}'
             tgt[k] = reproject_path(path)[0]
+    separate_family_dia(out['fam'], set(e['fam']), terr, set(load(E_DIR, 'terr.json')), langs,
+                        set(load(E_DIR, 'languages.json')))
     return out
+
+
+def separate_family_dia(fam, etimo_fams, terr, etimo_terr, langs, etimo_langs):
+    """Family-level diaspora shading is always on screen (under the home zones), so it must not
+    overlap a home zone (polygon or fallback circle) or another family's diaspora: each shape
+    loses every home zone and every smaller diaspora shape it overlaps."""
+    from shapely import union_all
+    G = {k: _path_geom(v) for k, v in fam.items()}
+    circles = approx_circles(langs, terr)
+    zones_d = union_all([_path_geom(v['d']) for k, v in terr.items() if k not in etimo_terr]
+                        + [c for k, c in circles.items() if k not in etimo_langs])
+    zones_all = union_all([zones_d] + [_path_geom(v['d']) for k, v in terr.items() if k in etimo_terr]
+                          + [c for k, c in circles.items() if k in etimo_langs])
+    order = sorted(fam, key=lambda k: (G[k].area, k))
+    for i, k in enumerate(order):
+        g = G[k]
+        cut = [zones_all]
+        cut += [G[m] for m in order[:i] if g.intersects(G[m])]
+        rest = g.difference(union_all(cut))
+        if abs(rest.area - g.area) >= 0.5:
+            print(f'  dia {k}: {g.area:,.0f} -> {rest.area:,.0f} (frame units^2)')
+            fam[k] = _geom_path(rest)
 
 
 def merge_today():
@@ -284,8 +419,9 @@ def main():
     assert all(r['lang'] in langs for r in lex)
     dump('languages.json', langs)
     dump('lexicon.json', lex)
-    dump('terr.json', merge_terr())
-    dump('dia.json', merge_dia())
+    terr = merge_terr(langs)
+    dump('terr.json', terr)
+    dump('dia.json', merge_dia(terr, langs))
     dump('today.json', merge_today())
     for n in ('adm2.json', 'micro.json', 'ethno.json'):
         copy_verbatim(n)
