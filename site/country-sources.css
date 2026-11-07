@@ -1,0 +1,85 @@
+/* Additive styles only: the original design and palette remain unchanged. */
+.country-source-icon{min-width:32px!important;width:32px;height:32px!important;padding:6px!important;vertical-align:middle;color:inherit;opacity:.7}
+.country-source-icon:hover,.country-source-icon:focus-visible{opacity:1;background:var(--soft,#eef1ed)}
+.country-source-icon svg{width:17px;height:17px}
+.country-panel-source{position:absolute;top:12px;right:52px}
+.pcen li[data-source-country]>b{display:flex;align-items:center;gap:4px}
+.country-sources-modal{margin:auto;width:min(540px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:24px;border:1px solid var(--line,#cbd3cd);border-radius:18px;background:var(--bg,#fafbf8);color:var(--ink,#172d24);font:400 14px/1.55 var(--sans,Manrope,system-ui,sans-serif);box-shadow:0 24px 80px #06110e40;overflow:auto;overscroll-behavior:contain}
+.country-sources-modal::backdrop{background:#071d164d;backdrop-filter:blur(3px)}
+.country-sources-modal header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.country-sources-modal h2{font:400 27px/1.2 var(--serif,'Noto Serif Display',serif);margin:4px 0 0}
+.country-sources-modal .source-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;opacity:.65;margin:0}
+.country-sources-modal .source-period{margin:16px 0;font-size:12px;opacity:.7}
+.country-source-links{list-style:none;padding:0;margin:0 0 20px}
+.country-source-links li{padding:12px 0;border-top:1px solid var(--line,#d6ddd7)}
+.country-source-links a{display:flex;justify-content:space-between;gap:16px;color:inherit;text-decoration:none;font-weight:500}
+.country-source-links a:hover{text-decoration:underline;text-underline-offset:3px}
+.country-source-links small{display:block;font-size:11px;opacity:.65;margin-top:4px}
+.country-sources-modal details{font-size:12px;border-top:1px solid var(--line,#d6ddd7);padding-top:14px}
+.country-sources-modal summary{cursor:pointer;font-weight:500}
+.country-sources-modal details p{margin-top:12px}
+.country-sources-modal button:focus-visible,.country-sources-modal a:focus-visible,.country-source-icon:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media(max-width:600px){.country-sources-modal{padding:20px}.country-source-icon{min-width:36px!important;width:36px;height:36px!important}}
+.country-data-modal{width:min(760px,calc(100vw - 32px))}
+.country-modal-actions{display:flex;align-items:center;gap:8px}
+.country-data-controls{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0 12px}
+.country-data-controls label{display:flex;flex:1 1 160px;flex-direction:column;gap:5px;font-size:11px;opacity:.85}
+.country-data-controls input,.country-data-controls select{width:100%;box-sizing:border-box;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;font-size:13px}
+.country-results,.region-measure,.region-scope{font-size:11px;opacity:.7;line-height:1.55}
+.country-region{padding:12px 0!important;border-top:1px solid var(--line)}
+.country-region>summary{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:15px;list-style:none}
+.country-region>summary::before{content:'+';font-size:15px;opacity:.6}
+.country-region[open]>summary::before{content:'−'}
+.country-region>summary>span{flex:1}
+.country-region>summary>small{font-weight:400;font-size:11px;max-width:52%;text-align:right;opacity:.7}
+.country-table-scroll{overflow:auto;overscroll-behavior-x:contain}
+.country-region table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+.country-region th,.country-region td{padding:7px 7px 7px 0;border-bottom:1px solid var(--line);font-weight:400;vertical-align:top}
+.country-region thead th{font-size:10px;opacity:.6}
+.country-region td:nth-child(2),.country-region td:nth-child(3){text-align:right;white-space:nowrap;padding-right:12px;font-variant-numeric:tabular-nums}
+.country-region td:last-child{font-size:10px;opacity:.65}
+.country-more,.country-regions-button,.country-name-link{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+.country-more{padding:10px 0;text-decoration:underline}
+.country-regions-button{width:100%;display:flex;justify-content:space-between;padding:0;font-size:15px}
+.country-name-link{padding:0;font-weight:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}
+.country-coverage{margin-top:20px}
+.regional-presence{padding:0;list-style:none}
+.regional-presence li{padding:8px 0;border-bottom:1px solid var(--line)}
+.regional-presence b,.regional-presence span,.regional-presence small{display:block}
+.regional-presence small{font-size:10px;opacity:.65;margin-top:3px}
+@media(max-width:600px){.country-region>summary{flex-wrap:wrap;gap:6px}.country-region>summary>small{flex-basis:100%;max-width:none;text-align:left;padding-left:18px}.country-region table{font-size:11px}.country-region td:last-child{min-width:64px}}
+
+/* Map layer: no zoom-scaled browser focus ring; use a fixed-width stroke instead. */
+.regional-evidence path{outline:none;-webkit-tap-highlight-color:transparent}
+.regional-evidence path:focus-visible{stroke:var(--ink);stroke-opacity:1;stroke-width:2px}
+.municipality-labels text{letter-spacing:0;font-weight:500;stroke-linejoin:round}
+/* Keep the title and close button visible while the table list scrolls. */
+.country-data-modal{--mp:24px}
+.country-data-modal>header{position:sticky;top:calc(var(--mp)*-1);z-index:2;margin:calc(var(--mp)*-1) calc(var(--mp)*-1) 0;padding:var(--mp) var(--mp) 12px;background:var(--bg,#fafbf8);border-bottom:1px solid var(--line,#d6ddd7)}
+.country-region{scroll-margin-top:96px}
+@media(max-width:600px){.country-data-modal{--mp:20px}}
+
+/* The sharper border overlay replaces the original medium-resolution border, which showed through the colours as a second line. */
+svg path.bord{display:none}
+
+/* Original admin lines are replaced by the single-contour overlay. */
+g.adm path{display:none}
+
+/* Albanian dialect legend, shown over the map while Albanian or one of its dialects is selected. */
+.alb-legend{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:12px;z-index:3;max-width:min(260px,calc(100% - 24px));padding:10px 12px;border:1px solid var(--line,#d6ddd7);border-radius:12px;background:color-mix(in srgb,var(--bg,#fafbf8) 92%,transparent);color:var(--ink,#172d24);font:500 11.5px/1.35 var(--sans,Manrope,system-ui,sans-serif);pointer-events:none;box-shadow:0 6px 18px #06110e26}
+.alb-legend b{display:block;margin-bottom:6px;font-weight:600;font-size:12px}
+.alb-legend div{display:block;margin-top:6px}
+.alb-legend span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.65;margin-bottom:2px}
+.alb-legend ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.alb-legend li{display:flex;align-items:center;gap:7px}
+.alb-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
+.alb-legend small{display:block;margin-top:8px;font-size:9.5px;opacity:.6;line-height:1.35}
+@media(max-width:600px){.alb-legend{bottom:96px;font-size:10.5px;padding:8px 10px}.alb-legend small{display:none}}
+
+/* The search bar's empty container must not cover the side panel's close button. */
+.kfil{pointer-events:none}
+.kfil>*{pointer-events:auto}
+.kpanel #cx,.kpanel .ib.close{z-index:70}
+
+g.ac[data-off="1"]{display:none!important}
+.etimo-tip{pointer-events:none}
