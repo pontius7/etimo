@@ -217,22 +217,11 @@ def build():
     p.rep('P6-la', 'let la=' + fam_arr_old, 'let la=' + fam_arr_new)
     p.rep('P7-Nf', 'Nf=' + fam_arr_old, 'Nf=' + fam_arr_new)
 
-    # ---- P8 map pin symbols: 4 new custom shapes (area-normalised like d3 symbols) ------
-    sym = ('var mgHex={draw(e,t){let n=Math.sqrt(t/2.598);for(let t=0;t<6;t++){let r=Math.PI/6+t*Math.PI/3;'
-           't?e.lineTo(n*Math.cos(r),n*Math.sin(r)):e.moveTo(n*Math.cos(r),n*Math.sin(r))}e.closePath()}},'
-           'mgTriD={draw(e,t){let n=Math.sqrt(t/1.299);for(let t=0;t<3;t++){let r=Math.PI/2+2*t*Math.PI/3;'
-           't?e.lineTo(n*Math.cos(r),n*Math.sin(r)):e.moveTo(n*Math.cos(r),n*Math.sin(r))}e.closePath()}},'
-           'mgCross={draw(e,t){let n=Math.sqrt(t/5)/2,r=3*n;e.moveTo(-r,-n),e.lineTo(-n,-n),e.lineTo(-n,-r),'
-           'e.lineTo(n,-r),e.lineTo(n,-n),e.lineTo(r,-n),e.lineTo(r,n),e.lineTo(n,n),e.lineTo(n,r),e.lineTo(-n,r),'
-           'e.lineTo(-n,n),e.lineTo(-r,n),e.closePath()}},'
-           'mgStar={draw(e,t){let n=Math.sqrt(.8908130915292852*t),r=Math.sin(Math.PI/10)/Math.sin(7*Math.PI/10),'
-           'a=Math.sin(2*Math.PI/10)*r*n,i=-Math.cos(2*Math.PI/10)*r*n;e.moveTo(0,-n),e.lineTo(a,i);'
-           'for(let t=1;t<5;++t){let r=2*Math.PI*t/5,s=Math.cos(r),o=Math.sin(r);e.lineTo(o*n,-s*n),'
-           'e.lineTo(s*a-o*i,o*a+s*i)}e.closePath()}};')
-    p.rep('P8-symbols',
+    # ---- P8 map pins: no family shapes (user decision 2026-11-07). Every pin is the same round
+    # marker; family and language are carried by its colour (Vf), as everywhere else in the UI.
+    p.rep('P8-pins-round',
           'let vf={Slavic:hh,Iranian:gh,Albanian:mh,Greek:bh,Romance:gf},bf={Slavic:1,Iranian:.86,Albanian:.82,Greek:1.05,Romance:.9};',
-          sym + 'let vf={Slavic:hh,Iranian:gh,Albanian:mh,Greek:bh,Romance:gf,Caucasian:mgHex,Turkic:mgTriD,Uralic:mgCross,'
-          'Mongolic:mgStar},bf={Slavic:1,Iranian:.86,Albanian:.82,Greek:1.05,Romance:.9,Caucasian:.92,Turkic:1.05,Uralic:.8,Mongolic:1.15};')
+          'let vf={},bf={};')
 
     # ---- family -> CSS var maps --------------------------------------------------------
     p.rep('P9-yf-gradients', '["Greek","--f-gree"],["Romance","--f-roma"]].forEach(',
@@ -441,7 +430,30 @@ def build():
                     sub[1].append(m)
                     added.append(m)
     assert set(sum(place.values(), [])) - known == set(added), 'unplaced meaning'
+    # your own meanings: content/meanings.csv (meaning, subcategory[, sr, sq]) -> taxonomy + labels
+    ea_add = {}
+    mpath = os.path.join(ROOT, 'content', 'meanings.csv')
+    if os.path.exists(mpath):
+        import csv
+        subs = {sub[0]: sub for cat in ra.values() for sub in cat}
+        with open(mpath, encoding='utf-8-sig', newline='') as fh:
+            for i, row in enumerate(csv.DictReader(fh), start=2):
+                row = {(k or '').strip().lower(): (v or '').strip() for k, v in row.items()}
+                if not row.get('meaning'):
+                    continue
+                assert row.get('subcategory') in subs, (f'content/meanings.csv line {i}: unknown subcategory '
+                                                        f'{row.get("subcategory")!r}; use one of: {sorted(subs)}')
+                if row['meaning'] not in known and row['meaning'] not in added:
+                    subs[row['subcategory']][1].append(row['meaning'])
+                    added.append(row['meaning'])
+                if row.get('sr') or row.get('sq'):
+                    ea_add[row['meaning']] = {k: row[k] for k in ('sr', 'sq') if row.get(k)}
     p.rep('P14-ra', 'let ra=' + LIT['ra']['src'], 'let ra=' + jsdump(ra))
+    if ea_add:
+        ea = dict(LIT['ea']['val'])
+        for k, v in ea_add.items():
+            ea[k] = dict(ea.get(k, {}), **v)
+        p.rep('P14-ea', ',ea=' + LIT['ea']['src'], ',ea=' + jsdump(ea))
     known |= set(added)
     syn = {k: v for k, v in LIT['rS']['val'].items() if k not in known and v in known}
     p.rep('P14-sa', 'let sa={};', 'let sa=' + jsdump(syn) + ';')
@@ -457,6 +469,10 @@ def build():
     p.rep('P12-inline-P', '"Wakhi":"#655811","Sarikoli":"#b59e27"};',
           '"Wakhi":"#655811","Sarikoli":"#b59e27",' + jsdump(shades)[1:-1] + '};')
 
+    # ---- UI accent: Etimo's teal-green chrome becomes obsidian/navy (user decision 2026-11-07)
+    p.s, n_navy = navy_ui(p.s)
+    p.log.append(('UI-navy', n_navy))
+
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(p.s)
     print(f'wrote {os.path.relpath(OUT, ROOT)} ({len(p.s):,} chars); {len(p.log)} patches applied')
@@ -464,6 +480,53 @@ def build():
         print('  ok', pid, c)
     print(f'  languages {N_LANGS}, families {N_FAMS}, new meanings {len(added)} (untranslated: {untranslated}), '
           f'synonyms {len(syn)}, cities +{len(cities)}, per-language colours +{len(shades)}')
+
+
+def navy_ui(text):
+    """Re-hue Etimo's interface greens (teal headers, buttons, tints, dark-mode greenish blacks) to
+    an obsidian/navy blue, keeping lightness so contrast stays as designed. Family colours and the
+    per-language colour tables are left alone: those are data colours, not interface chrome."""
+    import re as _re
+    keep = {c.lower() for t in ('light', 'dark') for d in (palette.ETIMO, palette.FAM) for c in d[t].values()}
+    skip = []  # spans of the per-language colour tables
+    for start_pat, end_pat in (('var P={', '};'), ('_c={', '}[_n]')):
+        i = text.find(start_pat)
+        if i >= 0:
+            skip.append((i, text.find(end_pat, i)))
+
+    def conv(rgb):
+        L, C, H = palette.rgb2oklch(rgb)
+        if not (150 <= H <= 200 and C >= .008 and C <= .11):
+            return None
+        L2 = L * .76 if .3 <= L <= .7 else L
+        C2 = min(C, .07 if L2 < .7 else .04)
+        out, ok = palette.oklch2rgb(L2, C2, 262)
+        return out
+    n = 0
+
+    def hexsub(m):
+        nonlocal n
+        if any(a <= m.start() < b for a, b in skip) or m.group(0).lower() in keep:
+            return m.group(0)
+        r = conv(palette.hex2rgb(m.group(0)))
+        if r is None:
+            return m.group(0)
+        n += 1
+        return palette.rgb2hex(r)
+
+    def rgbsub(m):
+        nonlocal n
+        if any(a <= m.start() < b for a, b in skip):
+            return m.group(0)
+        r = conv([int(m.group(i)) / 255 for i in (2, 3, 4)])
+        if r is None:
+            return m.group(0)
+        n += 1
+        v = [round(x * 255) for x in r]
+        return f'{m.group(1)}({v[0]},{v[1]},{v[2]}{m.group(5) or ""})'
+    text = _re.sub(r'#[0-9a-fA-F]{6}\b', hexsub, text)
+    text = _re.sub(r'(rgba?)\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(,[^)]*)?\)', rgbsub, text)
+    return text, n
 
 
 def devter_language_shades():

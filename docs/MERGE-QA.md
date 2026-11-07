@@ -43,12 +43,16 @@ exactly the expected number of times. 59 patches apply, 0 fail.
 
 ## New colours
 
-| family | light | dark | pin shape |
-|---|---|---|---|
-| Caucasian | `#d05418` | `#ea702c` | hexagon |
-| Turkic | `#5b5500` | `#e1f15d` | triangle (point down) |
-| Uralic | `#06899d` | `#44d4e2` | plus |
-| Mongolic | `#8b186c` | `#d553ac` | star |
+| family | light | dark |
+|---|---|---|
+| Caucasian | `#d05418` | `#ea702c` |
+| Turkic | `#5b5500` | `#e1f15d` |
+| Uralic | `#06899d` | `#44d4e2` |
+| Mongolic | `#8b186c` | `#d553ac` |
+
+Map pins have no family shapes any more (user decision): every pin is the same round marker,
+filled with its language's colour, so family and language are carried by colour alone, as in the
+rest of the interface (bar-shaped family dots).
 
 Per-language shades for the 131 Devter languages follow Etimo's pattern: the hue walks across the
 family's band in tree order while lightness cycles through Etimo's levels (`palette.language_shades`).
@@ -105,3 +109,22 @@ the selection restores the blended look. Cross-family overlaps keep "smaller are
 | Karakalpak in Uzbek (Devter) | yes | yes | yes | yes | yes | PASS (overlap-karakalpak-*.png) |
 
 Console errors during these runs: 0.
+
+## Interface colour: obsidian navy (2026-11-07)
+
+Etimo's teal-green interface (headers, buttons, active tabs, tints, the greenish dark-mode
+background and land) is re-hued to obsidian/navy in both themes by `navy_ui()` in
+apply-patches.py (104 colour values; lightness kept or darkened, hue 262). Family colours and the
+per-language colour tables are data colours and stay as they are, so Slavic is still green.
+Not recoloured: `country-sources.css` and `regional-layer.js` (owned by the other branch).
+Screenshots: 08-navy-*.jpg. Console errors: 0.
+
+## Adding words yourself
+
+`content/` + `./scripts/add-words.sh` (instructions in `content/README.md`): drop CSV word lists
+in `content/words/`, optional new languages in `content/languages/*.json` (family, lat/lon,
+optional area ring: the map pin, colour, zone and wheel branch follow automatically), optional new
+meanings in `content/meanings.csv`. The script rebuilds, checks the map, and reports for each
+word its language, map position and browse category (with suggestions for unmatched meanings).
+Tested end to end with a throwaway language and 5 words (pin, zone, colour, search, category and
+IPA all worked), then removed.
