@@ -3,6 +3,8 @@
 
 Drawn shapes = terr `v` (or `d`), the app's fallback circles, and family diaspora shading.
 Totals are split by whether a Devter shape is involved.
+Nested same-family languages (languages.json `nest`) are drawn inside their parent only, so they
+are checked like any other shape; the script also lists them.
 Run: .venv/bin/python scripts/merge/check-overlaps.py
 """
 import importlib.util, json, os, sys
@@ -34,6 +36,7 @@ for i, a in enumerate(keys):
             new_max, worst = ar, (a, b)
 print(f'overlap involving Devter shapes: total {new_total:.2f}')
 print(f'overlap among Etimo-only shapes: total {old_total:.2f}')
+print('nested same-family:', ', '.join(f'{k}->{v["nest"]}' for k, v in L.items() if v.get('nest')))
 print(f'largest single pair: {new_max:.2f} {worst or ""}')
 # 1 frame unit ~ 6 km; what remains are hairline slivers from rounding path coordinates to 0.1
 print('PASS' if new_max < 3.0 else 'FAIL', '(threshold: no pair over 3 frame units^2, i.e. hairline rounding slivers only)')

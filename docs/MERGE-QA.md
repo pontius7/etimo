@@ -85,3 +85,23 @@ family's band in tree order while lightness cycles through Etimo's levels (`pale
 - German strings that Etimo already had remain in the bundle but are unreachable.
 - The A-Z key for Devter Latin-script words is the spelling (as in Devter); Etimo's own Latin
   words still sort by their IPA (existing Etimo behaviour, unchanged).
+
+## Nested areas (follow-up, 2026-11-07)
+
+A smaller area lying inside a larger area of the same family (>= 80% of a polygon, >= 95% of a
+fallback circle; 34 languages, listed by `check-overlaps.py`) rests in its outermost same-family
+parent's colour, so it blends in. It stays its own zone: hover shows its own outline and name,
+click/tap selects it, selecting it from search or lists works the same, and the selected area
+switches to its own colour and the map zooms to its own bounds (Etimo's padding and easing; the
+minimum frame is 1/24 of the view instead of 1/10 so small areas really fill the view). Clearing
+the selection restores the blended look. Cross-family overlaps keep "smaller area wins".
+
+| case | rest colour = parent | hover = own name | click selects it | own colour when selected | zoom to own bounds | result |
+|---|---|---|---|---|---|---|
+| Catalan in Spanish | yes | yes | yes | yes, back to Spanish colour on clear | yes | PASS (overlap-catalan-*.png) |
+| Montenegrin in Serbian | yes | yes | yes | yes (also via #map-montenegrin) | yes | PASS (overlap-montenegrin-selected.png) |
+| Albanian dialect circles (Central Gheg etc.) | yes | n/a | n/a | n/a | n/a | N/A: Etimo's `regional-layer.js` hides these circles and pins (its dialect overlay draws them); that file belongs to the other branch (overlap-gheg-resting.png) |
+| Svan circle in Georgian (substitute circle case) | yes | yes | yes | yes | yes | PASS (overlap-svan-selected.png) |
+| Karakalpak in Uzbek (Devter) | yes | yes | yes | yes | yes | PASS (overlap-karakalpak-*.png) |
+
+Console errors during these runs: 0.

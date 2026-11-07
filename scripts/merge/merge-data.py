@@ -202,7 +202,9 @@ def merge_terr(langs):
         nv['d'] = path
         nv['b'] = [round(min(xs), 1), round(min(ys), 1), round(max(xs), 1), round(max(ys), 1)]
         out[k] = nv
-    add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
+    nest = add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
+    for k, n in nest.items():
+        langs[k]['nest'] = n
     return out
 
 
@@ -287,27 +289,75 @@ def add_visual_partition(terr, etimo_keys, langs, etimo_langs):
     Languages with no area polygon are drawn by the app as an approximate circle (radius from the
     speaker count, clipped to the language's Voronoi cell). Those circles are rebuilt here in the
     same frame with the same rule and also cut out of the larger zones underneath.
+
+    Nested areas (user decision 2026-11-07): a smaller area lying inside a larger area of the SAME
+    family (>= 80% of a polygon, >= 95% of a fallback circle) is a "nested" language. Its drawn
+    shape is clipped to that parent and it does not cut other same-family zones; the app paints
+    it in the colour of its outermost same-family ancestor (`info.nest`) until it is selected,
+    then in its own colour. Returns {language: outermost same-family ancestor}.
     """
     from shapely import union_all
     G = {k: _path_geom(v['d']) for k, v in terr.items()}
     circles = approx_circles(langs, terr)
+    fam = family_of()
+    parent = {}
+    for k, g in list(G.items()) + list(circles.items()):
+        if g is None or g.area == 0:
+            continue
+        need = 0.95 if k in circles else 0.8
+        best = None
+        for m, h in G.items():
+            if m == k or h is None or fam[m] != fam[k] or (k in terr and terr[m]['a'] <= terr[k]['a']):
+                continue
+            if g.intersects(h):
+                f = g.intersection(h).area / g.area
+                if f >= need and (best is None or f > best[1]):
+                    best = (m, f)
+        if best:
+            parent[k] = best[0]
+
+    def root(k):
+        seen = set()
+        while k in parent and k not in seen:
+            seen.add(k)
+            k = parent[k]
+        return k
     keys = sorted(terr, key=lambda k: (terr[k]['a'], k))  # small -> large
-    changed = 0
-    for i, k in enumerate(keys):
+    plain = [k for k in keys if k not in parent]
+    V = {}
+    # pass 1: non-nested zones; smaller wins, fallback circles win
+    for i, k in enumerate(plain):
         g = G[k]
         if g is None:
             continue
-        cut = [G[m] for m in keys[:i]
-               if G[m] is not None and g.intersects(G[m])]
-        cut += [c for m, c in circles.items() if g.intersects(c)]
-        if not cut:
-            continue
-        rest = g.difference(union_all(cut))
-        if abs(rest.area - g.area) < 0.5:
+        cut = [G[m] for m in plain[:i] if G[m] is not None and g.intersects(G[m])]
+        cut += [c for c in circles.values() if g.intersects(c)]
+        V[k] = g.difference(union_all(cut)) if cut else g
+    # pass 2: nested zones (outermost first) take their spot out of the parent's drawn shape only
+    for k in sorted((k for k in keys if k in parent), key=lambda k: (-terr[k]['a'], k)):
+        g = G[k]
+        cut = [G[m] for m in plain if terr[m]['a'] < terr[k]['a'] and G[m] is not None and g.intersects(G[m])]
+        cut += [c for c in circles.values() if g.intersects(c)]
+        own = (g.difference(union_all(cut)) if cut else g).intersection(V[parent[k]])
+        V[parent[k]] = V[parent[k]].difference(own)
+        V[k] = own
+    changed = 0
+    for k, rest in V.items():
+        if abs(rest.area - G[k].area) < 0.5:
             continue
         terr[k]['v'] = _geom_path(rest)
         changed += 1
-    print(f'  terr: non-overlapping drawn shapes for {changed} languages')
+    nest = {k: root(k) for k in parent}
+    print(f'  terr: non-overlapping drawn shapes for {changed} languages; nested same-family: {len(nest)}')
+    return nest
+
+
+def family_of():
+    fam = {}
+    for d in (E_DIR, D_DIR):
+        for r in load(d, 'lexicon.json'):
+            fam[r['lang']] = r['family']
+    return fam
 
 
 def merge_dia(terr, langs):
@@ -417,9 +467,9 @@ def main():
     lex = merge_lexicon(langs)
     assert len(lex) == len(langs) == len(el) + len(dl)
     assert all(r['lang'] in langs for r in lex)
+    terr = merge_terr(langs)  # also sets langs[*]['nest']
     dump('languages.json', langs)
     dump('lexicon.json', lex)
-    terr = merge_terr(langs)
     dump('terr.json', terr)
     dump('dia.json', merge_dia(terr, langs))
     dump('today.json', merge_today())
