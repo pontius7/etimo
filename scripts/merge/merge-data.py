@@ -181,6 +181,18 @@ def add_content(langs, lex):
             by_lang[d['name']] = rec
             if d.get('area'):
                 _AREAS[d['name']] = d['area']
+    import dedupe
+    internal = dedupe.find_internal_duplicates(lex)
+    idx = {}  # language -> DupIndex of everything kept so far (built on first use)
+
+    def index_for(rec):
+        if rec['lang'] not in idx:
+            d = idx[rec['lang']] = dedupe.DupIndex()
+            for e in rec['entries']:
+                d.add(rec['lang'], e, dedupe.ref_label(e))
+        return idx[rec['lang']]
+
+    stats, skipped, conflict_rows = {'read': 0, 'added': 0}, [], []
     new = []
     for f in sorted(glob.glob(os.path.join(CONTENT, 'words', '*.csv'))):
         with open(f, encoding='utf-8-sig', newline='') as fh:
@@ -193,12 +205,27 @@ def add_content(langs, lex):
                     assert row.get(k), f'{where}: missing "{k}"'
                 rec = by_lang.get(row['language'])
                 assert rec, f'{where}: unknown language "{row["language"]}" (add it in content/languages/)'
-                if any(e['word'] == row['word'] and e['meaning'] == row['meaning'] for e in rec['entries']):
-                    continue  # already present: rerunning never duplicates
+                stats['read'] += 1
                 ent = {'word': row['word'], 'lat': row.get('latin') or None, 'meaning': row['meaning'],
                        'src': [row.get('source') or os.path.splitext(os.path.basename(f))[0]]}
                 if row.get('ipa'):
                     ent['ipa'] = row['ipa'].strip('/')
+                d = index_for(rec)
+                hit = d.find(rec['lang'], ent)
+                if hit:  # duplicate: skip it (rerunning never duplicates) and say so in the report
+                    kept, reason = hit
+                    s = {'file': os.path.relpath(f, ROOT), 'line': i, 'lang': rec['lang'], 'word': row['word'],
+                         'meaning': row['meaning'], 'of': kept['label'], 'reason': reason,
+                         'conflicts': dedupe.conflicts({'ipa': row.get('ipa'), 'lat': row.get('latin'),
+                                                        'src': [row['source']] if row.get('source') else []},
+                                                       kept['cmp'])}
+                    skipped.append(s)
+                    if s['conflicts']:
+                        conflict_rows.append(s)
+                    continue
+                d.add(rec['lang'], ent, f'"{row["word"]}" from {where}',
+                      {'ipa': row.get('ipa'), 'lat': row.get('latin'), 'src': ent['src']})
+                stats['added'] += 1
                 rec['entries'].append(ent)
                 new.append((rec, ent))
     if new:  # same reading rules as the Devter words: Cyrillic -> Latin, Latin script -> IPA
@@ -217,7 +244,11 @@ def add_content(langs, lex):
                     ent['ipa'] = shown[1:-1]
                 if not ent['lat']:
                     ent['lat'] = ent['word']
-    print(f'  content/: {len(_AREAS)} new language areas, +{len(new)} words')
+    report = os.path.join(CONTENT, 'duplicates-report.txt')
+    dedupe.write_report(report, stats, skipped, conflict_rows, internal)
+    print(f'  content/: {len(_AREAS)} new language areas, +{len(new)} words, '
+          f'{len(skipped)} duplicates skipped ({len(conflict_rows)} with different data) '
+          f'-> {os.path.relpath(report, ROOT)}')
     return len(new)
 
 

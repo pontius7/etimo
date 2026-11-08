@@ -18,6 +18,19 @@ Put a CSV file in `content/words/` (any name, e.g. `my-serbian-words.csv`). Colu
 
 `content/words/_template.csv` is an empty starting file. Save CSVs as UTF-8 (Excel: "CSV UTF-8").
 
+### Duplicates
+
+The build skips a row when the same word with the same meaning already exists in that language,
+either already on the site or earlier in your CSVs. Differences that are ignored: capitals, extra
+spaces, invisible characters, look-alike apostrophes and dashes, Arabic/Persian letter variants and
+vowel marks, Hebrew vowel points, and Cyrillic vs Latin spelling (`вода` = `voda` for Serbian,
+Montenegrin, Bosnian, Croatian, or when the `latin` column matches). Real letter differences count
+as different words (`ujë` ≠ `uje`), and so do different meanings and different languages.
+
+Every build writes `content/duplicates-report.txt`. It lists each skipped row with its file and
+line, what it duplicated, and any row whose ipa, latin or source differed from the entry that
+was kept.
+
 ## 2. Add a language (optional)
 
 Copy `content/languages/_example.json.txt` to `content/languages/<name>.json` and fill it in.
