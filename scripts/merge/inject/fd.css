@@ -66,13 +66,20 @@
 .tabbar .in>button:nth-child(5){--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.5%22/%3E%3Cpath%20d%3D%22M2.5%2012h19%22/%3E%3Cpath%20d%3D%22M12%202.5c2.6%202.6%203.9%205.8%203.9%209.5s-1.3%206.9-3.9%209.5c-2.6-2.6-3.9-5.8-3.9-9.5S9.4%205.1%2012%202.5z%22/%3E%3C/svg%3E")}
 @media (width<64rem){.tabbar{--ico:21px}}
 @media (width>=64rem){.tabbar{--ico:19px}}
-/* phones: away from Home, only the Home button stays; the rest fade out */
-@media (width<64rem){
-  .tabbar .in>button{transition:opacity .4s cubic-bezier(.2,.8,.2,1),transform .45s cubic-bezier(.2,.8,.2,1),color .25s}
-  .tabbar .in:has(>button:nth-child(3):not([aria-current=page]))>button:not(:nth-child(3)){opacity:0;transform:scale(.86);pointer-events:none}
-  .tabbar .in>:not(button){transition:opacity .3s ease}
-  .tabbar .in:has(>button:nth-child(3):not([aria-current=page]))>:not(button){opacity:0!important}
-}
 /* hero + family cards: calm crossfade (no slide), so the built-in letter scramble reads cleanly */
 .sl,.ct .cs,.ct.ctm .cm{transform:none!important;transition:opacity .7s cubic-bezier(.4,0,.2,1)!important}
 @media (prefers-reduced-motion:reduce){.tabbar .in>button,.sl,.ct .cs,.ct.ctm .cm{transition:none!important}}
+
+/* phones: language switch is a small pill at the top, beside the light/dark button; bar keeps 4 even items */
+@media (width<64rem){
+  .tabbar .in{grid-template-columns:repeat(4,1fr)!important}
+  .tabbar .in>button:nth-child(5){position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(56px,calc(env(safe-area-inset-left,0px) + 56px));height:32px!important;flex-direction:row!important;gap:4px!important;padding:0 10px 0 6px;border:1px solid var(--line);border-radius:999px;font-size:.75rem!important;z-index:27;background:var(--bg)}
+  .tabbar .in>button:nth-child(5) .icn{width:20px;height:20px}
+  .tabbar .in>button:nth-child(5){--ico:16px}
+}
+/* home page: no navy highlight on the Home tab */
+.tabbar .in:has(>button:nth-child(3)[aria-current=page])>:not(button){opacity:0!important}
+.tabbar .in>button:nth-child(3)[aria-current=page] .icn{background:none!important;color:var(--ink)!important}
+/* family dots a touch larger */
+.sl .dot,.ct .cl .dot,.spec .dot{width:8px!important;height:8px!important;border-radius:50%!important}
+.tabbar .in>button:nth-child(3)[aria-current=page],.tabbar .in>button:nth-child(3)[aria-current=page] *{color:var(--ink)!important}
