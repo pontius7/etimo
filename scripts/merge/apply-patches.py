@@ -523,6 +523,12 @@ def fd_patches(p):
     p.rep('FD-code', 'function kp({L:e,onCat:t}){',
           'const FDV=' + jsdump(search_version()) + ';\n' + app + '\nfunction kp({L:e,onCat:t,d:FDd}){')
     # language page: Latin keys in its word filter
+    # every language page opens on "All" (not the last-used or "family" category)
+    p.rep('FD-cat-default', 'cat:"family",tv:', 'cat:"all",tv:')
+    p.rep('FD-cat-nostore', 'let e=localStorage.getItem("khl-cat");e&&(mi.cat=e);', '')
+    p.rep('FD-cat-kp', '[a,i]=(0,m.useState)(mi.cat),', '[a,i]=(0,m.useState)("all"),')
+    p.rep('FD-cat-reset', '(0,m.useEffect)(()=>{mi.wq=s,mi.wqL=e.id},[s,e.id]),',
+          '(0,m.useEffect)(()=>{mi.wq=s,mi.wqL=e.id},[s,e.id]),(0,m.useEffect)(()=>{i("all"),mi.cat="all"},[e.id]),')
     p.rep('FD-kp-filter', 'c=Da(s.trim()),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1):u,',
           'c=Da(s.trim()),FQ=FDq(s),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1'
           '||FDcoreMatch(e,FQ)):u,')

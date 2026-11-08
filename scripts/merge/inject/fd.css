@@ -39,3 +39,12 @@
 @media (prefers-reduced-motion:reduce){.fdload i{animation:none}}
 /* touch screens with dense pixels: cheaper path rasterising on the map (no change on desktop) */
 @media (hover:none) and (min-resolution:2dppx){.mapbox svg .zones path,.mapbox svg g.adm path{shape-rendering:optimizeSpeed}}
+/* phones + tablets: main menu sits at the top, under the header (the hosting badge covers the bottom) */
+@media (width<64rem){
+  .tabbar{top:calc(env(safe-area-inset-top,0px) + 56px)!important;bottom:auto!important;border-top:0!important;border-bottom:1px solid var(--line);padding-bottom:0!important}
+  .barw{padding-bottom:var(--tab)}
+  body{padding-bottom:calc(56px + env(safe-area-inset-bottom,0px))!important}
+  .seg.sticky,.letter,.llist .lgh,.view>.lets,.lsearch{top:calc(env(safe-area-inset-top,0px) + 56px + var(--tab))!important}
+  .card{bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
+  .ktop{bottom:calc(max(12px,env(safe-area-inset-bottom,0px)) + 14px)!important}
+}
