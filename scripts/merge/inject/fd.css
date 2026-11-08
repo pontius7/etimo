@@ -1,0 +1,43 @@
+/* language page: quiet header on the normal surface; family colour only as a dot */
+.view.lview>.head{background:var(--bd);border:1px solid var(--bd-line);color:var(--ink);margin-top:.5rem;padding:1.1rem 1.15rem 1rem;gap:.35rem}
+.view.lview>.head h2{color:var(--ink);font-size:clamp(2.25rem,10vw,3.25rem)}
+.view.lview>.head .pill{color:var(--mut)}
+.view.lview>.head .orn{background:var(--mut);opacity:.35;margin:.5rem 0 .15rem}
+.view.lview>.head .anb{color:var(--ink);opacity:1}
+.view.lview>.head .meta,.view.lview>.head .meta b{color:var(--ink);font-size:.9375rem}
+.view.lview>.head .meta+.meta,.view.lview>.head .meta+.meta b{color:var(--mut)}
+.view.lview>.head .cenl,.view.lview>.head .clsl{color:var(--mut)}
+.lpath{display:flex;align-items:center;gap:.5rem;width:100%;min-width:0;margin:.1rem 0 0;padding:.2rem 0;border:0;background:0 0;color:var(--mut);font:500 .8125rem/1.4 var(--sans);text-align:left;cursor:pointer}
+.lpath .dot{flex:none;width:8px;height:8px;border-radius:50%}
+.lpath span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lpath.open span{white-space:normal}
+.lpath:focus-visible{outline:2px solid var(--hd);outline-offset:2px;border-radius:6px}
+/* search on top, sticky while the list scrolls */
+.lsearch{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:6;background:var(--bg);padding:.25rem 0 .5rem;margin-top:.5rem}
+.lsearch .search{margin:0}
+/* categories: one compact row of chips instead of a block of tiles */
+.view.lview .ltiles{display:flex;gap:.5rem;overflow-x:auto;margin:.5rem 0 .75rem;padding:.15rem 0 .35rem;scrollbar-width:none;grid-template-columns:none}
+.view.lview .ltiles::-webkit-scrollbar{display:none}
+.view.lview .lt{flex:none;min-height:2.5rem;padding:.45rem .95rem;font:500 .9375rem/1.2 var(--sans);border-radius:999px}
+.view.lview .lt.on:after{display:none}
+.view.lview .minimap{margin-top:2rem}
+/* full dictionary */
+.fds{margin-top:2rem}
+.fdh{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:0 0 .5rem;padding-bottom:.6rem;border-bottom:1px solid var(--line);font:500 1.375rem/1.2 var(--serif);color:var(--ink)}
+.fdh span{font:500 .8125rem var(--sans);color:var(--mut);white-space:nowrap}
+.fdload{display:flex;align-items:center;gap:.6rem;color:var(--mut);padding:1.25rem 0}
+.fdload i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--mut);animation:fdspin .8s linear infinite}
+@keyframes fdspin{to{transform:rotate(360deg)}}
+.fdrows{content-visibility:auto}
+.fdr .wr{width:100%}
+.fdr .wk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fdr.open .wk{white-space:normal}
+.fdr .wv small{display:block}
+.fdtag{color:var(--mut);font:500 .75rem/1.3 var(--sans);letter-spacing:.02em}
+.fdx{margin:0;padding:.1rem 0 .9rem;border-bottom:1px solid var(--line);color:var(--ink);font-size:.9375rem;line-height:1.45;overflow-wrap:anywhere}
+.fdx span{color:var(--mut);font-size:.8125rem}
+.fdfocus{margin-bottom:.75rem}
+.fdfocus .fdr{border-radius:10px}
+.fdsg{opacity:.8}
+.fdw:has(.fdsr)>p.empty,.fdw:has(.fdsr) .sres>p.empty{display:none}
+@media (prefers-reduced-motion:reduce){.fdload i{animation:none}}

@@ -1,0 +1,161 @@
+/* Full dictionaries + Latin-friendly search. Inlined into site/index.html by apply-patches.py
+   (patch FD-code) right before the language page component, so it shares the bundle's names:
+   m = React, f = jsx runtime, ja() UI strings, Ja(hash) navigate, Na(L) language name,
+   ai(entry) reading, fa id->language, di highlight, Da text fold, Qa remember query, ka/ya locale,
+   EK = site/search-key.js (inlined before this script). FDV = search index version (build). */
+let FDH = 'h/', FDc = {}, FDsI = null, FDsc = {};
+const FDt = k => {
+  let t = {
+    full: {en: 'Full dictionary', sr: 'Ceo rečnik', sq: 'Fjalori i plotë'},
+    words: {en: 'words', sr: 'reči', sq: 'fjalë'},
+    open: {en: 'Show the full dictionary', sr: 'Prikaži ceo rečnik', sq: 'Shfaq fjalorin e plotë'},
+    loading: {en: 'Loading the dictionary…', sr: 'Učitavanje rečnika…', sq: 'Duke ngarkuar fjalorin…'},
+    failed: {en: 'The dictionary could not be loaded. Check the connection and try again.', sr: 'Rečnik nije učitan. Proverite vezu i pokušajte ponovo.', sq: 'Fjalori nuk u ngarkua. Kontrolloni lidhjen dhe provoni përsëri.'},
+    retry: {en: 'Try again', sr: 'Pokušaj ponovo', sq: 'Provo përsëri'},
+    more: {en: 'Show more', sr: 'Prikaži još', sq: 'Shfaq më shumë'},
+    inDict: {en: 'In the full dictionaries', sr: 'U celim rečnicima', sq: 'Në fjalorët e plotë'},
+    none: {en: 'No match in the full dictionary.', sr: 'Nema pogotka u celom rečniku.', sq: 'Asnjë përputhje në fjalorin e plotë.'},
+    src: {en: 'Source', sr: 'Izvor', sq: 'Burimi'},
+    shown: {en: 'shown', sr: 'prikazano', sq: 'të shfaqura'},
+    searching: {en: 'Searching the full dictionaries…', sr: 'Pretraga celih rečnika…', sq: 'Duke kërkuar në fjalorët e plotë…'}
+  }[k];
+  return ka(t[ya()] || t.en);
+};
+const FDnum = n => n.toLocaleString(Ia());
+/* one language's dictionary file -> {s, e, k (keys, built on first search)} */
+function FDload(L) {
+  let fd = L.info && L.info.fd;
+  if (!fd) return Promise.resolve(null);
+  if (!FDc[L.lang]) FDc[L.lang] = fetch(FDH + 'dict/' + fd[1]).then(r => { if (!r.ok) throw Error(r.status); return r.json(); })
+    .catch(e => { delete FDc[L.lang]; throw e; });
+  return FDc[L.lang];
+}
+function FDkeys(D) {
+  if (!D.k) D.k = D.e.map(r => { let k = EK.keys(r[0]); if (r[1]) EK.keys(r[1]).forEach(x => k.indexOf(x) < 0 && k.push(x)); return k; });
+  if (!D.g) D.g = D.e.map(r => Da(r[3]));
+  return D;
+}
+/* rank of entry for query q (lower is better, 9 = no match): exact same script, exact key, prefix, contains */
+function FDrank(word, keys, gloss, q, qk, qp, qd) {
+  if (qp && EK.plain(word) === qp) return 0;
+  let r = 9;
+  for (let k of keys) for (let x of qk) {
+    if (k === x) r = Math.min(r, 1); else if (k.startsWith(x)) r = Math.min(r, 3); else if (x.length > 2 && k.indexOf(x) > -1) r = Math.min(r, 5);
+  }
+  if (r > 2 && qd && gloss) { let g = ' ' + gloss + ' '; if (g.indexOf(' ' + qd + ' ') > -1) r = Math.min(r, 2); else if (g.indexOf(' ' + qd) > -1) r = Math.min(r, 4); else if (qd.length > 2 && g.indexOf(qd) > -1) r = Math.min(r, 6); }
+  return r;
+}
+const FDq = q => { q = String(q || '').trim(); return {q, qk: q ? EK.keys(q) : [], qp: EK.plain(q), qd: Da(q)}; };
+/* core word list matching for the language page (adds Latin keys to the original contains test) */
+function FDcoreMatch(e, Q) {
+  if (!e._ek) { e._ek = EK.keys(e.word); e.lat && EK.keys(e.lat).forEach(x => e._ek.indexOf(x) < 0 && e._ek.push(x)); }
+  return e._ek.some(k => Q.qk.some(x => k.startsWith(x) || (x.length > 2 && k.indexOf(x) > -1)));
+}
+function FDsplitTag(s) { let i = s.lastIndexOf(' · '); return i > -1 ? [s.slice(0, i), s.slice(i + 3)] : [s, '']; }
+function FDrow({r, D, open, onTog, q, hl}) {
+  let [src, tag] = FDsplitTag(D.s[r[4] || 0] || ''), pr = r[1] ? r[1] + (r[2] ? ' · /' + r[2] + '/' : '') : r[2] ? '/' + r[2] + '/' : '';
+  return (0, f.jsxs)('div', {className: 'fdr' + (open ? ' open' : '') + (hl ? ' hlrow' : ''), children: [
+    (0, f.jsxs)('button', {type: 'button', className: 'wr', 'aria-expanded': open, onClick: onTog, children: [
+      (0, f.jsx)('span', {className: 'wk', children: (0, f.jsx)(di, {s: r[3].replace(/^\s*(\([^()]*\)\s*)+/, ''), q})}),
+      (0, f.jsxs)('span', {className: 'wv', children: [(0, f.jsx)('b', {children: (0, f.jsx)(di, {s: r[0], q})}), pr ? (0, f.jsx)('small', {className: 'pr', children: pr}) : null,
+        tag ? (0, f.jsx)('small', {className: 'fdtag', children: tag}) : null]})]}),
+    open ? (0, f.jsxs)('p', {className: 'fdx', children: [r[3], (0, f.jsx)('br', {}), (0, f.jsxs)('span', {children: [FDt('src'), ': ', src, tag ? ' · ' + tag : '']})]}) : null]});
+}
+/* "Full dictionary (N words)" section of a language page. q = the page's search text, d = entry to show */
+function FDsection({L, q, d}) {
+  let fd = L.info && L.info.fd, [st, setSt] = (0, m.useState)(d != null || (q || '').trim().length > 1 ? 'load' : 'idle'),
+    [D, setD] = (0, m.useState)(null), [n, setN] = (0, m.useState)(200), [op, setOp] = (0, m.useState)(d != null ? d : -1),
+    ref = (0, m.useRef)(null), [dq, setDq] = (0, m.useState)(q || '');
+  (0, m.useEffect)(() => { let t = setTimeout(() => setDq(q || ''), 120); return () => clearTimeout(t); }, [q]);
+  (0, m.useEffect)(() => { if (st === 'idle' && (q || '').trim().length > 1) setSt('load'); }, [q]);
+  (0, m.useEffect)(() => {
+    if (st !== 'load') return;
+    let live = true;
+    FDload(L).then(x => { if (live) { setD(x); setSt('ok'); } }).catch(() => live && setSt('err'));
+    return () => { live = false; };
+  }, [st, L.lang]);
+  (0, m.useEffect)(() => setN(200), [dq]);
+  (0, m.useEffect)(() => { if (d != null && D && ref.current) ref.current.scrollIntoView({block: 'center'}); }, [D]);
+  let list = (0, m.useMemo)(() => {
+    if (!D) return [];
+    let Q = FDq(dq);
+    if (!Q.q) return D.e.map((r, i) => i);
+    FDkeys(D);
+    let out = [];
+    D.e.forEach((r, i) => { let k = FDrank(r[0], D.k[i], D.g[i], Q.q, Q.qk, Q.qp, Q.qd); k < 9 && out.push([k, i]); });
+    out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    return out.map(x => x[1]);
+  }, [D, dq]);
+  if (!fd) return null;
+  let head = (0, f.jsxs)('h3', {className: 'fdh', children: [FDt('full'), (0, f.jsxs)('span', {children: [FDnum(fd[0]), ' ', FDt('words')]})]});
+  if (st === 'idle') return (0, f.jsxs)('section', {className: 'fds', children: [head, (0, f.jsx)('button', {type: 'button', className: 'more fdopen', onClick: () => setSt('load'), children: FDt('open') + ' (' + FDnum(fd[0]) + ')'})]});
+  if (st === 'load') return (0, f.jsxs)('section', {className: 'fds', 'aria-busy': 'true', children: [head, (0, f.jsxs)('p', {className: 'fdload', children: [(0, f.jsx)('i', {}), FDt('loading')]})]});
+  if (st === 'err') return (0, f.jsxs)('section', {className: 'fds', children: [head, (0, f.jsx)('p', {className: 'empty', children: FDt('failed')}), (0, f.jsx)('button', {type: 'button', className: 'more', onClick: () => setSt('load'), children: FDt('retry')})]});
+  let qq = dq.trim(), show = list.slice(0, n), focus = d != null && D.e[d] ? d : null;
+  return (0, f.jsxs)('section', {className: 'fds', children: [head,
+    focus != null ? (0, f.jsx)('div', {ref, className: 'lrows fdfocus', children: (0, f.jsx)(FDrow, {r: D.e[focus], D, open: !0, hl: !0, onTog: () => {}, q: ''})}) : null,
+    qq && !list.length ? (0, f.jsx)('p', {className: 'empty', children: FDt('none')}) : null,
+    (0, f.jsx)('div', {className: 'lrows fdrows', children: show.map(i => (0, f.jsx)(FDrow, {r: D.e[i], D, q: qq, open: op === i, onTog: () => setOp(op === i ? -1 : i)}, i))}),
+    list.length > n ? (0, f.jsx)('button', {type: 'button', className: 'more', onClick: () => setN(n + 200), children: FDt('more') + ' (' + FDnum(Math.min(200, list.length - n)) + ' / ' + FDnum(list.length - n) + ')'}) : null]});
+}
+/* ---------- main search over the dictionary tier (sharded index, one small file per key prefix) */
+function FDindex() {
+  if (!FDsI) FDsI = fetch(FDH + 'search/' + FDV + '/index.json').then(r => { if (!r.ok) throw Error(r.status); return r.json(); })
+    .then(x => (x.split = new Set(x.split), x)).catch(e => { FDsI = null; throw e; });
+  return FDsI;
+}
+const FDhex = p => Array.from(p).map(c => c.codePointAt(0).toString(16)).join('-');
+function FDshard(I, k) {
+  let p = EK.prefix(k, Math.min(2, Array.from(k).length)), n = Array.from(k).length;
+  while (I.split.has(p) && n > Array.from(p).length) p = EK.prefix(k, Array.from(p).length + 1);
+  if (!FDsc[p]) FDsc[p] = fetch(FDH + 'search/' + FDV + '/' + FDhex(p) + '.json').then(r => r.ok ? r.json() : {e: [], k: []})
+    .then(x => (x.p = p, x)).catch(() => (delete FDsc[p], {e: [], k: [], p}));
+  return FDsc[p];
+}
+function FDsearch(q) {
+  let Q = FDq(q);
+  if (!Q.qk.length) return Promise.resolve([]);
+  return FDindex().then(I => Promise.all(Q.qk.map(k => FDshard(I, k))).then(sh => {
+    let best = new Map();
+    sh.forEach(S => S.k.forEach(row => {
+      let key = S.p + row[0], hitW = Q.qk.some(x => key === x), pre = Q.qk.some(x => key.startsWith(x));
+      if (!pre) return;
+      for (let j = 1; j < row.length; j++) {
+        let v = row[j], mean = v < 0, e = S.e[mean ? ~v : v], word = e[2];
+        let r = !mean && Q.qp && EK.plain(word) === Q.qp ? 0 : hitW ? (mean ? 2 : 1) : (mean ? 4 : 3);
+        let id = e[0] + ':' + e[1], o = best.get(id);
+        if (!o || r < o.r) best.set(id, {r, L: I.langs[e[0]], i: e[1], w: word, p: e[3], g: e[4]});
+      }
+    }));
+    return Array.from(best.values()).sort((a, b) => a.r - b.r || a.w.length - b.w.length || a.w.localeCompare(b.w));
+  }));
+}
+function FDresults({q, fam = 'all'}) {
+  let [res, setRes] = (0, m.useState)(null), [n, setN] = (0, m.useState)(60), qq = String(q || '').trim();
+  (0, m.useEffect)(() => {
+    setN(60);
+    if (!qq) { setRes(null); return; }
+    let live = true, t = setTimeout(() => FDsearch(qq).then(x => live && setRes({q: qq, x})).catch(() => live && setRes({q: qq, x: []})), 120);
+    return () => { live = false; clearTimeout(t); };
+  }, [qq]);
+  if (!qq) return null;
+  if (!res || res.q !== qq) return (0, f.jsx)('p', {className: 'gh fdsg', children: FDt('searching')});
+  let lang = x => fa['l-' + oa(x.L)], xs = res.x.filter(x => { let L = lang(x); return L && ('all' === fam || L.family === fam); });
+  if (!xs.length) return null;
+  return (0, f.jsxs)('div', {className: 'fdsr', children: [(0, f.jsxs)('p', {className: 'gh', children: [FDt('inDict'), ' · ', FDnum(xs.length)]}),
+    (0, f.jsx)('div', {className: 'kgrid sgrid', children: xs.slice(0, n).map(x => { let L = lang(x);
+      return (0, f.jsxs)('button', {type: 'button', className: 'kt rt', onClick: () => { Qa(qq); Ja('d' + x.i + '-' + L.id.slice(2)); }, children: [
+        (0, f.jsx)('span', {className: 'kn', children: (0, f.jsx)(di, {s: x.g, q: qq})}),
+        (0, f.jsxs)('span', {className: 'kb', children: [(0, f.jsx)('span', {className: 'kw', children: (0, f.jsx)(di, {s: x.w, q: qq})}),
+          x.p ? (0, f.jsx)('span', {className: 'kpr pr', children: x.p}) : null,
+          (0, f.jsxs)('span', {className: 'kl', children: [(0, f.jsx)('i', {className: 'dot ' + L.family}), Na(L)]})]})]}, x.L + x.i); })}),
+    xs.length > n ? (0, f.jsx)('button', {type: 'button', className: 'more', onClick: () => setN(n + 60), children: FDt('more') + ' (' + FDnum(xs.length - n) + ')'}) : null]});
+}
+/* family path: one quiet line; middle levels fold into "…" until tapped */
+function FDpath({v, fam}) {
+  let [o, setO] = (0, m.useState)(!1);
+  if (!v.length) return null;
+  let parts = o || v.length <= 3 ? v : [v[0], '…', v[v.length - 1]];
+  return (0, f.jsxs)('button', {type: 'button', className: 'lpath' + (o ? ' open' : ''), 'aria-expanded': o, title: v.join(' › '), onClick: () => setO(!o), children: [
+    (0, f.jsx)('i', {className: 'dot ' + fam}), (0, f.jsx)('span', {children: parts.join(' › ')})]});
+}

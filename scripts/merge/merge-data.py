@@ -149,6 +149,7 @@ CONTENT = os.path.join(ROOT, 'content')
 FAMILIES = ['Slavic', 'Iranian', 'Albanian', 'Greek', 'Romance', 'Caucasian', 'Turkic', 'Uralic', 'Mongolic']
 _AREAS = {}
 _NEWFAM = {}
+_IMPORT = {}
 
 
 def add_content(langs, lex):
@@ -181,75 +182,54 @@ def add_content(langs, lex):
             by_lang[d['name']] = rec
             if d.get('area'):
                 _AREAS[d['name']] = d['area']
+    import bulk_import
     import dedupe
-    internal = dedupe.find_internal_duplicates(lex)
-    idx = {}  # language -> DupIndex of everything kept so far (built on first use)
+    extra = []
+    mpath = os.path.join(CONTENT, 'meanings.csv')
+    if os.path.exists(mpath):
+        with open(mpath, encoding='utf-8-sig', newline='') as fh:
+            extra = [(r.get('meaning') or '').strip() for r in csv.DictReader(fh)]
+        extra = [m for m in extra if m]
 
-    def index_for(rec):
-        if rec['lang'] not in idx:
-            d = idx[rec['lang']] = dedupe.DupIndex()
-            for e in rec['entries']:
-                d.add(rec['lang'], e, dedupe.ref_label(e))
-        return idx[rec['lang']]
-
-    stats, skipped, conflict_rows = {'read': 0, 'added': 0}, [], []
-    new = []
-    for f in sorted(glob.glob(os.path.join(CONTENT, 'words', '*.csv'))):
-        with open(f, encoding='utf-8-sig', newline='') as fh:
-            for i, row in enumerate(csv.DictReader(fh), start=2):
-                row = {(k or '').strip().lower(): (v or '').strip() for k, v in row.items()}
-                if not any(row.values()):
-                    continue
-                where = f'{os.path.relpath(f, ROOT)} line {i}'
-                for k in ('language', 'word', 'meaning'):
-                    assert row.get(k), f'{where}: missing "{k}"'
-                rec = by_lang.get(row['language'])
-                assert rec, f'{where}: unknown language "{row["language"]}" (add it in content/languages/)'
-                stats['read'] += 1
-                ent = {'word': row['word'], 'lat': row.get('latin') or None, 'meaning': row['meaning'],
-                       'src': [row.get('source') or os.path.splitext(os.path.basename(f))[0]]}
-                if row.get('ipa'):
-                    ent['ipa'] = row['ipa'].strip('/')
-                d = index_for(rec)
-                hit = d.find(rec['lang'], ent)
-                if hit:  # duplicate: skip it (rerunning never duplicates) and say so in the report
-                    kept, reason = hit
-                    s = {'file': os.path.relpath(f, ROOT), 'line': i, 'lang': rec['lang'], 'word': row['word'],
-                         'meaning': row['meaning'], 'of': kept['label'], 'reason': reason,
-                         'conflicts': dedupe.conflicts({'ipa': row.get('ipa'), 'lat': row.get('latin'),
-                                                        'src': [row['source']] if row.get('source') else []},
-                                                       kept['cmp'])}
-                    skipped.append(s)
-                    if s['conflicts']:
-                        conflict_rows.append(s)
-                    continue
-                d.add(rec['lang'], ent, f'"{row["word"]}" from {where}',
-                      {'ipa': row.get('ipa'), 'lat': row.get('latin'), 'src': ent['src']})
-                stats['added'] += 1
-                rec['entries'].append(ent)
-                new.append((rec, ent))
-    if new:  # same reading rules as the Devter words: Cyrillic -> Latin, Latin script -> IPA
-        tmp = [{'lang': r['lang'], 'entries': [e]} for r, e in new]
+    def romanize(items, core_ids):
+        """Same reading rules as the Devter words: Cyrillic -> Latin; Latin script -> rule-based IPA
+        (IPA only for core-tier words; dictionary words keep the IPA their source gave)."""
+        if not items:
+            return
+        tmp = [{'lang': lang, 'entries': [e]} for lang, e in items]
         with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False, encoding='utf-8') as t:
             json.dump(tmp, t, ensure_ascii=False)
         try:
             res = devter_romanize(None, t.name)
         finally:
             os.unlink(t.name)
-        for (rec, ent), [[kind, shown]] in zip(new, res):
+        for (lang, ent), [[kind, shown]] in zip(items, res):
             if kind == 'c' and not ent['lat']:
                 ent['lat'] = shown or None
-            elif kind == 'x':
+            elif kind == 'x' and id(ent) in core_ids:
                 if not ent.get('ipa') and shown.startswith('/') and len(shown) > 2:
                     ent['ipa'] = shown[1:-1]
                 if not ent['lat']:
                     ent['lat'] = ent['word']
+    res = bulk_import.import_words(ROOT, langs, lex, extra, romanize)
+    for r, e in res['core_new']:  # Latin-script core words: lat = spelling (A-Z order), as before
+        if not e['lat'] and dedupe.script_of(e['word']) in (None, 'LATIN'):
+            e['lat'] = e['word']
+    site = os.path.join(ROOT, 'site')
+    rows, keys, sizes = bulk_import.write_dictionary(site, langs, res['dict'])
+    res['dict_sizes'] = sizes
+    res['search'] = bulk_import.write_search(site, rows, keys)
+    _IMPORT.update(res)
     report = os.path.join(CONTENT, 'duplicates-report.txt')
-    dedupe.write_report(report, stats, skipped, conflict_rows, internal)
-    print(f'  content/: {len(_AREAS)} new language areas, +{len(new)} words, '
-          f'{len(skipped)} duplicates skipped ({len(conflict_rows)} with different data) '
+    dedupe.write_report(report, res['stats'], res['skipped'], res['conflicts'], res['internal'])
+    nd = sum(len(v) for v in res['dict'].values())
+    print(f'  content/: {len(_AREAS)} new language areas, +{len(res["core_new"]):,} core words, '
+          f'+{nd:,} dictionary words in {len(sizes)} languages ({sum(sizes.values()):,} bytes), '
+          f'{len(res["skipped"]):,} duplicates skipped ({len(res["conflicts"]):,} with different data) '
           f'-> {os.path.relpath(report, ROOT)}')
-    return len(new)
+    s = res['search']
+    print(f'  search index: {s["files"]} files, {s["bytes"]:,} bytes, largest {s["largest"]:,} bytes')
+    return len(res['core_new'])
 
 
 def add_content_areas(terr, langs):
@@ -593,9 +573,19 @@ def main():
     assert len(lex) == len(langs) == len(el) + len(dl)
     added = add_content(langs, lex)
     terr = merge_terr(langs)  # also sets langs[*]['nest']; includes content/ areas
+    for r in lex:  # the app draws the map from languages.json before the words arrive
+        langs[r['lang']]['fam'] = r['family']
+        langs[r['lang']]['pl'] = r['place']
+    langs = {r['lang']: langs[r['lang']] for r in lex}  # same order as the lexicon
     dump('languages.json', langs)
     dump('lexicon.json', lex)
     dump('terr.json', terr)
+    if _IMPORT:
+        import bulk_import
+        bulk_import.write_import_report(os.path.join(CONTENT, 'import-report.txt'), _IMPORT['report'],
+                                        _IMPORT['dict_sizes'], os.path.getsize(os.path.join(OUT, 'lexicon.json')),
+                                        _IMPORT['search'])
+        print('  wrote content/import-report.txt')
     assert len(lex) == len(langs) and all(r['lang'] in langs for r in lex)
     dump('dia.json', merge_dia(terr, langs))
     dump('today.json', merge_today())
