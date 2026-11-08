@@ -126,3 +126,6 @@ details.vb.d1:has(>summary .dot.Iranian){order:8}
 details.vb.d1:has(>summary .dot.Mongolic){order:9}
 /* language tree: family + language marks are small round dots (same as the cards) */
 .vtree .dot{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
+/* tree dot hierarchy: families larger, languages inside an opened family smaller */
+.vtree details.vb.d1>summary .dot{width:10px!important;height:10px!important}
+.vtree details.vb.d1 details .dot,.vtree details.vb.d1 .vl .dot{width:6px!important;height:6px!important}
