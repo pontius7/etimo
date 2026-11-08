@@ -40,3 +40,19 @@
   .card{bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
   .ktop{bottom:calc(max(12px,env(safe-area-inset-bottom,0px)) + 14px)!important}
 }
+/* ---- 2026-11-08 typography: serif display only for card titles (language name, map/word card titles,
+   native name); every list, row, tile, tree label and menu uses the sans so rows line up. */
+.ct .cn,.ct.ctm .cm,.ctl,.cx,.fdh,.fg header b,.ht .hn,.kt .kn,.kt .kw,.lt,.menu .opt,.menu-in .opt,.pn button,
+.row .an,.row .t,.sbc .wpk,.sbc b,.sblab,.sblab.lf,.sbleaf,.sbout,.sbt .kb,.spec-c,.sres .tiles .tile,.sw,.tile,
+.vb.d1>summary .vn,.view>.rows .letter,.vl .vn,.wcd b,.wety .et,.wla,.wlb,.wll,.wmean,.wv b,
+.pedi .pq .pn,.pedi .pq .pr2{font-family:var(--sans)!important;letter-spacing:-.005em}
+.dendro .dfam text,.pedi .pf text,.pedi .pt text{font-family:var(--sans)!important}
+/* language list: no family-path / region sub-line under each entry */
+.lres .ltx small{display:none!important}
+/* phone/tablet menu: slimmer bar, same 44px+ touch targets */
+@media (width<64rem){
+  :root{--tab:54px}
+  .tabbar button{height:var(--tab)!important;gap:2px!important;font-size:.75rem!important}
+  .tabbar .icn{width:48px;height:26px}
+  .tabbar button svg{width:20px!important;height:20px!important}
+}
