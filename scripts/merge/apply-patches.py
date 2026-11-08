@@ -281,14 +281,10 @@ def build():
           'A.append("path").datum(e).attr("class","zone "+e.family+(e.info&&e.info.hist?" hist":""))')
 
     # ---- nested same-family areas (data: languages.json info.nest = outermost same-family parent)
-    # resting: painted in the parent's colour (blends in); selected: its own colour. The map's
-    # existing click/hover on zone paths and zoom-to-bounds already pick the nested area itself.
-    p.rep('NEST-rest', 'A.selectAll("path.zone").each(function(e){let t=Vf(e);',
-          'A.selectAll("path.zone").each(function(e){let t=Vf(e.info&&e.info.nest&&fa["l-"+oa(e.info.nest)]||e);')
-    p.rep('NEST-select', 'function $t(e){nt=e,',
-          'function $t(e){nt=e,A.selectAll("path.zone").filter(t=>t.info&&t.info.nest).each(function(t){'
-          'let n=Vf(t===e?t:fa["l-"+oa(t.info.nest)]||t);n&&(this.style.fill=n,this.style.stroke=n)}),')
-
+    # Colour rule (2026-11-07, user): EVERY language is painted in its own palette colour on the map,
+    # exactly as on the wheel, cards and pins. Nested areas used to blend into their parent's colour;
+    # that made Montenegrin/Gheg/Tosk/Catalan... disagree with the original app and with the wheel.
+    # `info.nest` is still used for geometry (non-overlapping shapes, tighter zoom frame) only.
     # selecting a nested area zooms to that area alone: smaller minimum frame than Etimo's 1/10 view
     p.rep('NEST-zoom', 'function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,i=Math.max(n[2]-n[0],b/10),s=Math.max(n[3]-n[1],y/10);',
           'function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,'

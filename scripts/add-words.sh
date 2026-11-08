@@ -7,3 +7,6 @@ cd "$(dirname "$0")/.."
 python3 scripts/merge/apply-patches.py | head -1
 .venv/bin/python scripts/merge/check-overlaps.py | tail -1
 python3 scripts/merge/words-report.py
+# Colour check: map = palette = wheel for every language, originals identical to the reference.
+# Needs Google Chrome and Node. Skip only if you must: ETIMO_SKIP_COLOR_CHECK=1 ./scripts/add-words.sh
+if [ -z "$ETIMO_SKIP_COLOR_CHECK" ]; then python3 scripts/merge/check-colors.py; else echo "colour check SKIPPED"; fi

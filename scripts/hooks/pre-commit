@@ -1,0 +1,11 @@
+#!/bin/sh
+# Refuses a commit if site/ is stale or the colour check fails. Install: sh scripts/hooks/install.sh
+cd "$(git rev-parse --show-toplevel)" || exit 1
+git diff --cached --name-only | grep -qE '^(content/|scripts/|site/)' || exit 0   # unrelated commit
+echo "pre-commit: rebuilding site/ and checking colours..."
+sh scripts/add-words.sh >/tmp/etimo-precommit.log 2>&1 || { tail -25 /tmp/etimo-precommit.log; echo "pre-commit: build or colour check FAILED (full log /tmp/etimo-precommit.log)"; exit 1; }
+if ! git diff --quiet -- site; then
+  echo "pre-commit: site/ was out of date with content/ and scripts/. It has been rebuilt; review, 'git add site', and commit again."
+  exit 1
+fi
+echo "pre-commit: OK"
