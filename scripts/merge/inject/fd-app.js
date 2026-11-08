@@ -157,15 +157,16 @@ function FDresults({q, fam = 'all'}) {
   let tick = 0;
   const run = () => {
     tick = 0;
-    const az = document.querySelector('.ct-grid > .ct.ctz');
-    if (!az || az.previousElementSibling && az.previousElementSibling.classList.contains('fdict')) return;
+    const az = document.querySelector('.ct-grid > .ct.ctz:not(.fdict)');
+    if (!az || az.parentNode.querySelector('.fdict')) return;
     const tab = document.querySelector('.tabbar .in > button:nth-child(1)');
     if (!tab) return;
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'fdict';
+    b.type = 'button'; b.className = 'ct ctz fdict';
     const label = (tab.querySelector('span:not(.icn)') || tab).textContent.trim();
-    b.innerHTML = '<i aria-hidden="true"></i><span></span><b aria-hidden="true">›</b>';
-    b.querySelector('span').textContent = label;
+    /* same anatomy as the A–Z tile: header label, then a body with the big glyph line */
+    b.innerHTML = '<span class="cn"></span><span class="cw"><span class="cs on"><span class="cx">Aa · Аа · Αα</span><span class="cl">abc · абв · αβγ</span></span></span>';
+    b.querySelector('.cn').textContent = label; b.setAttribute('aria-label', label);
     b.addEventListener('click', () => tab.click());
     az.parentNode.insertBefore(b, az);
   };
