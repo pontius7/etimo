@@ -203,7 +203,11 @@ def build():
     # historical-language zones (Devter v68 rule)
     p.rep('P18-css', '</style>\n<script type="module">',
           '</style>\n<style id="merge-devter">.zones path.zone.hist{fill-opacity:.18!important;stroke-dasharray:3 2.5;'
-          'stroke-width:1.2px;vector-effect:non-scaling-stroke}</style>\n<script type="module">')
+          'stroke-width:1.2px;vector-effect:non-scaling-stroke}'
+          '/* top menu: icons never clipped (wrapper + svg may not shrink or hide strokes) */'
+          '.tabbar button .icn{overflow:visible!important;flex:none!important;max-width:none!important;min-width:0}'
+          '.tabbar button svg{overflow:visible!important;flex:none!important}'
+          '.tabbar button{overflow:visible}</style>\n<script type="module">')
 
     # ---- German UI locale excluded (decision 2026-11-07): menu entry removed, stored "de" -> English
     p.rep('DE-menu', '[["en","English"],["sq","Shqip"],["de","Deutsch"]].map(', '[["en","English"],["sq","Shqip"]].map(')
