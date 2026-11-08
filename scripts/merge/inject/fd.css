@@ -7,11 +7,11 @@
 .view.lview>.head .meta,.view.lview>.head .meta b{color:var(--ink);font-size:.9375rem}
 .view.lview>.head .meta+.meta,.view.lview>.head .meta+.meta b{color:var(--mut)}
 .view.lview>.head .cenl,.view.lview>.head .clsl{color:var(--mut)}
-.lpath{display:flex;align-items:center;gap:.5rem;width:100%;min-width:0;margin:.1rem 0 0;padding:.2rem 0;border:0;background:0 0;color:var(--mut);font:500 .8125rem/1.4 var(--sans);text-align:left;cursor:pointer}
-.lpath .dot{flex:none;width:8px;height:8px;border-radius:50%}
-.lpath span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.lpath.open span{white-space:normal}
-.lpath:focus-visible{outline:2px solid var(--hd);outline-offset:2px;border-radius:6px}
+.lpath{display:flex;align-items:flex-start;gap:.5rem;width:100%;min-width:0;margin:.1rem 0 0;padding:.2rem 0;color:var(--mut);font:500 .8125rem/1.4 var(--sans);text-align:left}
+.lpath .dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:calc(.5lh - 4px)}
+.lpath span{min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:.4rem;row-gap:.1rem}
+.lpath span b{font-weight:inherit;white-space:nowrap}
+.lpath .sep{font-style:normal;opacity:.6;margin-right:.4rem}
 /* search on top, sticky while the list scrolls */
 .lsearch{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:6;background:var(--bg);padding:.25rem 0 .5rem;margin-top:.5rem}
 .lsearch .search{margin:0}
