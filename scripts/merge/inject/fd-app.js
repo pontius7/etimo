@@ -173,3 +173,20 @@ function FDresults({q, fam = 'all'}) {
   new MutationObserver(() => { if (!tick) tick = requestAnimationFrame(run); })
     .observe(document.documentElement, {childList: true, subtree: true});
 })();
+
+/* phones: one light/dark button on every page (top-left, beside the back arrow) */
+(function FDtheme() {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'fdtheme'; b.setAttribute('aria-label', 'Light / dark mode');
+  const isDark = () => {
+    const t = document.documentElement.getAttribute('data-theme');
+    return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+  b.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('khl-theme', next); } catch (e) {}
+  });
+  const add = () => document.body && !document.body.contains(b) && document.body.appendChild(b);
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', add) : add();
+})();

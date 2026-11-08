@@ -133,3 +133,23 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 @media (width<64rem){.mapbox .card.mcard{bottom:calc(66px + env(safe-area-inset-bottom,0px))!important}}
 /* map: selected-language chip in the search bar and the popup's family label use round dots too */
 .kfb .dot,.mapbox .card .pill .dot,.card .pill .dot{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
+/* map popups consistent: area popup matches the language popup (round dot, no path lines, compact on phones) */
+.kpanel .pfam i{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
+.kpanel .prn small{display:none!important}
+@media (width<64rem){.card.kpanel .psec.pwh{display:none!important}}
+.card.kpanel{scrollbar-width:none!important;scrollbar-gutter:auto!important}.card.kpanel::-webkit-scrollbar{display:none}
+.card.kpanel>.phd{width:auto!important;max-width:none!important;align-self:stretch!important;box-sizing:border-box}
+@media (width<64rem){.card.kpanel{grid-template-columns:1fr!important;column-gap:0!important}}
+
+/* phones: light/dark button on every page; the home-only original is hidden */
+.fdtheme{display:none}
+@media (width<64rem){
+  body:has(.tabbar .in>button:nth-child(3)[aria-current=page]) .bar .bl>button{display:none!important}
+  .fdtheme{display:block;position:fixed;z-index:27;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(12px,calc(env(safe-area-inset-left,0px) + 12px));width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--ink);padding:0;cursor:pointer}
+  body:has(.tabbar .in>button:nth-child(3):not([aria-current=page])):has(.bar .bl>button) .fdtheme{left:max(56px,calc(env(safe-area-inset-left,0px) + 56px))}
+  .fdtheme::after{content:"";position:absolute;inset:0;margin:auto;width:17px;height:17px;background:currentColor;-webkit-mask:var(--tm) center/contain no-repeat;mask:var(--tm) center/contain no-repeat}
+  .fdtheme{--tm:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%2014.5A8%208%200%200%201%209.5%204a8%208%200%201%200%2010.5%2010.5z%22/%3E%3C/svg%3E")}
+  :root[data-theme=dark] .fdtheme{--tm:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22/%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M4.9%204.9l1.4%201.4M17.7%2017.7l1.4%201.4M2%2012h2M20%2012h2M4.9%2019.1l1.4-1.4M17.7%206.3l1.4-1.4%22/%3E%3C/svg%3E")}
+  html.mapfs .fdtheme{visibility:hidden}
+}
+@media (prefers-color-scheme:dark){@media (width<64rem){:root:not([data-theme=light]) .fdtheme{--tm:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22/%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M4.9%204.9l1.4%201.4M17.7%2017.7l1.4%201.4M2%2012h2M20%2012h2M4.9%2019.1l1.4-1.4M17.7%206.3l1.4-1.4%22/%3E%3C/svg%3E")}}}
