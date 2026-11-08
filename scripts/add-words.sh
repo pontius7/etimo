@@ -4,6 +4,7 @@ set -e
 cd "$(dirname "$0")/.."
 [ -x .venv/bin/python ] || { python3 -m venv .venv && .venv/bin/pip install -q -r scripts/merge/requirements.txt; }
 python3 scripts/merge/fetch-sheets.py
+node scripts/merge/test-search-key.js | tail -1
 .venv/bin/python scripts/merge/merge-data.py
 python3 scripts/merge/apply-patches.py | head -1
 .venv/bin/python scripts/merge/check-overlaps.py | tail -1

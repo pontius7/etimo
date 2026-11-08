@@ -487,6 +487,8 @@ def build():
     p.rep('P-cache-regional', 'regional-layer.js?v=34', 'regional-layer.js?v=35')
     p.rep('P-cache-country', 'country-data.js?v=4', 'country-data.js?v=5')
 
+    fd_patches(p)
+    perf_patches(p)
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(p.s)
     print(f'wrote {os.path.relpath(OUT, ROOT)} ({len(p.s):,} chars); {len(p.log)} patches applied')
@@ -494,6 +496,149 @@ def build():
         print('  ok', pid, c)
     print(f'  languages {N_LANGS}, families {N_FAMS}, new meanings {len(added)} (untranslated: {untranslated}), '
           f'synonyms {len(syn)}, cities +{len(cities)}, per-language colours +{len(shades)}')
+
+
+
+# ---------------------------------------------------------------- full dictionaries, search, language page
+INJ = os.path.join(HERE, 'inject')
+
+
+def search_version():
+    root = os.path.join(ROOT, 'site', 'h', 'search')
+    vs = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))] if os.path.isdir(root) else []
+    assert len(vs) == 1, f'expected one search index version in site/h/search, found {vs} (run merge-data.py)'
+    return vs[0]
+
+
+def fd_patches(p):
+    """Full-dictionary tier (scripts/merge/bulk_import.py) in the app: lazy per-language dictionary
+    on the language page, dictionary results in the main search, Latin-key matching everywhere,
+    language page layout (header, sticky search, family path), "About the data" text removed."""
+    ek = open(os.path.join(ROOT, 'site', 'search-key.js'), encoding='utf-8').read()
+    app = open(os.path.join(INJ, 'fd-app.js'), encoding='utf-8').read()
+    css = open(os.path.join(INJ, 'fd.css'), encoding='utf-8').read()
+    assert '</script>' not in ek and '</script>' not in app and '</style>' not in css
+    p.rep('FD-ek', '\n<script type="module">', '\n<script>' + ek + '</script>\n<style id="etimo-fd">' + css
+          + '</style>\n<script type="module">')
+    p.rep('FD-code', 'function kp({L:e,onCat:t}){',
+          'const FDV=' + jsdump(search_version()) + ';\n' + app + '\nfunction kp({L:e,onCat:t,d:FDd}){')
+    # language page: Latin keys in its word filter
+    p.rep('FD-kp-filter', 'c=Da(s.trim()),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1):u,',
+          'c=Da(s.trim()),FQ=FDq(s),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1'
+          '||FDcoreMatch(e,FQ)):u,')
+    # layout: header -> sticky search -> category chips -> words -> full dictionary -> map -> prev/next
+    mini = ('(0,f.jsx)("button",{type:"button",className:"minimap",ref:l,"aria-label":n.showMap,onClick:()=>Ja("map-"+'
+            'e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})})')
+    p.rep('FD-kp-mini-out', 'children:[' + mini + ',(0,f.jsxs)("div",{className:"head",', 'children:[(0,f.jsxs)("div",{className:"head",')
+    p.rep('FD-kp-path', '(0,f.jsx)("div",{className:"meta",style:{fontSize:15},children:v.join(" › ")})',
+          '(0,f.jsx)(FDpath,{v,fam:e.family})')
+    i = p.s.index('(0,f.jsx)("div",{className:"ltiles",role:"tablist",children:["all",...aa]')
+    srch = ',(0,f.jsx)(ui,{id:"wq",value:s,onChange:o,ph:n.findIn(Na(e))})'
+    j = p.s.index(srch, i)
+    assert j - i < 600, 'ltiles block not followed by the word search'
+    tiles = p.s[i:j]
+    p.s = p.s[:i] + '(0,f.jsx)("div",{className:"lsearch",children:(0,f.jsx)(ui,{id:"wq",value:s,onChange:o,ph:n.findIn(Na(e))})}),' \
+        + tiles + p.s[j + len(srch):]
+    p.log.append(('FD-kp-search-top', 1))
+    p.rep('FD-kp-dict', ':(0,f.jsx)("p",{className:"empty",children:n.none})}),(0,f.jsx)(bp,{prev:p>0',
+          ':(0,f.jsx)("p",{className:"empty",children:n.none})}),(0,f.jsx)(FDsection,{L:e,q:s,d:FDd}),' + mini
+          + ',(0,f.jsx)(bp,{prev:p>0')
+    # route #d<entry>-<language>: open the language page on that dictionary entry
+    p.rep('FD-route', 'let b=function(e){if(fa[e])return{v:"lang",L:fa[e]};',
+          'let b=function(e){if(fa[e])return{v:"lang",L:fa[e]};let FDm=/^d(\\d+)-(.+)$/.exec(e);'
+          'if(FDm&&fa["l-"+FDm[2]])return{v:"lang",L:fa["l-"+FDm[2]],d:+FDm[1]};')
+    p.rep('FD-route-kp', '(0,f.jsx)(kp,{L:b.L},b.L.id)', '(0,f.jsx)(kp,{L:b.L,d:b.d},b.L.id+(null!=b.d?"d"+b.d:""))')
+    # main search: core results as before, then the full-dictionary results
+    p.rep('FD-search', 'function Yh({q:e,fam:t="all",onPick:n}){',
+          'function Yh(e){return(0,f.jsxs)("div",{className:"fdw",children:[(0,f.jsx)(FDYh,e),(0,f.jsx)(FDresults,{q:e.q,fam:e.fam})]})}'
+          'function FDYh({q:e,fam:t="all",onPick:n}){')
+    # core search: Latin keys (single-letter + digraph) for every entry and query
+    p.rep('FD-Ga', 'ri(e.e.word)&&n(ni(e.e.word)),e._k=Array.from(t)}return e._k}',
+          'ri(e.e.word)&&n(ni(e.e.word)),EK.keys(e.e.word).concat(e.e.lat?EK.keys(e.e.lat):[]).forEach(e=>t.add(e)),'
+          'e._k=Array.from(t)}return e._k}')
+    p.rep('FD-Ha', 's=[...new Set([r,a,Da(i),ri(i)?Da(ni(i)):""].filter(Boolean))];',
+          's=[...new Set([r,a,Da(i),ri(i)?Da(ni(i)):""].concat(EK.keys(n)).filter(Boolean))];')
+    # settings sheet: the "About the data" disclaimer under the language selector is removed
+    a = ',(0,f.jsx)("p",{className:"dh",children:ka(Zr[ya()].aboutD)}),(0,f.jsx)("p",{className:"abt",children:Ea({'
+    i = p.s.index(a)
+    assert p.s.count(a) == 1
+    m = re.compile(r'de:"(?:[^"\\]|\\.)*"\}\[ya\(\)\]\)\}\)').search(p.s, i)
+    assert m and m.start() - i < 20000, 'end of the About-the-data paragraph not found'
+    p.s = p.s[:i] + p.s[m.end():]
+    p.log.append(('FD-no-about', 1))
+
+
+# ---------------------------------------------------------------- performance
+# today.json stays at data/today.json: regional-layer.js fetches the same URL, so both share one download
+HASHED = ['lexicon.json', 'languages.json', 'world-50s.json', 'terr.json', 'shade.webp']
+
+
+def hashed_copies():
+    """Copy the startup data to site/h/<name>.<hash>.<ext> (cached for a year, see site/_headers)."""
+    import hashlib
+    import shutil
+    hdir = os.path.join(ROOT, 'site', 'h')
+    os.makedirs(hdir, exist_ok=True)
+    for old in os.listdir(hdir):
+        if os.path.isfile(os.path.join(hdir, old)):
+            os.remove(os.path.join(hdir, old))
+    out = {}
+    for name in HASHED:
+        src = os.path.join(ROOT, 'site', 'data', name)
+        data = open(src, 'rb').read()
+        base, ext = os.path.splitext(name)
+        hn = f'{base}.{hashlib.sha1(data).hexdigest()[:10]}{ext}'
+        shutil.copyfile(src, os.path.join(hdir, hn))
+        out[name] = 'h/' + hn
+    return out
+
+
+def perf_patches(p):
+    H = hashed_copies()
+    J = 'e=>fetch(e).then(t=>{if(!t.ok)throw Error(e+" "+t.status);return t.json()})'
+    old_head = ('Promise.all(["data/lexicon.json","data/languages.json","data/world-50s.json"].map(' + J + ').concat([fetch('
+                '"data/terr.json").then(e=>e.ok?e.json():{}).catch(()=>({}))])).then(([e,t,n,r])=>{ua=e,ca=n,Object.keys(ia)'
+                '.forEach(e=>{ha[e]=[]}),ua.forEach(e=>{e.id="l-"+oa(e.lang),e.info=t[e.lang]||{},fa[e.id]=e,e.entries.forEach(')
+    i = p.s.index(old_head)
+    j = p.s.index('.catch(e=>{console.error(e),Hp.innerHTML=', i)
+    body = p.s[i + len(old_head):j]
+    # body = <per-entry fn>)}),pa=[],...,da=r||{},Hp.innerHTML="",(0,p.createRoot)(Hp).render((0,f.jsx)(Up,{}))}
+    k = body.index(')}),pa=[],')
+    per_entry = body[:k]
+    k2 = body.index(',da=r||{},Hp.innerHTML=""')
+    pa_build = body[k + len(')}),'):k2]
+    tail = '(0,p.createRoot)(Hp).render((0,f.jsx)(Up,{}))})'
+    assert body.endswith(',da=r||{},Hp.innerHTML="",' + tail), body[-200:]
+    # B1: the map (languages + world + areas) renders first; words arrive afterwards and fill in
+    new = ('Promise.all([' + jsdump(H['languages.json']) + ',' + jsdump(H['world-50s.json']) + '].map(' + J + ').concat([fetch('
+           + jsdump(H['terr.json']) + ').then(e=>e.ok?e.json():{}).catch(()=>({}))])).then(([t,n,r])=>{'
+           'ua=Object.keys(t).map(e=>({lang:e,place:t[e].pl,family:t[e].fam,gc:t[e].gc,entries:[]})),ca=n,'
+           'Object.keys(ia).forEach(e=>{ha[e]=[]}),ua.forEach(e=>{e.id="l-"+oa(e.lang),e.info=t[e.lang]||{},fa[e.id]=e}),'
+           'pa=[],da=r||{},window.__lexReady=!1,Hp.innerHTML="",(0,p.createRoot)(Hp).render((0,f.jsx)(Up,{})),'
+           '(' + J + ')(' + jsdump(H['lexicon.json']) + ').then(L=>{let by={};ua.forEach(e=>{by[e.lang]=e}),L.forEach(R=>{'
+           'let e=by[R.lang];e&&(e.entries=R.entries,e.entries.forEach(' + per_entry + '))}),' + pa_build
+           + ',window.__lexReady=!0,window.dispatchEvent(new Event("etimo:lex"))}).catch(e=>{console.error(e),'
+           'Hp.querySelector(".boot")&&(Hp.querySelector(".boot").textContent=ja().loadErr)})})')
+    p.s = p.s[:i] + new + p.s[j:]
+    p.log.append(('PERF-boot-map-first', 1))
+    p.rep('PERF-lex-event', 'return window.addEventListener("hashchange",e),()=>window.removeEventListener("hashchange",e)},[]),',
+          'return window.addEventListener("hashchange",e),()=>window.removeEventListener("hashchange",e)},[]),'
+          '(0,m.useEffect)(()=>{let e=()=>p(e=>e+1);return window.addEventListener("etimo:lex",e),'
+          '()=>window.removeEventListener("etimo:lex",e)},[]),')
+    p.rep('PERF-wait-words', 'E=null;if("home"===b.v)',
+          'E=null;if(!window.__lexReady&&"map"!==b.v&&"langs"!==b.v)E=(0,f.jsx)("div",{className:"wrap",children:'
+          '(0,f.jsx)("p",{className:"boot",children:y.loading})});else if("home"===b.v)')
+    # B3: today's internal borders load after the first map paint (idle time), not with it
+    p.rep('PERF-today', 'ff=fetch("data/today.json")',
+          'ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json"))')
+    # B2: relief image (re-encoded, see docs) fades in once decoded
+    p.rep('PERF-shade', '.attr("href","data/shade.webp").attr("decoding","async")',
+          '.attr("href",' + jsdump(H['shade.webp']) + ').attr("decoding","async").style("opacity",0).on("load",function(){'
+          'this.style.transition="opacity .6s";requestAnimationFrame(()=>{this.style.opacity=""})})')
+    # B5: start the startup downloads with the HTML
+    pre = ''.join(f'<link rel="preload" href="{H[n]}" as="fetch" crossorigin>' for n in
+                  ('languages.json', 'world-50s.json', 'terr.json', 'lexicon.json'))
+    p.rep('PERF-preload', '<link rel="icon" href="data:,">', '<link rel="icon" href="data:,">' + pre)
 
 
 def navy_ui(text):

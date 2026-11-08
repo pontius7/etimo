@@ -22,6 +22,9 @@ fam = {r['lang']: r['family'] for r in json.load(open(os.path.join(SITE, 'data',
 rows = unmapped = 0
 for f in sorted(glob.glob(os.path.join(ROOT, 'content', 'words', '*.csv'))):
     print(f'\n{os.path.relpath(f, ROOT)}')
+    if os.path.getsize(f) > 200_000:  # big dictionary files: per-label totals are in content/import-report.txt
+        print('  (large file: see content/import-report.txt for where its rows went)')
+        continue
     for i, row in enumerate(csv.DictReader(open(f, encoding='utf-8-sig', newline='')), start=2):
         row = {(k or '').strip().lower(): (v or '').strip() for k, v in row.items()}
         if not row.get('word'):

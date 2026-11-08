@@ -28,6 +28,29 @@ Put a CSV file in `content/words/` (any name, e.g. `my-serbian-words.csv`). Colu
 building, so the sheet is checked and de-duplicated like any CSV. An error saying
 `sheet-1.csv line 12` means row 12 of the sheet. Without internet the last download is used.
 
+### Big dictionaries and dialect labels (two tiers)
+
+Any CSV (or `.csv.gz` for files over ~90 MB) in `content/words/` is split automatically:
+
+- **Core**: rows whose meaning is a meaning the site already shows go into `site/data/lexicon.json`
+  and land in their category (at most 3 imported words per language and meaning). Dictionary glosses
+  such as `(noun) steam, vapor | mist` are matched on their first gloss pieces.
+- **Full dictionary**: every other row goes to `site/h/dict/<language>.<hash>.json`, loaded only when
+  someone opens that language's "Full dictionary" or a search result from it. A search index
+  (`site/h/search/<version>/`) lets the main search find these words from any screen.
+
+The `language` column may also be a label such as `Croatian (Kajkavian)` or `Kazakh (Cyrillic)`:
+`content/language-aliases.csv` (`label,site_language,dialect_tag,note`) maps each label to a site
+language. A dialect with its own site language goes there (`Greek (Pontic)` -> Pontic Greek);
+otherwise the dialect is kept in the source shown with the word (`Wiktionary · Kajkavian`).
+`SKIP` leaves a label out on purpose (with a note). An unknown label stops the build and lists it.
+Pure script notes (`(Latin)`, `(Cyrillic)`, `(Arabic script)`) need no row.
+`content/import-report.txt` shows, per label, where its rows went (core / dictionary / duplicate / skipped).
+
+Search uses one shared function (`site/search-key.js`, tested by `scripts/merge/test-search-key.js`)
+for the index and for what is typed: plain Latin letters find special letters and other scripts
+(`voda` finds вода, `s` finds š/ш, `sh` narrows to them, `zena` finds žena/жена).
+
 ### Duplicates
 
 The build skips a row when the same word with the same meaning already exists in that language,
@@ -77,5 +100,6 @@ family and map position, and the category it landed in, plus close matches for a
 without a category. A mistake (unknown language, missing column) stops the build and names the
 file and line. Then preview with `python3 -m http.server 8092 -d site`.
 
-Note: `site/_headers` lets browsers cache `data/*` for a day, so returning visitors may see
-new words only after that (or after a hard reload).
+Note: `site/_headers` lets browsers cache `data/*` for a day. The startup files, dictionaries and
+search index are copied to `site/h/` under content-hashed names and cached for a year: a rebuild
+gives them new names, so visitors get new words right away.
