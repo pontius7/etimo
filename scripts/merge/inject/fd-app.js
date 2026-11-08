@@ -151,3 +151,24 @@ function FDresults({q, fam = 'all'}) {
           (0, f.jsxs)('span', {className: 'kl', children: [(0, f.jsx)('i', {className: 'dot ' + L.family}), Na(L)]})]})]}, x.L + x.i); })}),
     xs.length > n ? (0, f.jsx)('button', {type: 'button', className: 'more', onClick: () => setN(n + 60), children: FDt('more') + ' (' + FDnum(xs.length - n) + ')'}) : null]});
 }
+
+/* phones: a quiet "Dictionary" row on the home page, right above the A–Z tile (the tab bar keeps 3 items) */
+(function FDdictRow() {
+  let tick = 0;
+  const run = () => {
+    tick = 0;
+    const az = document.querySelector('.ct-grid > .ct.ctz');
+    if (!az || az.previousElementSibling && az.previousElementSibling.classList.contains('fdict')) return;
+    const tab = document.querySelector('.tabbar .in > button:nth-child(1)');
+    if (!tab) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fdict';
+    const label = (tab.querySelector('span:not(.icn)') || tab).textContent.trim();
+    b.innerHTML = '<i aria-hidden="true"></i><span></span><b aria-hidden="true">›</b>';
+    b.querySelector('span').textContent = label;
+    b.addEventListener('click', () => tab.click());
+    az.parentNode.insertBefore(b, az);
+  };
+  new MutationObserver(() => { if (!tick) tick = requestAnimationFrame(run); })
+    .observe(document.documentElement, {childList: true, subtree: true});
+})();
