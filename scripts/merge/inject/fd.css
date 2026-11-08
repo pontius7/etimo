@@ -129,3 +129,5 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 /* tree dot hierarchy: families larger, languages inside an opened family smaller */
 .vtree details.vb.d1>summary .dot{width:10px!important;height:10px!important}
 .vtree details.vb.d1 details .dot,.vtree details.vb.d1 .vl .dot{width:6px!important;height:6px!important}
+/* phones: map card sits above the hosting badge so its region chips stay tappable */
+@media (width<64rem){.mapbox .card.mcard{bottom:calc(66px + env(safe-area-inset-bottom,0px))!important}}
