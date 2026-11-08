@@ -530,8 +530,8 @@ def fd_patches(p):
     mini = ('(0,f.jsx)("button",{type:"button",className:"minimap",ref:l,"aria-label":n.showMap,onClick:()=>Ja("map-"+'
             'e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})})')
     p.rep('FD-kp-mini-out', 'children:[' + mini + ',(0,f.jsxs)("div",{className:"head",', 'children:[(0,f.jsxs)("div",{className:"head",')
-    p.rep('FD-kp-path', '(0,f.jsx)("div",{className:"meta",style:{fontSize:15},children:v.join(" › ")})',
-          '(0,f.jsx)(FDpath,{v,fam:e.family})')
+    # family path line removed from the language page (user request 2026-11-08)
+    p.rep('FD-kp-path', '(0,f.jsx)("div",{className:"meta",style:{fontSize:15},children:v.join(" › ")})', 'null')
     i = p.s.index('(0,f.jsx)("div",{className:"ltiles",role:"tablist",children:["all",...aa]')
     srch = ',(0,f.jsx)(ui,{id:"wq",value:s,onChange:o,ph:n.findIn(Na(e))})'
     j = p.s.index(srch, i)

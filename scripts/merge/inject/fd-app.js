@@ -151,13 +151,3 @@ function FDresults({q, fam = 'all'}) {
           (0, f.jsxs)('span', {className: 'kl', children: [(0, f.jsx)('i', {className: 'dot ' + L.family}), Na(L)]})]})]}, x.L + x.i); })}),
     xs.length > n ? (0, f.jsx)('button', {type: 'button', className: 'more', onClick: () => setN(n + 60), children: FDt('more') + ' (' + FDnum(xs.length - n) + ')'}) : null]});
 }
-/* family path: full lineage, never folded. One line on desktop; on narrow screens it wraps
-   only between levels (each level name stays whole), so nothing hides behind "…". */
-function FDpath({v, fam}) {
-  if (!v.length) return null;
-  /* the "›" travels with the level after it, so a wrapped line starts with "› Name" */
-  let steps = v.map((x, i) => (0, f.jsxs)('b', {children: [
-    i ? (0, f.jsx)('i', {className: 'sep', 'aria-hidden': 'true', children: '›'}) : null, x]}, i));
-  return (0, f.jsxs)('p', {className: 'lpath', 'aria-label': v.join(', '), children: [
-    (0, f.jsx)('i', {className: 'dot ' + fam}), (0, f.jsx)('span', {children: steps})]});
-}
