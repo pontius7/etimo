@@ -569,7 +569,8 @@ def fd_patches(p):
 
 
 # ---------------------------------------------------------------- performance
-HASHED = ['lexicon.json', 'languages.json', 'world-50s.json', 'terr.json', 'today.json', 'shade.webp']
+# today.json stays at data/today.json: regional-layer.js fetches the same URL, so both share one download
+HASHED = ['lexicon.json', 'languages.json', 'world-50s.json', 'terr.json', 'shade.webp']
 
 
 def hashed_copies():
@@ -629,8 +630,7 @@ def perf_patches(p):
           '(0,f.jsx)("p",{className:"boot",children:y.loading})});else if("home"===b.v)')
     # B3: today's internal borders load after the first map paint (idle time), not with it
     p.rep('PERF-today', 'ff=fetch("data/today.json")',
-          'ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch('
-          + jsdump(H['today.json']) + '))')
+          'ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json"))')
     # B2: relief image (re-encoded, see docs) fades in once decoded
     p.rep('PERF-shade', '.attr("href","data/shade.webp").attr("decoding","async")',
           '.attr("href",' + jsdump(H['shade.webp']) + ').attr("decoding","async").style("opacity",0).on("load",function(){'

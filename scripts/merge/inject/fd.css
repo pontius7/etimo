@@ -19,6 +19,7 @@
 .view.lview .ltiles{display:flex;gap:.5rem;overflow-x:auto;margin:.5rem 0 .75rem;padding:.15rem 0 .35rem;scrollbar-width:none;grid-template-columns:none}
 .view.lview .ltiles::-webkit-scrollbar{display:none}
 .view.lview .lt{flex:none;min-height:2.5rem;padding:.45rem .95rem;font:500 .9375rem/1.2 var(--sans);border-radius:999px}
+.view.lview .lt.on,.view.lview .lt:active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .view.lview .lt.on:after{display:none}
 .view.lview .minimap{margin-top:2rem}
 /* full dictionary */
@@ -30,8 +31,8 @@
 @keyframes fdspin{to{transform:rotate(360deg)}}
 .fdrows{content-visibility:auto}
 .fdr .wr{width:100%}
-.fdr .wk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fdr.open .wk{white-space:normal}
+.fdr .wk{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.fdr.open .wk{display:block}
 .fdr .wv small{display:block}
 .fdtag{color:var(--mut);font:500 .75rem/1.3 var(--sans);letter-spacing:.02em}
 .fdx{margin:0;padding:.1rem 0 .9rem;border-bottom:1px solid var(--line);color:var(--ink);font-size:.9375rem;line-height:1.45;overflow-wrap:anywhere}
@@ -41,3 +42,5 @@
 .fdsg{opacity:.8}
 .fdw:has(.fdsr)>p.empty,.fdw:has(.fdsr) .sres>p.empty{display:none}
 @media (prefers-reduced-motion:reduce){.fdload i{animation:none}}
+/* touch screens with dense pixels: cheaper path rasterising on the map (no change on desktop) */
+@media (hover:none) and (min-resolution:2dppx){.mapbox svg .zones path,.mapbox svg g.adm path{shape-rendering:optimizeSpeed}}
