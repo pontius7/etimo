@@ -18,6 +18,16 @@ Put a CSV file in `content/words/` (any name, e.g. `my-serbian-words.csv`). Colu
 
 `content/words/_template.csv` is an empty starting file. Save CSVs as UTF-8 (Excel: "CSV UTF-8").
 
+### Or: add words in a Google Sheet
+
+1. Make a Google Sheet. Row 1 = `language,word,meaning,latin,ipa,source` (one per column).
+2. Share -> General access -> **Anyone with the link** -> **Viewer**.
+3. Paste its link on a new line in `content/sheets.txt` (several sheets = several lines).
+
+`./scripts/add-words.sh` downloads each sheet to `content/words/sheet-1.csv` (2, 3...) before
+building, so the sheet is checked and de-duplicated like any CSV. An error saying
+`sheet-1.csv line 12` means row 12 of the sheet. Without internet the last download is used.
+
 ### Duplicates
 
 The build skips a row when the same word with the same meaning already exists in that language,

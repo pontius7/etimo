@@ -1,0 +1,3 @@
+# Google Sheets with words. One link per line; lines starting with # are ignored.
+# Each sheet: row 1 = language,word,meaning,latin,ipa,source
+# Share -> General access -> "Anyone with the link" -> Viewer. See content/README.md.
