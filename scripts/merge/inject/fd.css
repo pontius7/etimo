@@ -131,3 +131,5 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 .vtree details.vb.d1 details .dot,.vtree details.vb.d1 .vl .dot{width:6px!important;height:6px!important}
 /* phones: map card sits above the hosting badge so its region chips stay tappable */
 @media (width<64rem){.mapbox .card.mcard{bottom:calc(66px + env(safe-area-inset-bottom,0px))!important}}
+/* map: selected-language chip in the search bar and the popup's family label use round dots too */
+.kfb .dot,.mapbox .card .pill .dot,.card .pill .dot{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
