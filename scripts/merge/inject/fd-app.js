@@ -190,3 +190,35 @@ function FDresults({q, fam = 'all'}) {
   const add = () => document.body && !document.body.contains(b) && document.body.appendChild(b);
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', add) : add();
 })();
+
+/* every word row gets its own copy control: "word /pron/ — translation" (replaces the header copy-list button) */
+(function FDrowCopy() {
+  let tick = 0;
+  const run = () => {
+    tick = 0;
+    document.querySelectorAll('.wr:not([data-fdcp])').forEach(r => {
+      r.setAttribute('data-fdcp', '1');
+      const c = document.createElement('span');
+      c.className = 'fdcp'; c.setAttribute('role', 'button'); c.setAttribute('tabindex', '0'); c.setAttribute('aria-label', 'Copy');
+      r.appendChild(c);
+    });
+  };
+  new MutationObserver(() => { if (!tick) tick = requestAnimationFrame(run); })
+    .observe(document.documentElement, {childList: true, subtree: true});
+  const copy = (c) => {
+    const r = c.closest('.wr'); if (!r) return;
+    const t = s => { const e = r.querySelector(s); return e ? e.textContent.trim() : ''; };
+    const word = t('.wv b'), pr = t('.wv .pr'), mean = t('.wk');
+    const text = [word, pr].filter(Boolean).join(' ') + (mean ? ' — ' + mean : '');
+    const done = () => { c.classList.add('ok'); setTimeout(() => c.classList.remove('ok'), 1200); };
+    try { navigator.clipboard.writeText(text).then(done, done); } catch (e) {}
+  };
+  const handler = e => {
+    const c = e.target.closest && e.target.closest('.fdcp');
+    if (!c) return;
+    if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.type !== 'pointerdown') copy(c);
+  };
+  ['pointerdown', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, handler, true));
+})();
