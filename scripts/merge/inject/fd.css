@@ -104,3 +104,8 @@
   .tabbar .in>button:nth-child(1){display:none!important}
   .ct.fdict{grid-column:1/-1}
 }
+
+/* Languages: Tree toggle gets a branching-lineage icon */
+.tvs>button:nth-child(2) .icn{position:relative}
+.tvs>button:nth-child(2) .icn svg{visibility:hidden}
+.tvs>button:nth-child(2) .icn::after{content:"";position:absolute;inset:0;margin:auto;width:20px;height:20px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%224.5%22%20r%3D%222%22/%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2219.5%22%20r%3D%222%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2219.5%22%20r%3D%222%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2219.5%22%20r%3D%222%22/%3E%3Cpath%20d%3D%22M12%206.5v11M12%2011c-4.5%200-7%202-7%206.5M12%2011c4.5%200%207%202%207%206.5%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%224.5%22%20r%3D%222%22/%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2219.5%22%20r%3D%222%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2219.5%22%20r%3D%222%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2219.5%22%20r%3D%222%22/%3E%3Cpath%20d%3D%22M12%206.5v11M12%2011c-4.5%200-7%202-7%206.5M12%2011c4.5%200%207%202%207%206.5%22/%3E%3C/svg%3E") center/contain no-repeat}

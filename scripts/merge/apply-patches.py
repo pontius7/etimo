@@ -529,6 +529,8 @@ def fd_patches(p):
     p.rep('FD-cat-kp', '[a,i]=(0,m.useState)(mi.cat),', '[a,i]=(0,m.useState)("all"),')
     p.rep('FD-cat-reset', '(0,m.useEffect)(()=>{mi.wq=s,mi.wqL=e.id},[s,e.id]),',
           '(0,m.useEffect)(()=>{mi.wq=s,mi.wqL=e.id},[s,e.id]),(0,m.useEffect)(()=>{i("all"),mi.cat="all"},[e.id]),')
+    # language tree: all families start closed so every family is visible; tap to open
+    p.rep('FD-tree-closed', 'open:e.depth<=1', 'open:!1')
     p.rep('FD-kp-filter', 'c=Da(s.trim()),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1):u,',
           'c=Da(s.trim()),FQ=FDq(s),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1'
           '||FDcoreMatch(e,FQ)):u,')
