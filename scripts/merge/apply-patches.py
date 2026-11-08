@@ -533,6 +533,8 @@ def fd_patches(p):
     p.rep('FD-tree-closed', 'open:e.depth<=1', 'open:!1')
     # home hero: moving pill a bit longer (phone 28px, desktop 40px)
     p.rep('FD-pill-len', 'o.len=e<640?18:26', 'o.len=e<640?28:40')
+    # map: finger taps may wobble; treat up to 14px of movement as a tap (select), not a drag
+    p.rep('FD-tap-slop', 'Math.hypot(n[0]-s[0],n[1]-s[1])>7&&(i=!0)', 'Math.hypot(n[0]-s[0],n[1]-s[1])>14&&(i=!0)')
     p.rep('FD-kp-filter', 'c=Da(s.trim()),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1):u,',
           'c=Da(s.trim()),FQ=FDq(s),d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1'
           '||FDcoreMatch(e,FQ)):u,')
