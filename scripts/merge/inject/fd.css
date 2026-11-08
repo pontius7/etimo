@@ -83,3 +83,14 @@
 /* family dots a touch larger */
 .sl .dot,.ct .cl .dot,.spec .dot{width:8px!important;height:8px!important;border-radius:50%!important}
 .tabbar .in>button:nth-child(3)[aria-current=page],.tabbar .in>button:nth-child(3)[aria-current=page] *{color:var(--ink)!important}
+/* phones: language pill at the far right of the header, short code (EN/SR/СР/SQ/DE) */
+@media (width<64rem){
+  .tabbar .in>button:nth-child(5){left:auto!important;right:max(12px,calc(env(safe-area-inset-right,0px) + 12px));padding:0 10px 0 7px}
+  body:has(.bar .br>*) .tabbar .in>button:nth-child(5){right:max(58px,calc(env(safe-area-inset-right,0px) + 58px))}
+  .tabbar .in>button:nth-child(5) span:not(.icn){font-size:0!important;max-width:none}
+  .tabbar .in>button:nth-child(5) span:not(.icn)::after{font-size:.75rem;font-weight:600;letter-spacing:.04em;content:"EN"}
+  html[lang=sr-Latn] .tabbar .in>button:nth-child(5) span:not(.icn)::after{content:"SR"}
+  html[lang=sr-Cyrl] .tabbar .in>button:nth-child(5) span:not(.icn)::after{content:"СР"}
+  html[lang=sq] .tabbar .in>button:nth-child(5) span:not(.icn)::after{content:"SQ"}
+  html[lang=de] .tabbar .in>button:nth-child(5) span:not(.icn)::after{content:"DE"}
+}
