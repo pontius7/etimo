@@ -77,7 +77,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  const observer=new MutationObserver(updateLabels);observer.observe(parent.node(),{attributes:true,attributeFilter:['transform']});updateLabels();
  function open(event,row){hideTooltip();if(event.type==='keydown'){const b=event.currentTarget.getBoundingClientRect();event.currentTarget.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:b.x+b.width/2,clientY:b.y+b.height/2}));}}
  let last;
- // Albanian dialect areas (Wikimedia Commons: Albaniandialects.png, CC BY-SA 4.0, Karadakli230; Albanian_dialects.svg for Arbëresh and Arvanitika, CC BY-SA 3.0, ArnoldPlaton)
+ // Albanian dialect areas (Wikimedia Commons: Albaniandialects.png, CC BY-SA 4.0, Karadakli230; Albanian_dialects.svg for Arbëresh, CC BY-SA 3.0, ArnoldPlaton). Arvanitika (data/greece-areas.json) is traced from a reference map supplied by the site owner and fitted to the Greek coastline, 2026-11-10.
  // and Vlach areas (Wikimedia Commons: South-Balkan-Romance-languages.png, after Koryakov 2001, CC BY-SA 3.0), drawn on the real map in shades of each family colour.
  // Same colour as the language's zone, pin and wheel slice in both themes (dark mode brightens dim colours).
   const PAL=new Proxy(window.__albPalette||{},{get:(t,n)=>t[n]&&window.__albColor?(window.__albColor({data:{L:{lang:n}}})||t[n]):t[n]});
