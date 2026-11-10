@@ -61,6 +61,8 @@
 
 /* The sharper border overlay replaces the original medium-resolution border, which showed through the colours as a second line. */
 svg path.bord{display:none}
+/* one coastline: the overlay coast (ol-coast, drawn from the same outline the colours are cut to) replaces the app's own line, which drew a second coast beside it */
+svg:has(path.ol-coast) path.coast{display:none}
 
 /* Original admin lines are replaced by the single-contour overlay. */
 g.adm path{display:none}

@@ -310,7 +310,134 @@ def merge_terr(langs):
     nest = add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
     for k, n in nest.items():
         langs[k]['nest'] = n
+    fill_coast_gaps(out, langs)
     return out
+
+
+COAST_GAP_CORE = 5      # frame units, about 32 km: blank land wider than twice this is blank on purpose
+COAST_GAP_MAX = 150     # frame units^2, about 6,000 km2: the largest single piece that may be filled
+COAST_GAP_COUNTRY = 0.6 # only in countries whose land is at least this much covered by drawn areas
+COAST_GAP_SKIP = {'Greece', 'Montenegro'}   # drawn from their own regional outlines (site/regional-layer.js)
+
+
+def fill_coast_gaps(terr, langs):
+    """Extend drawn areas to the coastline where the hand-drawn shapes stop short of it.
+
+    The map cuts every area to the coastline (world-50m.json). Where a hand-drawn area ends before the
+    coast, the land between them stayed blank and read as sea (e.g. the Karaburun peninsula by Izmir).
+    Inside a country that is otherwise mapped, narrow blank land (strips and peninsulas, never wide
+    regions) that touches both the coast and a drawn area is given to the nearest drawn area. Countries
+    whose languages are not on the map (Norway beside the Sami areas, say), islands that touch no area,
+    wide blank regions and the fallback circles are left alone, so nothing that is blank on purpose gets
+    coloured. The added shapes may overshoot into the sea: the map cuts them to the coast.
+    """
+    import hashlib
+    from shapely import union_all, STRtree
+    from shapely.geometry import Polygon, box
+    from shapely.prepared import prep
+    from shapely.validation import make_valid
+    # The search takes most of a minute, so its result is kept until an area or the coastline changes.
+    with open(os.path.join(E_DIR, 'world-50m.json'), 'rb') as f:
+        sig = hashlib.sha1(f.read())
+    sig.update(json.dumps([terr, {k: [v.get('lat'), v.get('lon'), v.get('sz'), v.get('family')] for k, v in langs.items()},
+                           COAST_GAP_CORE, COAST_GAP_MAX, COAST_GAP_COUNTRY, sorted(COAST_GAP_SKIP), 2],
+                          sort_keys=True, ensure_ascii=False).encode())
+    cache = os.path.join(ROOT, '.cache', 'coast-gaps.json')
+    if os.path.exists(cache):
+        c = json.load(open(cache, encoding='utf-8'))
+        if c.get('sig') == sig.hexdigest():
+            for k, upd in c['upd'].items():
+                terr[k].update(upd)
+            print('  ' + c['report'] + ' (cached)')
+            return
+    topo = load(E_DIR, 'world-50m.json')
+    arcs = T.decode_arcs(topo)
+
+    def ring(idx):
+        pts = []
+        for i in idx:
+            a = arcs[i] if i >= 0 else arcs[~i][::-1]
+            pts.extend(a if not pts else a[1:])
+        return pts
+
+    def polys(g):
+        return [x for x in getattr(g, 'geoms', [g]) if x.geom_type == 'Polygon' and not x.is_empty]
+
+    def project(geom_arcs, typ):
+        out = []
+        for poly in ([geom_arcs] if typ == 'Polygon' else geom_arcs):
+            r = ring(poly[0])
+            if min(p[1] for p in r) < -60 or max(p[0] for p in r) < -40 or min(p[0] for p in r) > 170:
+                continue                           # Antarctica, the Americas: outside the mapped area
+            g = make_valid(Polygon([ETIMO.fwd(lon, lat) for lon, lat in r]))
+            if g.intersects(frame):
+                out.extend(polys(g.intersection(frame)))
+        return out
+    drawn = {k: _path_geom(v.get('v') or v['d']) for k, v in terr.items()}
+    drawn = {k: g for k, g in drawn.items() if g is not None and not g.is_empty}
+    keys = list(drawn)
+    tree = STRtree([drawn[k] for k in keys])
+    allz = union_all(list(drawn.values()))
+    x0, y0, x1, y1 = allz.bounds
+    frame = box(x0 - 20, y0 - 20, x1 + 20, y1 + 20)
+    circles = [c for c in approx_circles(langs, terr).values() if c is not None and not c.is_empty]
+    covered = union_all([allz.buffer(0.02)] + circles)
+    coast = prep(union_all(project(topo['objects']['land']['arcs'], 'MultiPolygon')).boundary)
+    add, kept = {}, 0
+    for c in topo['objects']['countries']['geometries']:
+        name = (c.get('properties') or {}).get('name', '')
+        parts = project(c['arcs'], c['type']) if name not in COAST_GAP_SKIP else []
+        if not parts:
+            continue
+        cg = union_all(parts)
+        if cg.intersection(covered).area < COAST_GAP_COUNTRY * cg.area:
+            continue                               # this country's languages are not on the map
+        blank = cg.difference(covered)
+        narrow = blank.difference(blank.buffer(-COAST_GAP_CORE).buffer(COAST_GAP_CORE * 1.05))
+        for g in polys(narrow):
+            if not 0.05 <= g.area <= COAST_GAP_MAX or not coast.intersects(g.buffer(0.25)):
+                continue                           # too big, or an inland gap between two areas
+            near = [keys[i] for i in tree.query(g.buffer(0.3)) if drawn[keys[i]].distance(g) < 0.3]
+            if not near:
+                continue                           # touches no drawn area (an island)
+            kept += 1
+            if len(near) == 1:
+                add.setdefault(near[0], []).append(g)
+                continue
+            left, d = g, 0.3                       # several neighbours: each takes what is nearest to it
+            while not left.is_empty and d < 400:
+                for k in near:
+                    part = left.intersection(drawn[k].buffer(d))
+                    if not part.is_empty:
+                        add.setdefault(k, []).extend(polys(part))
+                        left = left.difference(part)
+                d *= 1.5
+    total, upd = 0, {}
+    for k, gs in add.items():
+        v = terr[k]
+        total += sum(g.area for g in gs)
+        near = union_all(gs).buffer(1)
+        others = union_all([drawn[keys[i]] for i in tree.query(near) if keys[i] != k] +
+                           [x.buffer(0.03) for m, xs in add.items() if m != k for x in xs if x.intersects(near)] +
+                           [c for c in circles if c.intersects(near)])
+        extra = union_all(gs).buffer(0.3).simplify(0.25).difference(others)   # may overshoot into the sea
+        extra = union_all([x for x in polys(extra) if x.area >= 0.05])
+        if extra.is_empty:
+            continue
+        home = make_valid(_path_geom(v['d']).union(extra))
+        if v.get('v'):
+            v['v'] = _geom_path(make_valid(drawn[k].union(extra)))
+        v['d'] = _geom_path(home, min_area=0)
+        bx = home.bounds
+        v['b'] = [round(min(v['b'][0], bx[0]), 1), round(min(v['b'][1], bx[1]), 1),
+                  round(max(v['b'][2], bx[2]), 1), round(max(v['b'][3], bx[3]), 1)]
+        upd[k] = {f: v[f] for f in ('d', 'v', 'b') if f in v}
+    report = (f'terr: {kept} coast gaps closed for {len(add)} languages (+{total * 40.6:,.0f} km2): ' +
+              ', '.join(f'{k} {a * 40.6:,.0f}' for a, k in
+                        sorted(((sum(g.area for g in gs), k) for k, gs in add.items()), reverse=True)[:14]))
+    os.makedirs(os.path.dirname(cache), exist_ok=True)
+    json.dump({'sig': sig.hexdigest(), 'upd': upd, 'report': report}, open(cache, 'w', encoding='utf-8'), ensure_ascii=False)
+    print('  ' + report)
 
 
 def _path_geom(d):

@@ -24,7 +24,7 @@ const langFor=(key,index)=>{
  return langCache.get(key);
 };
 export async function attachRegionalEvidence({host,parent,path,current,languages,color,tooltip,hideTooltip}) {
- loading ||= Promise.all([get('regional/index.json'),geoFor('ME'),get('regional/ME.json'),get('regional-sources.json'),get('regional/geo/GR-regions.json').then(t=>({type:'FeatureCollection',features:topoFeatures(t,'GR')})),get('tables/GR.json')]).catch(e=>{loading=null;throw e;});
+ loading ||= Promise.all([get('regional/index.json'),geoFor('ME'),get('regional/ME.json'),get('regional-sources.json'),Promise.all([get('regional/geo/GR-regions.json'),get('athos.json').catch(()=>null)]).then(([t,athos])=>{const features=topoFeatures(t,'GR');/* Mount Athos is Greek land that the NUTS regions file leaves out; without it the peninsula fell back to the coarse hand-drawn area */const cm=athos&&athos.ring&&features.find(f=>/Central Macedonia/.test(f.properties.name||''));if(cm){const g=cm.geometry;cm.geometry={type:'MultiPolygon',coordinates:(g.type==='Polygon'?[g.coordinates]:g.coordinates).concat([[athos.ring]])};}return {type:'FeatureCollection',features};}),get('tables/GR.json')]).catch(e=>{loading=null;throw e;});
  const [index,me,values,sources,greece,grData]=await loading;
  if(!parent.node().isConnected)return;
  // While the map moves (the app sets svg.zooming), region strokes are dropped. They are invisible anyway (stroke-opacity 0),
@@ -49,6 +49,21 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   if(!d)return;
   defs.append('clipPath').attr('id',id+'-land').append('path').attr('d',d);
   parent.selectAll('g.zones,g.ters').attr('clip-path','url(#'+id+'-land)');
+  // One coastline, and it is the edge the colours are cut to: the overlay coast is redrawn from this same outline
+  // (the app's own coarser coast line is hidden in country-sources.css; it used to show as a second line beside it).
+  borderLayer.select('path.ol-coast').attr('d',d);
+  // Greek coast: the hand-drawn areas follow this coarser coastline, Greece is drawn from its own finer outline,
+  // so slivers and small islands of the hand-drawn areas showed beside the Greek coast. Erase them within about
+  // 5 km of Greece, then restore the neighbours' land so areas across a land border are untouched.
+  try{
+   const proj=path.projection&&path.projection();const grD=greece.features.map(f=>dOf(f)||'').join('');
+   const nb=(topo.objects.countries.geometries||[]).filter(g=>/^(Albania|North Macedonia|Macedonia|Bulgaria|Turkey)$/.test((g.properties||{}).name||''));
+   const nbD=nb.map(g=>path({type:'MultiPolygon',coordinates:(g.type==='Polygon'?[g.arcs]:g.arcs).map(poly=>poly.map(ring))})||'').join('');
+   if(proj&&grD){const w=Math.abs(proj([24.12,38])[0]-proj([24,38])[0]);
+    mask.append('path').attr('d',grD).attr('fill','black').attr('stroke','black').attr('stroke-width',w).attr('stroke-linejoin','round');
+    if(nbD)mask.append('path').attr('d',nbD).attr('fill','white').attr('stroke','white').attr('stroke-width',w).attr('stroke-linejoin','round');
+    mask.append('path').attr('d',me.map(f=>path(f)||'').join('')+grD).attr('fill','black');}
+  }catch(e){}
  }).catch(()=>{});
  const pattern=defs.append('pattern').attr('id',id+'-presence').attr('patternUnits','userSpaceOnUse').attr('width',1.8).attr('height',1.8).attr('patternTransform','rotate(35)');
  pattern.append('line').attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1.8).attr('stroke','var(--ink,#718278)').attr('stroke-opacity',.28).attr('stroke-width',.45);

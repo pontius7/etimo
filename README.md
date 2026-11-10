@@ -25,7 +25,7 @@ What produces each part of `site/`:
 | `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `apply-patches.py` |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
-| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers` | written by hand; these are the only files in `site/` you edit directly |
+| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/athos.json` | written by hand; these are the only files in `site/` you edit directly |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
@@ -104,6 +104,16 @@ Each was reproduced in Chrome before it was changed and re-measured after.
 | Every zoom or drag frame rewrote all 926 city labels, visible or not | only labels whose visibility changed are written (926 writes per frame down to about 15) |
 | Phones: the page was 56px taller than the screen (padding left over for a hosting badge), so the map page could scroll. A height change of that size makes the map rebuild itself from scratch: about 1.2 seconds of frozen map in Chrome with a 4x slower CPU. Tested by resizing the map by 60px, not on a real phone | the map page has no extra padding and no longer scrolls (other pages keep it, so the last row clears the back-to-top button). The map card also sits at the bottom edge again |
 | Desktop panel showed the language colour beside the family name; the phone popup and the search chip showed the family colour | all three show the family colour |
+
+## Coast and outline fixes, 2026-11-10 (second pass)
+
+| problem (measured in Chrome) | fix |
+|---|---|
+| Two coastlines side by side when zoomed in: the app's own coast line and the overlay copy came from different outlines | one coast line, redrawn from the same outline the colours are cut to (`world-50m.json`), so the line and the colour edge always coincide |
+| Dark slivers and small dark islands beside the Greek coast: the hand-drawn Greek area follows a coarser coast than Greece's own regions | hand-drawn areas are erased within about 5 km of Greece's outline; neighbours' land is restored so areas across a land border are untouched |
+| Blank land at the coast that read as sea (the Karaburun peninsula by Izmir, strips along many coasts): hand-drawn areas stop short of the coastline | `merge-data.py` (`fill_coast_gaps`) gives narrow blank coastal land to the nearest drawn area, only inside countries that are at least 60% mapped. 921 pieces, 29 languages. The result is cached in `.cache/` until an area changes |
+| Mount Athos (328 km2) showed as a crude dark shape: it is missing from the Greek regions file | `site/data/athos.json` is added to Central Macedonia when the map loads |
+| Arvanitika was one rough blob | redrawn from the owner's reference map (`site/data/greece-areas.json`) |
 
 Checked and found correct (not changed): language areas, pins and wheel slices match in both
 themes on a fresh load; no console errors on the home, map, language, dictionary and wheel screens;
