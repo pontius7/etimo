@@ -6,6 +6,7 @@
   (c) the 78 original languages look exactly like the reference app
   (d) siblings in one branch of the tree are visibly different colours (fail < dE 2, warn < dE 6)
   (e) every family has a colour variable in both themes
+  (f) dialect and minority areas drawn over the map are the colour of their language's zone
 Exit code 1 and the language names on any failure.   usage: check-colors.py [--shots DIR]
 """
 import colorsys, http.server, json, os, re, shutil, socketserver, subprocess, sys, tempfile, threading
@@ -54,7 +55,8 @@ def probe(tag, url, theme, tmp, port):
     if SHOTS and tag == 'site':
         os.makedirs(SHOTS, exist_ok=True)
         cmd.append(os.path.join(SHOTS, f'after-{theme}.png'))
-    return subprocess.Popen(cmd, stderr=subprocess.PIPE, text=True), out
+    env = dict(os.environ, ETIMO_FAM_VARS=','.join(palette.VAR.values()))
+    return subprocess.Popen(cmd, stderr=subprocess.PIPE, text=True, env=env), out
 
 
 def main():
@@ -113,6 +115,13 @@ def main():
                     errors.append(f'(b) {theme}: {name} wheel {hexof(c)} != map {hexof(z[name])}')
         if matched < len(langs) * .8:
             errors.append(f'(b) {theme}: only {matched}/{len(langs)} wheel segments could be matched by name')
+        # (f) areas == zones
+        ar = data['site', theme].get('areas') or {}
+        if not ar:
+            errors.append(f'(f) {theme}: no dialect/minority areas were drawn (regional layer did not load)')
+        for name, c in ar.items():
+            if name in z and hexof(c) != hexof(z[name]):
+                errors.append(f'(f) {theme}: {name} area {hexof(c)} != zone {hexof(z[name])}')
         # (c) originals == reference
         for name in ref_langs:
             if name not in zr:
@@ -148,7 +157,7 @@ def main():
         if len(errors) > 40:
             print(f'  ... and {len(errors) - 40} more')
         sys.exit(1)
-    print('PASS: map = palette = wheel for every language; originals identical to the reference; families coloured in both themes')
+    print('PASS: map = palette = wheel = areas for every language; originals identical to the reference; families coloured in both themes')
 
 
 if __name__ == '__main__':

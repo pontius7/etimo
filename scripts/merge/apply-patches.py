@@ -18,6 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, HERE)
 import palette  # noqa: E402
+import families  # noqa: E402
 
 E_HTML = os.path.join(ROOT, 'reference', 'etimo-artifact', 'index.html')
 D_HTML = os.path.join(ROOT, 'reference', 'devter-artifact', 'index.html')
@@ -25,8 +26,9 @@ E_DATA = os.path.join(ROOT, 'reference', 'etimo-artifact', 'data')
 D_DATA = os.path.join(ROOT, 'reference', 'devter-artifact', 'data')
 OUT = os.path.join(ROOT, 'site', 'index.html')
 
-NEW_FAMS = ['Caucasian', 'Turkic', 'Uralic', 'Mongolic']
-OLD_FAMS = ['Slavic', 'Iranian', 'Albanian', 'Greek', 'Romance']
+NEW_FAMS = families.NEW     # Devter's four + anything in content/families.json
+OLD_FAMS = families.ETIMO   # built into the original app
+EXTRA_FAMS = families.EXTRA
 VAR = palette.VAR
 
 
@@ -246,7 +248,8 @@ def build():
     # ---- P10 family labels on the map (Devter positions) --------------------------------
     p.rep('P10-labels', '["Greek",24.6,37],["Albanian",20.1,41.1]]',
           '["Greek",24.6,37],["Albanian",20.1,41.1],["Uralic",62,63.6],["Turkic",70,47.5],["Caucasian",44.6,44.15],'
-          '["Mongolic",106,45.2]]')
+          '["Mongolic",106,45.2]'
+          + ''.join(f',[{jsdump(f)},{d["label"][0]},{d["label"][1]}]' for f, d in EXTRA_FAMS.items()) + ']')
 
     # ---- P11 spotlight rotation + hero specimen chips -----------------------------------
     p.rep('P11-spot', '["Slavic","Romance","Iranian","Greek","Albanian","Slavic","Romance","Iranian","Slavic","Romance"].forEach',
@@ -339,11 +342,13 @@ def build():
     # ---- P15 UI strings ------------------------------------------------------------------
     # tagline (names every family), search hint (language count), top5 (family count)
     p.rep('P15-tagline-en', '" Slavic, Iranian, Albanian, Greek and Romance languages"',
-          '" Slavic, Iranian, Albanian, Greek, Romance, Caucasian, Turkic, Uralic and Mongolic languages"')
+          '" ' + families.join_words(OLD_FAMS + NEW_FAMS, 'and') + ' languages"')
     p.rep('P15-tagline-sr', '" slovenskih, iranskih, albanskih, grčkih i romanskih jezika"',
-          '" slovenskih, iranskih, albanskih, grčkih, romanskih, kavkaskih, turkijskih, uralskih i mongolskih jezika"')
+          '" ' + families.join_words(['slovenskih', 'iranskih', 'albanskih', 'grčkih', 'romanskih', 'kavkaskih', 'turkijskih',
+                                        'uralskih', 'mongolskih'] + [d['sr_of'] for d in EXTRA_FAMS.values()], 'i') + ' jezika"')
     p.rep('P15-tagline-sq', '" gjuhë sllave, iraniane, shqipe, greke dhe romane"',
-          '" gjuhë sllave, iraniane, shqipe, greke, romane, kaukaziane, turkike, uraliane dhe mongole"')
+          '" gjuhë ' + families.join_words(['sllave', 'iraniane', 'shqipe', 'greke', 'romane', 'kaukaziane', 'turkike',
+                                              'uraliane', 'mongole'] + [d['sq_of'] for d in EXTRA_FAMS.values()], 'dhe') + '"')
     p.rep('P15-shint-en', 'any of the 57 languages', f'any of the {N_LANGS} languages')
     p.rep('P15-shint-sr', 'bilo kom od 57 jezika', f'bilo kom od {N_LANGS} jezika')
     p.rep('P15-shint-sq', 'cilëndo nga 57 gjuhët', f'cilëndo nga {N_LANGS} gjuhët')
@@ -377,7 +382,8 @@ def build():
 
     # family display names, path roots, vitality labels, language and place names
     yr = dict(LIT['Yr']['val'])
-    yr.update({k: LIT['rN']['val'][k] for k in NEW_FAMS})
+    yr.update({k: LIT['rN']['val'][k] for k in families.DEVTER})
+    yr.update({k: {'en': k, 'sr': d['sr'], 'sq': d['sq'], 'de': d['de']} for k, d in EXTRA_FAMS.items()})
     p.rep('P15-Yr', ',Yr=' + LIT['Yr']['src'], ',Yr=' + jsdump(yr))
     jr = dict(LIT['Jr']['val'])
     for k, v in LIT['rC']['val'].items():
@@ -484,11 +490,12 @@ def build():
     p.log.append(('UI-navy', n_navy))
 
     # ---- cache-busting for the on-demand regional scripts (perf/regional-data branch)
-    p.rep('P-cache-regional', 'regional-layer.js?v=34', 'regional-layer.js?v=35')
+    p.rep('P-cache-regional', 'regional-layer.js?v=34', 'regional-layer.js?v=36')
     p.rep('P-cache-country', 'country-data.js?v=4', 'country-data.js?v=5')
 
     fd_patches(p)
     perf_patches(p)
+    map_fixes(p)
     with open(OUT, 'w', encoding='utf-8') as f:
         f.write(p.s)
     print(f'wrote {os.path.relpath(OUT, ROOT)} ({len(p.s):,} chars); {len(p.log)} patches applied')
@@ -517,6 +524,8 @@ def fd_patches(p):
     ek = open(os.path.join(ROOT, 'site', 'search-key.js'), encoding='utf-8').read()
     app = open(os.path.join(INJ, 'fd-app.js'), encoding='utf-8').read()
     css = open(os.path.join(INJ, 'fd.css'), encoding='utf-8').read()
+    # language tree: families from content/families.json follow the nine built-in ones
+    css += ''.join(f'\ndetails.vb.d1:has(>summary .dot.{f}){{order:{10 + i}}}' for i, f in enumerate(EXTRA_FAMS))
     assert '</script>' not in ek and '</script>' not in app and '</style>' not in css
     p.rep('FD-ek', '\n<script type="module">', '\n<script>' + ek + '</script>\n<style id="etimo-fd">' + css
           + '</style>\n<script type="module">')
@@ -805,6 +814,38 @@ def cities_with_cc(etimo, devter):
         assert code in iso2, f'no ISO-2 mapping for {code} ({name})'
         out.append([name, lat, lon, pop, iso2[code]])
     return out
+
+
+# ---------------------------------------------------------------- map fixes (2026-11-10 audit)
+def map_fixes(p):
+    """Verified map bugs, fixed in the app code. Each one is described in README.md ("Map fixes")."""
+    # 1. Zoom/pan: the app rewrote display + transform on all 926 city labels on every frame, shown or
+    #    not. Now it writes only when a label's visibility changes and only moves the visible ones.
+    p.rep('MAP-city-writes',
+          'this.style.display=u?null:"none",this.setAttribute("transform","translate("+s.x+","+s.y+") scale("+1/Math.pow(e,.9)+")")',
+          'u!==this.__u&&(this.__u=u,this.style.display=u?null:"none"),u&&this.setAttribute("transform","translate("+s.x+","+s.y+") scale("+1/Math.pow(e,.9)+")")')
+    # 2. Light/dark switch while the map is open: zones, pins and areas kept the old theme's colours
+    #    until the page was reloaded. The map is now redrawn (same position, same selection).
+    p.rep('MAP-theme-redraw',
+          'k(e=>e+1))},140)});return i.current&&r.observe(i.current),()=>{r.disconnect(),clearTimeout(n)}',
+          'k(e=>e+1))},140)}),__mo=new MutationObserver(()=>k(e=>e+1));return i.current&&r.observe(i.current),'
+          '__mo.observe(document.documentElement,{attributes:!0,attributeFilter:["data-theme"]}),'
+          '()=>{r.disconnect(),__mo.disconnect(),clearTimeout(n)}')
+    # 3. Desktop map panel: the dot beside the family name showed the language colour while the phone
+    #    popup and the search chip show the family colour. One rule now: a family label = family dot.
+    p.rep('MAP-panel-famdot', '<span class="pfam"><i></i>\'+ei(Ca(e.family))+"</span><h3>"',
+          '<span class="pfam"><i class="dot \'+e.family+\'"></i>\'+ei(Ca(e.family))+"</span><h3>"')
+    # 2b. Same light/dark problem on the wheel: it was redrawn before the new theme was applied to the
+    #     page, so the family slices and about half the language slices kept the other theme's colours.
+    #     It now redraws after the theme attribute has actually changed.
+    p.rep('WHEEL-theme-state', 'function Pp({ui:e,theme:t}){let n,r=ja(),[a,i]=(0,m.useState)("wheel"),',
+          'function Pp({ui:e,theme:t}){let n,r=ja(),[__tk,__stk]=(0,m.useState)(0),[a,i]=(0,m.useState)("wheel"),')
+    p.rep('WHEEL-theme-redraw', '},[a,l,t]),(0,m.useEffect)(()=>{g.current&&g.current.draw(u)},[u,a,l,t])',
+          '},[a,l,t,__tk]),(0,m.useEffect)(()=>{g.current&&g.current.draw(u)},[u,a,l,t,__tk]),'
+          '(0,m.useEffect)(()=>{let e=new MutationObserver(()=>__stk(e=>e+1));'
+          'return e.observe(document.documentElement,{attributes:!0,attributeFilter:["data-theme"]}),()=>e.disconnect()},[])')
+    p.rep('MAP-panel-famdot-scope', '.card.mcard .mhd,.exv2 .card.mcard .mhd{',
+          '.card.mcard .mhd,.exv2 .card.mcard .mhd,.kpanel .phd{', 2)
 
 
 if __name__ == '__main__':

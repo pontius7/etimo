@@ -1,0 +1,13 @@
+{
+  "_help": "One entry per extra language family. Entries whose name starts with _ are ignored. See content/README.md, section 'Add a family'.",
+  "_Baltic": {
+    "key": "balt",
+    "light": "#819808",
+    "dark": "#879f18",
+    "label": [24.5, 56.2],
+    "sr": "baltički",
+    "sq": "baltike",
+    "sr_of": "baltičkih",
+    "sq_of": "baltike"
+  }
+}

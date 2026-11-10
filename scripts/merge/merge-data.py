@@ -146,7 +146,8 @@ def devter_romanize(lex, path=None):
 
 # ---------------------------------------------------------------- your additions (content/)
 CONTENT = os.path.join(ROOT, 'content')
-FAMILIES = ['Slavic', 'Iranian', 'Albanian', 'Greek', 'Romance', 'Caucasian', 'Turkic', 'Uralic', 'Mongolic']
+import families as _families  # noqa: E402  (scripts/merge/families.py + content/families.json)
+FAMILIES = _families.ALL
 _AREAS = {}
 _NEWFAM = {}
 _IMPORT = {}

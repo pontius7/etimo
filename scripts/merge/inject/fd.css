@@ -31,11 +31,14 @@
 @media (prefers-reduced-motion:reduce){.fdload i{animation:none}}
 /* touch screens with dense pixels: cheaper path rasterising on the map (no change on desktop) */
 @media (hover:none) and (min-resolution:2dppx){.mapbox svg .zones path,.mapbox svg g.adm path{shape-rendering:optimizeSpeed}}
-/* phones + tablets: main menu sits at the top, under the header (the hosting badge covers the bottom) */
+/* phones + tablets: main menu sits at the top, under the header. Scrolling pages keep 56px of room at the end
+   (so the last row clears the back-to-top button). The map page gets none: it fills the screen exactly, and the
+   extra 56px made it scroll, which resizes the map and forces a full redraw. */
 @media (width<64rem){
   .tabbar{top:calc(env(safe-area-inset-top,0px) + 56px)!important;bottom:auto!important;border-top:0!important;border-bottom:1px solid var(--line);padding-bottom:0!important}
   .barw{padding-bottom:var(--tab)}
   body{padding-bottom:calc(56px + env(safe-area-inset-bottom,0px))!important}
+  body:has(.exv2){padding-bottom:env(safe-area-inset-bottom,0px)!important}
   .seg.sticky,.letter,.llist .lgh,.view>.lets,.lsearch{top:calc(env(safe-area-inset-top,0px) + 56px + var(--tab))!important}
   .card{bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
   .ktop{bottom:calc(max(12px,env(safe-area-inset-bottom,0px)) + 14px)!important}
@@ -129,11 +132,11 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 /* tree dot hierarchy: families larger, languages inside an opened family smaller */
 .vtree details.vb.d1>summary .dot{width:10px!important;height:10px!important}
 .vtree details.vb.d1 details .dot,.vtree details.vb.d1 .vl .dot{width:6px!important;height:6px!important}
-/* phones: map card sits above the hosting badge so its region chips stay tappable */
-@media (width<64rem){.mapbox .card.mcard{bottom:calc(66px + env(safe-area-inset-bottom,0px))!important}}
 /* map: selected-language chip in the search bar and the popup's family label use round dots too */
 .kfb .dot,.mapbox .card .pill .dot,.card .pill .dot{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
 /* map popups consistent: area popup matches the language popup (round dot, no path lines, compact on phones) */
+/* desktop panel: the family label carries the family colour, as the phone popup and the search chip do */
+.kpanel .phd .pfam i.dot{background:var(--fc,currentColor)!important}
 .kpanel .pfam i{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
 .kpanel .prn small{display:none!important}
 @media (width<64rem){.card.kpanel .psec.pwh{display:none!important}}

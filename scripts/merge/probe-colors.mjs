@@ -29,7 +29,15 @@ for (let i = 0; i < 40 && !zones; i++) {
   zones = await ev(`(()=>{const o={};document.querySelectorAll('path.zone').forEach(p=>{const d=p.__data__;if(d&&d.lang)o[d.lang]=p.style.fill||getComputedStyle(p).fill});return Object.keys(o).length>20?o:null})()`);
 }
 if (!zones) die('map zones never appeared');
-const vars = await ev(`(()=>{const c=getComputedStyle(document.documentElement);const o={};for(const k of ${JSON.stringify(['slav','iran','alba','gree','roma','cauc','turk','ural','mong'])})o[k]=c.getPropertyValue('--f-'+k).trim();return o})()`);
+const FAMS = (process.env.ETIMO_FAM_VARS || 'slav,iran,alba,gree,roma,cauc,turk,ural,mong').split(',');
+const vars = await ev(`(()=>{const c=getComputedStyle(document.documentElement);const o={};for(const k of ${JSON.stringify(FAMS)})o[k]=c.getPropertyValue('--f-'+k).trim();return o})()`);
+// dialect / minority areas drawn over the zones (Serbia, Vlach): must be the same colour as the language itself
+let areas = {};
+for (let i = 0; i < 15; i++) {
+  areas = await ev(`(()=>{const o={};document.querySelectorAll('g.serbia-areas path, g.vlach-areas path').forEach(p=>{const d=p.__data__;if(d&&d.name)o[d.name]=p.getAttribute('fill')||getComputedStyle(p).fill});return o})()`) || {};
+  if (Object.keys(areas).length) break;
+  await sleep(1000);
+}
 if (shot) { await sleep(8000); fs.writeFileSync(shot.replace(/\.png$/, '-map.png'), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64')); }
 if (!await click('Languages')) die('no Languages tab');
 await sleep(2500);
@@ -41,5 +49,5 @@ for (let i = 0; i < 20 && !wheel; i++) {
 }
 if (!wheel) die('wheel ticks never appeared');
 if (shot) { fs.writeFileSync(shot.replace(/\.png$/, '-wheel.png'), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64')); }
-fs.writeFileSync(out, JSON.stringify({ theme, zones, wheel, vars }));
+fs.writeFileSync(out, JSON.stringify({ theme, zones, wheel, vars, areas }));
 p.kill(); process.exit(0);

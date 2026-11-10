@@ -79,7 +79,8 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  let last;
  // Albanian dialect areas (Wikimedia Commons: Albaniandialects.png, CC BY-SA 4.0, Karadakli230; Albanian_dialects.svg for Arbëresh and Arvanitika, CC BY-SA 3.0, ArnoldPlaton)
  // and Vlach areas (Wikimedia Commons: South-Balkan-Romance-languages.png, after Koryakov 2001, CC BY-SA 3.0), drawn on the real map in shades of each family colour.
- const PAL=window.__albPalette||{};
+ // Same colour as the language's zone, pin and wheel slice in both themes (dark mode brightens dim colours).
+  const PAL=new Proxy(window.__albPalette||{},{get:(t,n)=>t[n]&&window.__albColor?(window.__albColor({data:{L:{lang:n}}})||t[n]):t[n]});
  const DNAME={'Northeastern Gheg':'Northeastern Gheg','Northwestern Gheg':'Northwestern Gheg','Central Gheg':'Central Gheg','South Gheg':'South Gheg','Central–Northeastern Transitional Gheg':'Transitional Gheg','Upper Reka Gheg':'Upper Reka Gheg','Tosk':'Tosk Albanian','Lab':'Labërisht','Çam':'Çam Albanian','Arbëresh':'Arbëresh','Arvanitika':'Arvanitika'};
  const GHEG=new Set(['Northeastern Gheg','Northwestern Gheg','Central Gheg','South Gheg','Transitional Gheg','Upper Reka Gheg']);
  const TOSKS=new Set(['Tosk Albanian','Labërisht','Çam Albanian','Arbëresh','Arvanitika']);
