@@ -591,7 +591,7 @@ def fd_patches(p):
 
 # ---------------------------------------------------------------- performance
 # today.json stays at data/today.json: regional-layer.js fetches the same URL, so both share one download
-HASHED = ['lexicon.json', 'languages.json', 'world-50s.json', 'terr.json', 'shade.webp']
+HASHED = ['lexicon.json', 'languages.json', 'world-50s.json', 'terr.json', 'shade.webp', 'shade.avif', 'shade-s.avif']
 
 
 def hashed_copies():
@@ -652,9 +652,14 @@ def perf_patches(p):
     # B3: today's internal borders load after the first map paint (idle time), not with it
     p.rep('PERF-today', 'ff=fetch("data/today.json")',
           'ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json"))')
-    # B2: relief image (re-encoded, see docs) fades in once decoded
+    # B2: relief image fades in once decoded. Built by scripts/relief/ (soft shading, flat sea).
+    # Desktop gets the large AVIF, phones and small tablets the smaller one (same picture, fewer pixels,
+    # sized for their screens); a browser that cannot read AVIF falls back to the WebP.
     p.rep('PERF-shade', '.attr("href","data/shade.webp").attr("decoding","async")',
-          '.attr("href",' + jsdump(H['shade.webp']) + ').attr("decoding","async").style("opacity",0).on("load",function(){'
+          '.attr("href",matchMedia("(max-width:820px),(pointer:coarse) and (max-width:1180px)").matches?'
+          + jsdump(H['shade-s.avif']) + ':' + jsdump(H['shade.avif']) + ').attr("decoding","async").style("opacity",0)'
+          '.on("error",function(){let w=' + jsdump(H['shade.webp']) + ';this.getAttribute("href")!==w&&this.setAttribute("href",w)})'
+          '.on("load",function(){'
           'this.style.transition="opacity .6s";requestAnimationFrame(()=>{this.style.opacity=""})})')
     # B5: start the startup downloads with the HTML
     pre = ''.join(f'<link rel="preload" href="{H[n]}" as="fetch" crossorigin>' for n in

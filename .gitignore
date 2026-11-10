@@ -2,3 +2,4 @@
 __pycache__/
 content/duplicates-report.txt
 .DS_Store
+.relief-work/

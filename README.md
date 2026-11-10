@@ -24,6 +24,7 @@ What produces each part of `site/`:
 | `data/languages.json`, `lexicon.json`, `terr.json`, `dia.json` and the other map data | `scripts/merge/merge-data.py` |
 | `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `apply-patches.py` |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
+| `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
 | `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers` | written by hand; these are the only files in `site/` you edit directly |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
@@ -109,8 +110,21 @@ themes on a fresh load; no console errors on the home, map, language, dictionary
 downloads are compressed and cached (first visit about 2.5 MB, mostly the word list, then served
 from cache).
 
-Known limit, not changed: the shaded relief is one image (3465 x 1826). Zoomed in far it looks
-blocky; fixing that needs a higher-resolution relief image.
+## Relief (the soft mountain shading)
+
+Built by `scripts/relief/build.sh` from public elevation data, drawn in the map's own projection
+(d3 conic conformal, parallels 35 and 60, centred on 30 E). The look is deliberately quiet: the land
+is smoothed so only mountain systems show, the sea is flat (no sea-floor rings, no coast shadows),
+and flat land is fully clear so language colours stay pure. Three files, same picture:
+
+| file | size | who gets it |
+|---|---|---|
+| `site/data/shade.avif` | 4725 x 2490, about 480 KB | desktop |
+| `site/data/shade-s.avif` | 3150 x 1660, about 310 KB | phones and small tablets |
+| `site/data/shade.webp` | 3465 x 1826, about 390 KB | only browsers that cannot read AVIF |
+
+To change the look, edit the three numbers on the `shade.py` line in `build.sh` (smoothing,
+exaggeration, strength), run it, then run `./scripts/add-words.sh`.
 
 ## Hosting
 
