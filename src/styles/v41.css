@@ -1,0 +1,23 @@
+
+/* header: no corner glyph, title centred on the screen */
+.bar{position:relative}
+.bar h1:before{display:none!important}
+.bar h1{position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);flex:none;max-width:calc(100% - 9.5rem);justify-content:center;text-align:center;pointer-events:none}
+.bar .br{margin-left:auto}
+.brand .bc{width:.66em}
+/* search: quiet at rest, ring only while focused */
+body .search input{border:2px solid transparent;background:var(--soft);border-radius:14px;box-shadow:none}
+body .search input:focus{border-color:var(--ink);background:var(--bg);box-shadow:none;outline:0}
+/* category tiles: the name lives inside the tile header */
+.ct.ctm .ck{font-size:.72rem;letter-spacing:.14em;color:var(--hd-muted)}
+.ct.ctm .cn{gap:.5rem}
+/* family marker: one short bar in the family colour */
+.dot,.dot.Slavic,.dot.Iranian,.dot.Greek,.dot.Albanian,.dot.Caucasian,.dot.Turkic,.dot.Uralic,.dot.Mongolic,/*@EXTRA_DOT_SELECTORS@*/.sn .dot,.worg .dot,.gbtn .dot{width:.95rem;height:4px;border-radius:2px;clip-path:none}
+.dot.Romance,.dot.Caucasian,.dot.Turkic,.dot.Uralic,.dot.Mongolic{width:.95rem;height:4px;border-radius:2px;clip-path:none}
+.bchip .sw{width:.95rem;height:4px;border-radius:2px}
+/* wheel */
+.sblab{fill:var(--on-fam);font-weight:600}
+.sbout{font-family:var(--sans);font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round;cursor:pointer}
+.slead{fill:none;stroke:var(--ink);stroke-width:1;pointer-events:none}
+.slead-h{fill:none;stroke:var(--bg);stroke-width:3.5;opacity:.9;pointer-events:none}
+.sdot{fill:var(--bg);stroke:var(--ink);stroke-width:1.2;pointer-events:none}

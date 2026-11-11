@@ -81,7 +81,7 @@ def main():
     langs = json.load(open(os.path.join(ROOT, 'site', 'data', 'languages.json')))
     ref_langs = json.load(open(os.path.join(ROOT, 'reference', 'etimo-artifact', 'data', 'languages.json')))
     html = open(os.path.join(ROOT, 'site', 'index.html'), encoding='utf8').read()
-    P = json.loads(re.search(r'var P=(\{.*?\});function hx', html, re.S).group(1))
+    P = json.loads(re.search(r'var P=(\{.*?\});\s*function hx', html, re.S).group(1))
     fam_of = {k: v['path'][0] for k, v in langs.items()}  # tree root; map family comes from lexicon, used only for (e)
     errors, warns = [], []
 

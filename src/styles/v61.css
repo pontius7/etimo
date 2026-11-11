@@ -1,0 +1,54 @@
+/* ---- type system: Source Serif 4 = content & display, IBM Plex Sans = interface. Weights: 400 / 500 / 600 only ---- */
+b,strong{font-weight:600}
+th{font-weight:500}
+/* ---- hero ridge: one mountain line, the pill is a segment of it ---- */
+.spec .ridge{height:3.75rem;opacity:1!important;overflow:visible}
+.spec .ridge path{fill:none;stroke:var(--ink);stroke-opacity:.4;stroke-width:1.25px;stroke-linejoin:round;stroke-linecap:round;vector-effect:none}
+.spec .ridge path.kseg{stroke-opacity:0;stroke-width:3.25px;transition:stroke-opacity .4s,stroke .6s}
+.spec .ridge path.kseg.on{stroke-opacity:1}
+.spec .kpill{display:none!important}
+@media (width>=64rem){.spec .ridge{height:7rem}
+.spec-p{padding-bottom:6.5rem}
+.spec .ridge path.kseg{stroke-width:3.5px}
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .spec .ridge path{stroke-opacity:.5}
+}
+:root[data-theme=dark] .spec .ridge path{stroke-opacity:.5}
+/* ---- menu ---- */
+.tabbar .in{position:relative;isolation:isolate}
+.tabbar button{position:relative;z-index:1;color:var(--mut);font-weight:500!important;letter-spacing:0!important;text-transform:none!important;transition:color .25s}
+.tabbar button span:not(.icn){font-weight:500!important}
+.tabbar button svg{background:none!important;padding:0!important;width:22px!important;height:22px!important;stroke-width:1.75;color:inherit!important}
+.tabbar button[aria-current=page]{color:var(--hd)}
+.tabbar button[aria-current=page]:before{display:none!important}
+.tabbar .icn{display:flex;align-items:center;justify-content:center;width:56px;height:30px;transition:color .25s}
+.tabbar button[aria-current=page] .icn,.tabbar button[aria-current=page] .icn svg{color:var(--hd-ink)!important}
+.ktab-ind{position:absolute!important;left:0!important;top:0!important;bottom:auto!important;z-index:0;border-radius:999px!important;background:var(--hd)!important;opacity:0;pointer-events:none;transition:transform .42s cubic-bezier(.2,.8,.2,1),width .42s cubic-bezier(.2,.8,.2,1),height .42s,opacity .25s!important}
+.ktab-ind.on{opacity:1}
+.ktab-ind.nt{transition:none!important}
+:root[data-theme=dark] .tabbar button[aria-current=page]{color:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .tabbar button[aria-current=page]{color:var(--ink)}
+}
+@media (width<64rem){
+.tabbar button{flex-direction:column!important;gap:4px!important;font-size:.8125rem!important;line-height:1.2}
+}
+@media (width>=64rem){
+.tabbar button{flex-direction:row!important;gap:.5rem!important;height:42px!important;padding:0 1.05rem 0 .85rem!important;border-radius:999px;font-size:.9375rem!important;align-self:center}
+.tabbar .icn{width:auto;height:auto}
+.tabbar button svg{width:19px!important;height:19px!important}
+.tabbar button:not([aria-current=page]):hover{color:var(--ink);background:var(--soft)}
+.tabbar button[aria-current=page],.tabbar button[aria-current=page] .icn{color:var(--hd-ink)!important}
+.tabbar{height:56px!important}
+.tabbar .in{align-items:center!important;height:100%}
+}
+/* ---- pedigree labels: interface face ---- */
+.pedi .pt text{font:500 12.5px var(--sans)}
+.pedi .pf text{font:600 13.5px var(--sans);letter-spacing:.01em}
+.pedi .pq .pn{font:500 15px var(--serif)}
+.pedi .pq .pr2{font:400 12px var(--sans);font-style:normal}
+/* selection never changes weight: state is shown by colour/fill only */
+.sseg button,.sseg button[aria-selected=true],.wfam button span,.wfam button b,.regs button,.lets button,.sb .sbc b,.chips button,.fchips button{font-weight:500!important}
+.rows .letter{font-weight:500!important}
+.ck{font-size:.75rem!important;letter-spacing:.1em!important}
+@media (width<23.75rem){.tabbar button{font-size:.75rem!important}
+}

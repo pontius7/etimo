@@ -1,5 +1,6 @@
-/* Full dictionaries + Latin-friendly search. Inlined into site/index.html by apply-patches.py
-   (patch FD-code) right before the language page component, so it shares the bundle's names:
+const FDV=__ETIMO_SEARCH_VERSION__;
+/* Full dictionaries + Latin-friendly search. Part 5 of the app script (see src/page.html),
+   placed right before the language page component, so it shares the names of the other parts:
    m = React, f = jsx runtime, ja() UI strings, Ja(hash) navigate, Na(L) language name,
    ai(entry) reading, fa id->language, di highlight, Da text fold, Qa remember query, ka/ya locale,
    EK = site/search-key.js (inlined before this script). FDV = search index version (build). */
@@ -222,3 +223,4 @@ function FDresults({q, fam = 'all'}) {
   };
   ['pointerdown', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, handler, true));
 })();
+

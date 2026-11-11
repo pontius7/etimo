@@ -1,0 +1,4 @@
+.zones path.zone.hist{fill-opacity:.18!important;stroke-dasharray:3 2.5;stroke-width:1.2px;vector-effect:non-scaling-stroke}
+/* top menu: icons never clipped (wrapper + svg may not shrink or hide strokes) */.tabbar button .icn{overflow:visible!important;flex:none!important;max-width:none!important;min-width:0}
+.tabbar button svg{overflow:visible!important;flex:none!important}
+.tabbar button{overflow:visible}

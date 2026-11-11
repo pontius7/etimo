@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 python3 scripts/merge/fetch-sheets.py
 node scripts/merge/test-search-key.js | tail -1
 .venv/bin/python scripts/merge/merge-data.py
-python3 scripts/merge/apply-patches.py | head -1
+python3 scripts/build-page.py
 .venv/bin/python scripts/merge/check-overlaps.py | tail -1
 python3 scripts/merge/words-report.py
 # Colour check: map = palette = wheel for every language, originals identical to the reference.

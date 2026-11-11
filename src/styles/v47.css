@@ -1,0 +1,27 @@
+
+/* ===== one tile language everywhere: navy header with the title, light body ===== */
+/* category word tiles */
+.kt{border-color:var(--bd-line);background:var(--bd);overflow:hidden;min-height:8.25rem}
+.kt .kn{background:var(--hd);color:var(--hd-ink);font:500 1.4rem/1.12 var(--serif);padding:.8rem 1rem .75rem}
+.kt .kb{border-top:0;padding:.75rem 1rem .9rem}
+.kt.pressed,.kt:active{background:var(--hd);border-color:var(--hd)}
+.kt.pressed .kn,.kt:active .kn{background:var(--bd);color:var(--ink)}
+.kt:hover{border-color:var(--hd)}
+/* map cards (language + cluster) */
+.card.mcard,.exv2 .card.mcard{padding:0 0 .9rem;overflow:hidden;border:1px solid var(--bd-line);background:var(--bd);-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:14px;column-gap:0;row-gap:0;grid-template-columns:1fr auto;align-items:stretch;box-shadow:0 10px 30px #06110e22}
+.card.mcard .mhd,.exv2 .card.mcard .mhd,.kpanel .phd{grid-column:1/-1;background:var(--hd);color:var(--hd-ink);padding:.8rem 3.4rem .85rem 1.1rem;display:flex;flex-direction:column;gap:.3rem;--f-slav:#7ad689;--f-iran:#ebb353;--f-alba:#ffa09a;--f-gree:#95c0ff;--f-roma:#d0a9ff/*@FAM_VARS_DARK@*/}
+.card.mcard .mhd h3,.exv2 .card.mcard .mhd h3{margin:0;padding:0;color:var(--hd-ink);font:500 1.5rem/1.1 var(--serif);letter-spacing:-.01em}
+.card.mcard .mhd .pill{color:var(--hd-muted)}
+.card.mcard .meta,.exv2 .card.mcard .meta{grid-column:1;padding:.55rem 1.1rem 0}
+.card.mcard .chipsc,.exv2 .card.mcard .chipsc{grid-column:1/-1;padding:.7rem 1.1rem 0}
+.card.mcard .acts,.exv2 .card.mcard .acts{grid-area:2/2/span 3;align-self:center;margin:0;padding:.4rem 1.1rem 0 .4rem}
+.card.mcard .close,.exv2 .card.mcard .close{position:absolute;top:.4rem;right:.4rem;grid-column:auto;color:var(--hd-ink);z-index:2}
+.exv>.card.mcard .acts{padding:.6rem 1.1rem 0;grid-area:auto}
+/* language page header */
+.view>.head{background:var(--hd);color:var(--hd-ink);border-radius:14px;margin-top:.9rem;padding:1.15rem 1.25rem 1.2rem;--f-slav:#7ad689;--f-iran:#ebb353;--f-alba:#ffa09a;--f-gree:#95c0ff;--f-roma:#d0a9ff/*@FAM_VARS_DARK@*/}
+.view>.head .pill{color:var(--hd-muted)}
+.view>.head h2{color:var(--hd-ink);font-weight:500}
+.view>.head .orn{background:var(--hd-ink);opacity:.38}
+.view>.head .anb{color:var(--hd-ink);opacity:.9}
+.view>.head .meta,.view>.head .meta b{color:var(--hd-ink)}
+.view>.head .meta+.meta,.view>.head .meta+.meta b{color:var(--hd-muted)}

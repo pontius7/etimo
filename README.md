@@ -11,6 +11,7 @@ Live: https://etimo.nikocevic7.workers.dev (Cloudflare). Preview on your Mac:
 | folder | what it is | edit by hand? |
 |---|---|---|
 | `content/` | **Your additions**: words, languages, dialects, families, meanings | yes, this is where you work |
+| `src/` | **The page's source**: the page, its styles and the app script, as ordinary files | yes, to change how the site looks or behaves |
 | `scripts/` | The build (`add-words.sh`) and its checks | only to change how the site is built |
 | `reference/` | Untouched originals of the two apps the site was merged from | never |
 | `site/` | The website that gets published | no (see the table below) |
@@ -20,9 +21,9 @@ What produces each part of `site/`:
 
 | path in `site/` | produced by |
 |---|---|
-| `index.html` | `scripts/merge/apply-patches.py` (original app + numbered patches + `scripts/merge/inject/`) |
+| `index.html` | `scripts/build-page.py`, from the files in `src/` |
 | `data/languages.json`, `lexicon.json`, `terr.json`, `dia.json` and the other map data | `scripts/merge/merge-data.py` |
-| `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `apply-patches.py` |
+| `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
 | `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json`, `data/athos.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
@@ -81,16 +82,42 @@ pair of family colours is (20 or more reads as clearly different). With nine fam
 room is small; the Baltic example (`#819808` light, `#879f18` dark) scores 19.3 and 20.7 against
 its nearest neighbour.
 
-## How the page is built (and its limit)
+## How the page is built
 
-The app is the original Etimo bundle, a single compiled file with no separate source code.
-`apply-patches.py` rebuilds `site/index.html` from that original every time by applying exact
-find-and-replace patches, each with an id. If a patch no longer matches, the build stops and names it;
-it never half-applies. New behaviour and styles live in `scripts/merge/inject/fd-app.js` and `fd.css`.
+The page has ordinary source files in `src/`. `scripts/build-page.py` joins them into the one
+published file, `site/index.html`. To change how the site looks or behaves, edit a file in `src/`,
+run `./scripts/add-words.sh` (or only `python3 scripts/build-page.py` for a quick look) and reload
+the preview.
 
-This keeps every change reviewable and repeatable, but it means app logic is edited through
-patches, not ordinary source files. Data, colours, languages, families and words do not have
-that limit: they are plain files in `content/`.
+| in `src/` | what it is |
+|---|---|
+| `page.html` | the page itself: the head, and the order in which the styles and scripts are joined |
+| `styles/` | the style sheets, one file per block, one rule per line. `main.css` is the base; `v41.css` to `v62.css` and the `etimo-*.css` files are later layers (a later file wins); `fd.css` styles the full dictionary and the language page |
+| `app/1-libraries-ui.js`, `app/3-libraries-map.js` | other people's libraries (React and the interface kit; d3 for the map). Not meant to be edited |
+| `app/2-app-text-and-tables.js` | every interface text in each language (`Zr`), the word categories, language and place names, region tabs |
+| `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
+| `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search (written by hand, with readable names) |
+| `app/6-app-screens-and-startup.js` | language page, tree, wheel, the map (`Dp`), settings, startup |
+| `app/7-language-colours.js` | the colour of every language, and how colours are lifted for dark mode |
+
+Three things to know:
+
+- **Short names.** The app was compiled once, so most names inside it are short (`kp` is the
+  language page, `Dp` the map). Every statement is on its own line; find a function with
+  `grep -n "^function kp" src/app/*.js`.
+- **Placeholders.** `/*@NAME@*/`, `__ETIMO_NAME__` and `/*@table NAME*/ ... /*@end*/` mark the few
+  places the build fills in from `content/` and the data files: family colours and lists, the
+  colour of each language, names of your own languages and meanings, and the hashed names of the
+  startup files. Leave them where they are. The full list is in `placeholders()` in `scripts/build-page.py`;
+  a missing or unknown placeholder stops the build and names it.
+- **One page out.** The published page is still a single file, so nothing changes for visitors.
+
+History: until 2026-11-10 the page was rebuilt on every build from the original compiled app
+through 86 find-and-replace patches (`scripts/merge/apply-patches.py`, still in the git history).
+The switch to `src/` was checked two ways: the page built from `src/` was byte-for-byte the page
+the patches produced, both with today's content and with a test family, test languages and test
+meanings added; and after the script and styles were put on separate lines, the only difference
+was line breaks, with the parsed program of every script file unchanged.
 
 ## Map fixes, 2026-11-10
 

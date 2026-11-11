@@ -1,0 +1,36 @@
+
+/* ===== v49: subregions, reset, plain back arrow ===== */
+.mtl .mreset{left:auto;right:calc(100% + .45rem);transform:translateX(6px)}
+.mtl .mreset.on{transform:none}
+.ksel .kr{fill:none;stroke:var(--kf);stroke-width:.9px;vector-effect:non-scaling-stroke;stroke-linejoin:round;opacity:.75}
+.ksel .kr.Slavic{--kf:var(--f-slav)}
+.ksel .kr.Iranian{--kf:var(--f-iran)}
+.ksel .kr.Greek{--kf:var(--f-gree)}
+.ksel .kr.Albanian{--kf:var(--f-alba)}
+.ksel .kr.Romance{--kf:var(--f-roma)}
+.ksel .kr.Caucasian{--kf:var(--f-cauc)}
+.ksel .kr.Turkic{--kf:var(--f-turk)}
+.ksel .kr.Uralic{--kf:var(--f-ural)}
+.ksel .kr.Mongolic{--kf:var(--f-mong)}
+.ksel .kr.tap{--kf:var(--hd)}
+.ksel .kr.kdia{stroke-dasharray:4 3;opacity:.38}
+.ksel .kr.tap{fill:color-mix(in srgb,var(--kf) 14%,transparent);stroke-width:2.2px;stroke-dasharray:none;opacity:1}
+.ksel .kr.tap.Slavic{--kf:var(--f-slav)}
+.ksel .kr.tap.Iranian{--kf:var(--f-iran)}
+.ksel .kr.tap.Greek{--kf:var(--f-gree)}
+.ksel .kr.tap.Albanian{--kf:var(--f-alba)}
+.ksel .kr.tap.Romance{--kf:var(--f-roma)}
+.ksel .kr.tap.Caucasian{--kf:var(--f-cauc)}
+.ksel .kr.tap.Turkic{--kf:var(--f-turk)}
+.ksel .kr.tap.Uralic{--kf:var(--f-ural)}
+.ksel .kr.tap.Mongolic{--kf:var(--f-mong)}
+.card.mcard .rgl,.exv2 .card.mcard .rgl{grid-column:1/-1;grid-row:5;padding:.4rem 1.1rem 0}
+.rgl[hidden]{display:none}
+.rgh{font:600 .6875rem var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:.55rem 0 .4rem}
+.rgc{display:flex;flex-wrap:wrap;gap:.4rem}
+.rchip{border:1px solid var(--bd-line);background:var(--bg);color:var(--ink);border-radius:999px;min-height:2.25rem;padding:0 .8rem;font:500 .875rem var(--sans);display:inline-flex;gap:.4rem;align-items:center}
+.rchip i{font-style:normal;color:var(--mut);font-size:.75rem}
+.rgc.rdia .rchip{border-style:dashed}
+.btn.pri{background:var(--hd);color:var(--hd-ink);border-color:var(--hd)}
+.rchip.rmore,.rchip:active{background:var(--hd);color:var(--hd-ink);border-color:var(--hd)}
+.mtip .hm{color:var(--hd-ink);opacity:.9}

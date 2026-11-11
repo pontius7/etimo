@@ -1,0 +1,93 @@
+/* ---- wheel: depth pills ---- */
+.kdep{display:flex;justify-content:center;align-items:center;gap:2px;min-height:44px;margin:.1rem 0 .35rem}
+.kdp{position:relative;width:26px;height:44px;border:0;padding:0;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.kdp i{display:block;width:8px;height:22px;border-radius:4px;background:var(--dc,var(--hd));transform-origin:50% 100%;animation:kdIn .28s cubic-bezier(.2,.8,.2,1) both;transition:height .25s cubic-bezier(.2,.8,.2,1),background-color .3s,transform .15s}
+.kdp.cur i{height:32px}
+.kdp:hover i{transform:scaleY(1.12)}
+.kdp:active i{transform:scaleY(.86)}
+.kdp:focus-visible{outline:2px solid var(--hd);outline-offset:-2px;border-radius:6px}
+@keyframes kdIn{from{transform:scaleY(0);opacity:0}
+}
+.crumbs{display:none!important}
+/* ---- wheel centre: mini ring = back ---- */
+.sbc{width:auto!important;max-width:none!important}
+.sbc .wpk,.sbc>b{display:none!important}
+.smr{pointer-events:auto;display:block;border:0;padding:0;background:none;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:smIn .32s cubic-bezier(.2,.8,.2,1) both}
+.smr.top{cursor:default}
+.smr svg{display:block;width:100%;height:100%;overflow:visible}
+.smr .smg{transform-origin:0 0;transition:transform .2s}
+.smr:not(.top):hover .smg{transform:scale(1.06)}
+.smr.hit .smg{animation:smHit .3s cubic-bezier(.3,.7,.2,1)}
+.smr:focus-visible{outline:2px solid var(--hd);outline-offset:3px}
+@keyframes smIn{from{opacity:0;transform:rotate(-50deg) scale(.7)}
+}
+@keyframes smHit{40%{transform:rotate(-40deg) scale(.82)}
+100%{transform:rotate(0) scale(1)}
+}
+/* ---- wheel layer transitions: one composited group, no per-arc tweens ---- */
+.sb svg g.lay,.sb svg g.lgone{transform-origin:0 0}
+.sb svg g.lay.win{animation:wIn .34s cubic-bezier(.2,.8,.2,1) both}
+.sb svg g.lay.wout{animation:wBack .34s cubic-bezier(.2,.8,.2,1) both}
+.sb svg g.lay.wfirst{animation:wIn .5s cubic-bezier(.2,.8,.2,1) both}
+.sb svg g.lgone{pointer-events:none;animation:wGone .2s ease-out forwards}
+.sb svg g.lgone.dn{animation-name:wGone2}
+@keyframes wIn{from{opacity:0;transform:scale(.82) rotate(-8deg)}
+}
+@keyframes wBack{from{opacity:0;transform:scale(1.14) rotate(6deg)}
+}
+@keyframes wGone{to{opacity:0;transform:scale(1.12)}
+}
+@keyframes wGone2{to{opacity:0;transform:scale(.84)}
+}
+/* ---- family row: one full-width row ---- */
+.wfam{display:flex!important;flex-wrap:nowrap!important;justify-content:stretch!important;gap:.4rem!important;width:100%!important;max-width:none!important;margin:.25rem 0 .5rem!important;padding:2px!important;-webkit-mask-image:none!important;mask-image:none!important;overflow:visible!important}
+.wfam button{flex:1 1 0!important;min-width:0;justify-content:center;font-weight:500!important;padding:0 .8rem!important;white-space:nowrap}
+.wfam button span{overflow:hidden;text-overflow:ellipsis}
+.wfam button b{display:none!important}
+@media (width<48rem){
+.wfam{overflow-x:auto!important;scroll-snap-type:x proximity;padding:2px 16px 4px!important;margin-left:-16px!important;margin-right:-16px!important;width:calc(100% + 32px)!important;max-width:calc(100% + 32px)!important;align-self:stretch;box-sizing:border-box;scrollbar-width:none}
+.wfam button{flex:0 0 auto!important;scroll-snap-align:start}
+.wfam button span{overflow:visible}
+}
+/* ---- segmented switches (Dictionary: Words/Languages, Languages: Wheel/Tree) ---- */
+.sseg,.lm.tvs{position:relative;isolation:isolate;display:grid!important;grid-template-columns:1fr 1fr;gap:0!important;width:100%;max-width:none;height:3.25rem;padding:4px!important;margin:1rem 0 .5rem!important;border:1px solid var(--line)!important;border-radius:999px!important;background:var(--soft)!important;box-sizing:border-box}
+.lmrow{display:block!important;margin:.5rem 0 1rem!important}
+.lmrow .lm.tvs{margin:0!important}
+.sseg::before,.lm.tvs::before{content:"";position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:999px;background:var(--hd);box-shadow:0 1px 4px #06110e24;transition:transform .36s cubic-bezier(.2,.8,.2,1)}
+.sseg:has(>button:nth-child(2)[aria-selected=true])::before,.lm.tvs:has(>button:nth-child(2)[aria-selected=true])::before{transform:translateX(100%)}
+.sseg button,.lm.tvs button{position:relative;z-index:1;display:flex!important;align-items:center;justify-content:center;gap:.5rem;height:100%!important;min-height:0!important;padding:0 .75rem!important;margin:0;border:0!important;border-radius:999px!important;background:none!important;box-shadow:none!important;color:var(--mut)!important;font:500 1rem/1 var(--sans)!important;transition:color .25s;cursor:pointer}
+.sseg button[aria-selected=true],.lm.tvs button[aria-selected=true]{color:var(--hd-ink)!important}
+.sseg button:not([aria-selected=true]):hover,.lm.tvs button:not([aria-selected=true]):hover{color:var(--ink)!important}
+.sseg svg,.lm.tvs svg{width:18px!important;height:18px!important;stroke-width:1.75}
+.sseg .icn,.lm.tvs .icn{display:flex}
+@media (width>=64rem){.sseg,.lm.tvs{height:3.5rem}
+}
+
+/* ---- v63: starter wheel clean, straight hero line, thin type ---- */
+.smr.top{display:none!important}
+.wfam{display:none!important}
+.wtop .wla{letter-spacing:.16em;font-weight:500}
+.spec .ridge{height:1.25rem!important;margin:.9rem 0 0!important}
+.spec .ridge path{stroke-opacity:.35!important;stroke-width:1px!important}
+.spec .ridge path.kseg{stroke-width:2.5px!important;stroke-opacity:0!important}
+.spec .ridge path.kseg.on{stroke-opacity:1!important}
+.spec-p{padding-bottom:2.2rem!important}
+@media (width>=64rem){.spec .ridge{height:1.5rem!important}
+.spec-p{padding-bottom:2.6rem!important}
+.spec .ridge path.kseg{stroke-width:3px!important}
+}
+body{font-weight:400;letter-spacing:.005em}
+.sw,.head h2,.fg header b,.anb{font-weight:300!important;letter-spacing:-.005em}
+.row .t,.wv b,.row .an{font-weight:300}
+.st,.sn,.row .s,.meta,.note,.wk,.wv small{font-weight:400}
+.bar h1,.ph,.gh,.pill,.spec-k{font-weight:600}
+
+/* ---- v64: wheel labels match site serif, capitals, wide spacing ---- */
+.wla,.wlb,.wll{font-family:"Jost","Manrope",system-ui,sans-serif!important}
+.wla{font-weight:500!important;letter-spacing:.24em!important}
+.wlb{font-weight:400!important;letter-spacing:.12em!important}
+.wll{font-weight:400!important;letter-spacing:.06em!important}
+.wtop .wla{letter-spacing:.24em!important;font-weight:500!important}
+
+/* ---- v65: keep the active tab visible before the pill appears ---- */
+.tabbar .in:not(:has(.ktab-ind.on)) button[aria-current=page],.tabbar .in:not(:has(.ktab-ind.on)) button[aria-current=page] .icn,.tabbar .in:not(:has(.ktab-ind.on)) button[aria-current=page] .icn svg{color:var(--ink)!important}

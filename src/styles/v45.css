@@ -1,0 +1,28 @@
+
+.dias{pointer-events:none}
+.dia{stroke:none;opacity:.5;pointer-events:none;transition:opacity .3s}
+.dia.Iranian{fill:var(--f-iran)}
+.dia.Albanian{fill:var(--f-alba)}
+.dia.Romance{fill:var(--f-roma)}
+.dia.Caucasian{fill:var(--f-cauc)}
+.dia.Turkic{fill:var(--f-turk)}
+.dia.Uralic{fill:var(--f-ural)}
+.dia.Mongolic{fill:var(--f-mong)}
+.dia.Slavic{fill:var(--f-slav)}
+.dia.Greek{fill:var(--f-gree)}
+.mapbox svg.fsel .dia{opacity:.1}
+.mapbox svg.fsel[data-f=Iranian] .dia.Iranian,.mapbox svg.fsel[data-f=Albanian] .dia.Albanian{opacity:.5}
+.mapbox svg.fsel[data-f=Romance] .dia.Romance,.mapbox svg.fsel[data-f=Caucasian] .dia.Caucasian,.mapbox svg.fsel[data-f=Turkic] .dia.Turkic,.mapbox svg.fsel[data-f=Uralic] .dia.Uralic,.mapbox svg.fsel[data-f=Mongolic] .dia.Mongolic{opacity:.5}
+.sblab,.sblab.lf{font-family:var(--serif);font-weight:500;letter-spacing:.01em;font-variation-settings:"opsz" 16}
+.sbleaf{font-family:var(--serif);font-weight:400;letter-spacing:.005em;font-variation-settings:"opsz" 14}
+.sbout{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:.01em;font-variation-settings:"opsz" 14;stroke-width:2.6px}
+.slead{stroke-width:.7;opacity:.55}
+.slead-h{stroke-width:2.6}
+.sdot{stroke-width:.9}
+.sbarc{stroke:var(--bg);stroke-width:.6px}
+.spec .sl,.stage .sl{will-change:opacity,transform}
+.mapbox svg .topo2{opacity:1;transition:opacity .4s ease .08s}
+.mapbox svg.zooming .topo2{opacity:0;visibility:hidden;transition:none}
+@media (width>=64rem){.bar h1{left:3.75rem;transform:none;justify-content:flex-start;text-align:left;max-width:16rem}
+}
+#heroSlot .wrap:has(>.spec):not(:has(>.ut-grid)){grid-template-columns:1fr}

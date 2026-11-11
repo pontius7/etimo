@@ -1,0 +1,48 @@
+/* ---- one typeface everywhere: Source Serif 4 (Noto Serif Georgian for Georgian) ---- */
+
+
+.brand,.brand .bw,.brand .bc,.brand .bm{font-family:var(--serif)!important;font-weight:600!important}
+/* type scale: phone base 16px, desktop base 17px; every rem-based size follows */
+@media (width>=64rem){html{font-size:106.25%}
+}
+.gh,.ph,.kpanel .ph,.rgh,.dh{font-size:.75rem!important;letter-spacing:.1em!important;font-weight:600!important}
+
+.pr,.wlat,.st.pr{font-style:italic}
+/* ---- hero pill rides the ridge ---- */
+.kpill{left:-10px;top:-2.5px;width:20px;height:5px;border-radius:3px;box-shadow:0 0 0 2.5px var(--bg);transition:opacity .35s,background-color .6s!important;transform-origin:50% 50%;will-change:transform}
+.spec .ridge path{stroke-opacity:.5;stroke-width:1.5px;stroke-linejoin:round}
+.spec .ridge{height:2.4rem}
+@media (width>=64rem){.spec .ridge{height:4.2rem}
+.spec-p{padding-bottom:4.6rem}
+}
+/* ---- search page ---- */
+.srch .sseg{margin:.9rem 0 .4rem}
+.srch .shint{margin:.75rem 0 0;font-size:1rem;line-height:1.5}
+.srch .fchips button,.srch .chips button{font-size:1rem;min-height:2.75rem}
+.srch .qchip{font-size:1rem;min-height:2.6rem}
+.sbt .kn{font-size:1.4rem!important}
+.sbt .kb{font-size:1.0625rem!important}
+.lresw .gh{font-size:.875rem!important;margin:1.25rem 0 .35rem;color:var(--ink)}
+.lresw .gh .dot{width:18px;height:4px}
+.lres .ltx b{font-size:1.125rem}
+.lres .ltx small{font-size:.875rem}
+.lres .lact{font-size:.875rem}
+/* ---- pedigree (desktop tree) ---- */
+.vdendro{overflow-x:auto;padding:.75rem 0 2.5rem}
+.pedi{display:block}
+.pedi .pl{fill:none;stroke-width:1.5;stroke-opacity:.55;stroke-linejoin:round;stroke-linecap:round}
+.pedi .pt rect{fill:var(--bg);stroke:var(--pc,var(--line));stroke-width:1.2}
+.pedi .pt text{font:600 12.5px var(--serif);fill:var(--ink)}
+.pedi .pf rect{fill:var(--hd);stroke:none}
+.pedi .pf text{font:600 14px var(--serif);fill:var(--hd-ink);letter-spacing:.01em}
+.pedi .pq{cursor:pointer}
+.pedi .pq rect:first-child{fill:var(--soft);stroke:var(--line);stroke-width:1;transition:fill .15s,stroke .15s}
+.pedi .pq:hover rect:first-child{fill:var(--bg);stroke:var(--ink)}
+.pedi .pq .pn{font:600 15px var(--serif);fill:var(--ink)}
+.pedi .pq .pr2{font:400 12px var(--serif);fill:var(--mut);font-style:italic}
+/* ---- alignment fixes ---- */
+.view>.regs,.view>.lets{margin-left:0;margin-right:0}
+.wfam{margin-left:auto;margin-right:auto}
+
+@media (width>=64rem){.vdendro{width:min(1440px,calc(100vw - 4rem));position:relative;left:50%;margin-left:calc(-1 * min(720px,50vw - 2rem));overflow-x:visible}
+}

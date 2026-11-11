@@ -1,0 +1,23 @@
+/* stronger borders everywhere */
+.mapbox{--coast:#606a7c;--bord:#abb4c4}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .mapbox{--coast:#2d3e5d;--bord:#23324f}
+}
+:root[data-theme=dark] .mapbox{--coast:#2d3e5d;--bord:#23324f}
+.mapbox .coast{stroke-width:.9px}
+.mapbox .adm path{stroke-width:.7px}
+.mapbox svg.zin .adm path{opacity:.95}
+.mapbox svg.zin .adm2 path.d2m{opacity:.85;stroke-width:.6px}
+/* richer colour when zoomed in; only dim others when a language is picked */
+.zones.dim{opacity:calc(var(--zone-op) * 1.3)}
+.mapbox svg.hsel .zones.dim{opacity:calc(var(--zone-op) * .6)}
+.mapbox svg.kdm path.zone{opacity:.55}
+/* labels stand out on any background */
+.mapbox .d2l{font:600 11.5px var(--sans);fill:var(--ink);stroke:var(--bg);stroke-width:3.6px;letter-spacing:.01em}
+.mapbox .city text{font-weight:600;stroke-width:3.6px}
+.mapbox text.plabel{paint-order:stroke;stroke:var(--bg);stroke-width:3.4px;stroke-linejoin:round}
+/* start over, sits with + and − */
+.mapbox .zoom .mreset.kzr{display:flex!important;position:static;transform:none;height:auto;width:50px;min-height:50px;padding:4px 0 0;margin-top:2px;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--ink);flex-direction:column;align-items:center;gap:1px;font:700 .625rem/1.1 var(--sans);letter-spacing:.01em;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.mapbox .zoom .mreset.kzr.on{opacity:1;pointer-events:auto}
+.mapbox .zoom .mreset.kzr svg{width:26px;height:26px;filter:drop-shadow(0 0 1.5px var(--bg)) drop-shadow(0 0 3px var(--bg)) drop-shadow(0 0 6px var(--bg))}
+.mapbox .zoom .mreset.kzr span{paint-order:stroke;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 6px var(--bg);max-width:64px}
+.mapbox .zoom .mreset.kzr:active svg{transform:rotate(-40deg)}

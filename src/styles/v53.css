@@ -1,0 +1,45 @@
+/* wheel: one type family before and after opening */
+.wla,.wlb,.wll{font-family:var(--sans);letter-spacing:0}
+.wla{font-weight:700}
+.wlb{font-weight:600}
+.wll{font-weight:500}
+.sbc b,.sbc .wpk{font-family:var(--sans);font-weight:600;letter-spacing:-.005em}
+/* wheel: On map */
+.wmap{display:flex;align-items:center;gap:.5rem;margin:.75rem auto 0;min-height:48px;max-width:100%;padding:0 1.1rem 0 .9rem;border:0;border-radius:999px;background:var(--hd);color:var(--hd-ink);font:600 .9375rem/1 var(--sans);cursor:pointer;box-shadow:0 6px 18px #06110e26;animation:wmin .35s cubic-bezier(.2,.9,.25,1.2)}
+.wmap[hidden]{display:none}
+.wmap svg{width:20px;height:20px;flex:none}
+.wmap em{font-style:normal;font-weight:500;color:var(--hd-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:11rem}
+.wmap em:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--wf,var(--hd-muted));margin:0 .45rem 1px 0;vertical-align:middle}
+.wmap:active{transform:scale(.96)}
+@keyframes wmin{from{opacity:0;transform:translateY(6px) scale(.94)}
+to{opacity:1;transform:none}
+}
+[data-motion=off] .wmap{animation:none}
+/* locale sheet: navy selection, consistent type, real close button */
+.menu-in .opt,.menu .opt{font:500 1.0625rem var(--sans);padding:0 .85rem;border-radius:12px;margin:2px 0;border-bottom:0;background:transparent;transition:background .15s,color .15s}
+.menu-in .opt+.opt{box-shadow:0 -1px 0 var(--line)}
+.menu-in .opt[aria-checked=true],.menu .opt[aria-checked=true]{background:var(--hd)!important;color:var(--hd-ink)!important;font-weight:600;box-shadow:none}
+.menu-in .opt[aria-checked=true]+.opt{box-shadow:none}
+.menu-in .opt[aria-checked=true]:after,.menu .opt[aria-checked=true]:after,:root[data-theme=dark] .menu-in .opt[aria-checked=true]:after{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--hd-ink);box-shadow:0 0 0 4px color-mix(in srgb,var(--hd-ink) 22%,transparent)}
+.menu-in .opt:not([aria-checked=true]):hover{background:color-mix(in srgb,var(--hd) 8%,transparent)}
+.menu-in .opt:focus-visible,.menu-in button:focus-visible{outline:2px solid var(--hd);outline-offset:2px}
+:root[data-theme=dark] .menu-in .opt[aria-checked=true]{background:#192c4f!important}
+.sheet-x>button[class*=absolute]{top:.75rem!important;right:max(.75rem,env(safe-area-inset-right,0px))!important;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;padding:0;border:0;opacity:1!important;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink);box-shadow:none!important;outline-offset:2px}
+.sheet-x>button[class*=absolute] svg{width:18px;height:18px;stroke-width:2.4}
+.sheet-x>button[class*=absolute]:active{transform:scale(.92)}
+.sheet-x .inner{padding-top:.5rem}
+/* short landscape phones: compact chrome, more map */
+@media (orientation:landscape) and (max-height:520px){
+:root{--tab:50px!important}
+.tabbar button{flex-direction:row;gap:.35rem;height:calc(var(--tab) - 4px)!important;font-size:.8125rem}
+.tabbar button svg{padding:3px 9px!important;width:20px;height:20px}
+.tabbar{padding-bottom:max(4px,env(safe-area-inset-bottom,0px))!important}
+.ktop{width:46px;height:46px}
+.tabbar .in{max-width:46rem!important}
+.tabbar button span{overflow:visible;text-overflow:clip}
+}
+.sb>svg{display:block;margin:0 auto}
+/* perf: dashed strokes over big meshes are very expensive to repaint */
+.mapbox .adm2 path.d2m{stroke-dasharray:none}
+.mapbox svg.zin .adm2 path.d2m{opacity:.5}
+.ksel .kr.kdia.kd{stroke-dasharray:none;opacity:.42}

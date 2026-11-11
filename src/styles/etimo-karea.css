@@ -1,0 +1,5 @@
+.km2.karea path.off{fill:color-mix(in srgb,var(--ink) 7%,var(--bg))!important;opacity:1!important}
+.km2.karea .km2l.off,.km2.karea .km2o.off,.km2.karea .km2d.off{display:none}
+.km2.karea path:not(.off){stroke:var(--bg);stroke-width:1.2}
+.km2.karea .km2l:not(.off){font-weight:700}
+.km2.karea .kmcr{opacity:.25}

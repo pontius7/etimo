@@ -1,0 +1,45 @@
+
+/* category page: centred */
+.chero{text-align:center}
+.chero .orn{margin-left:auto;margin-right:auto}
+.cswitch .lt{justify-content:center;text-align:center}
+.cswitch .lt.on:after{left:50%;transform:translateX(-50%)}
+.gh.kgh{justify-content:center;font-size:.9375rem;letter-spacing:.16em;margin-bottom:.9rem}
+.gh.kgh:after{content:"";background:var(--acc);border-radius:2px;width:1.25rem;height:3px}
+/* home: nature + family first on phones */
+@media (width<36rem){.ct-grid>.ctw[data-k=family]{order:-2}
+.ct-grid>.ctw[data-k=nature]{order:-1}
+}
+/* title: even gaps */
+.brand .bm{justify-content:space-evenly}
+/* language button: Ж with a small faint code beneath */
+.lgz{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:28px;line-height:1}
+.lgz b{font:600 25px/1 var(--sans);letter-spacing:0;color:var(--ink)}
+.lgz i{font:600 8px/1 var(--sans);font-style:normal;letter-spacing:.08em;color:var(--ink);opacity:.5;margin-top:1px}
+/* wheel: nothing beneath */
+.sbh[hidden]{display:none}
+/* topographic map */
+:root{--tl:#f3eee3;--tsea:#e3e8ef;--tc:#8a7c62;--tgrid:#c0c5ce;--tcoast:#5f6878}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--tl:#151d2a;--tsea:#0b1019;--tc:#a2b0ca;--tgrid:#212d44;--tcoast:#3c4f71}
+}
+:root[data-theme=dark]{--tl:#151d2a;--tsea:#0b1019;--tc:#a2b0ca;--tgrid:#212d44;--tcoast:#3c4f71}
+.mapbox{background:var(--tsea)}
+.mapbox .tland{fill:var(--tl)}
+.mapbox .tgrid{fill:none;stroke:var(--tgrid);stroke-width:.8px;stroke-dasharray:3 5;opacity:.75}
+.mapbox .tc{stroke-linejoin:round;stroke-linecap:round}
+.mapbox .tcm{stroke:var(--tc);stroke-width:.5px;opacity:.34}
+.mapbox .tci{stroke:var(--tc);stroke-width:1px;opacity:.62}
+.mapbox .tf .tcm{opacity:.7;stroke-width:.6px}
+.mapbox .tf .tci{opacity:1;stroke-width:1.25px}
+.mapbox .tf.Slavic .tc,.mapbox .tout.Slavic{stroke:var(--f-slav)}
+.mapbox .tf.Iranian .tc,.mapbox .tout.Iranian{stroke:var(--f-iran)}
+.mapbox .tf.Greek .tc,.mapbox .tout.Greek{stroke:var(--f-gree)}
+.mapbox .tf.Albanian .tc,.mapbox .tout.Albanian{stroke:var(--f-alba)}
+.mapbox .tf.Romance .tc,.mapbox .tout.Romance{stroke:var(--f-roma)}
+.mapbox .tf.Caucasian .tc,.mapbox .tout.Caucasian{stroke:var(--f-cauc)}
+.mapbox .tf.Turkic .tc,.mapbox .tout.Turkic{stroke:var(--f-turk)}
+.mapbox .tf.Uralic .tc,.mapbox .tout.Uralic{stroke:var(--f-ural)}
+.mapbox .tf.Mongolic .tc,.mapbox .tout.Mongolic{stroke:var(--f-mong)}
+.mapbox .tout path{stroke:inherit;stroke-width:1.1px;stroke-linejoin:round;opacity:.9}
+.mapbox .coast{stroke:var(--tcoast);stroke-width:.9px}
+.mapbox .bord{stroke:var(--tgrid);opacity:.9}

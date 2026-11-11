@@ -1,0 +1,28 @@
+
+/* tiles: pressed state keeps the word readable, no text-selection handles */
+.ct,.spec,.ut,.stage,.ct *,.spec *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ct.ct.ctm.pressed .cm,.ct.ct.ctm:active .cm{color:var(--ink)}
+.ct.ct.pressed .cx,.ct.ct:active .cx{color:var(--hd-ink)}
+/* map: calmer. minor contours only when zoomed in, softer outlines */
+.mapbox .tgrid{opacity:.3}
+.mapbox .tcm{opacity:.12;transition:opacity .35s}
+.mapbox .tci{opacity:.4;stroke-width:.8px}
+.mapbox .tf .tcm{opacity:.28;transition:opacity .35s}
+.mapbox .tf .tci{opacity:.8;stroke-width:1px}
+.mapbox svg.zin .tcm{opacity:.3}
+.mapbox svg.zin .tf .tcm{opacity:.65}
+.mapbox .tout path{stroke-width:.8px;opacity:.55}
+.mapbox svg .zhl{display:block}
+.terr.dia2{stroke-dasharray:5 4;stroke-width:1.1px;fill:color-mix(in srgb,currentColor 0%,transparent)}
+.terr.dia2.Iranian{fill:color-mix(in srgb,var(--f-iran) 10%,transparent)}
+.terr.dia2.Albanian{fill:color-mix(in srgb,var(--f-alba) 10%,transparent)}
+.terr.dia2.Romance{fill:color-mix(in srgb,var(--f-roma) 10%,transparent)}
+.terr.dia2.Caucasian{fill:color-mix(in srgb,var(--f-cauc) 10%,transparent)}
+.terr.dia2.Turkic{fill:color-mix(in srgb,var(--f-turk) 10%,transparent)}
+.terr.dia2.Uralic{fill:color-mix(in srgb,var(--f-ural) 10%,transparent)}
+.terr.dia2.Mongolic{fill:color-mix(in srgb,var(--f-mong) 10%,transparent)}
+.mapbox .city{opacity:0;animation:cityIn .45s .12s ease forwards}
+@keyframes cityIn{to{opacity:1}
+}
+.mapbox .city circle{fill:var(--ink);stroke:var(--bg);stroke-width:1.4px}
+.mapbox .city text{font:500 11.5px var(--sans);fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:3.2px;stroke-linejoin:round;letter-spacing:.01em}

@@ -1,0 +1,26 @@
+/* hero: one ridge line, the word pill rides it */
+.spec-p .kmtn{display:none!important}
+.spec-p .ticks{opacity:0!important;pointer-events:none}
+.spec .ridge{opacity:1!important}
+.spec .ridge path{stroke:var(--ink);stroke-opacity:.42;stroke-width:1.4px}
+.kpill{position:absolute;left:0;top:0;width:26px;height:8px;border-radius:4px;background:var(--acc);box-shadow:0 0 0 3px var(--bg),0 2px 8px #06110e2e;opacity:0;pointer-events:none;z-index:2;transition:transform .9s cubic-bezier(.45,.05,.2,1),background-color .6s,opacity .3s}
+.kpill.on{opacity:1}
+[data-motion=off] .kpill{transition:none}
+.spec-p{--tint:0%}
+/* map family names: no clipping, larger on desktop */
+.mapbox svg .regs{-webkit-mask-image:none!important;mask-image:none!important}
+@media (width>=64rem){.mapbox .regn.fam{font-size:17px;font-weight:700;letter-spacing:.34em;stroke-width:5px;opacity:.95}
+}
+/* menu type */
+.tabbar button span:not(.icn){font-weight:550;letter-spacing:.005em}
+@media (width<64rem){.tabbar button{font-size:.875rem!important}
+}
+@media (width>=64rem){.tabbar button{font-size:1.0625rem!important}
+.tabbar button svg{width:21px;height:21px}
+}
+.tabbar button[aria-current=page] span:not(.icn){font-weight:700}
+/* logo: one weight for every variant */
+.brand,.brand .bw,.brand .bc,.brand .bm{font-weight:600!important;font-synthesis:none;font-family:var(--sans)!important}
+@media (width>=64rem){.spec .ridge{height:3.4rem}
+.spec-p{padding-bottom:4rem}
+}

@@ -1,0 +1,10 @@
+.ksel .kr.kd{stroke-width:1.1px;stroke-linejoin:round}
+.mapbox svg.kdm .topo2{opacity:.3;transition:opacity .4s}
+.mapbox svg.kdm path.zone{opacity:.3}
+.ksel .kr.home.kd{fill:color-mix(in srgb,var(--kf) 14%,transparent)}
+.ksel .kr.kdia.kd{fill:none;opacity:.5}
+.mapbox .adm2 path.d2m{fill:none;stroke:var(--coast);stroke-width:.55px;vector-effect:non-scaling-stroke;stroke-dasharray:2 2.5;opacity:0;transition:opacity .35s}
+.mapbox svg.zin .adm2 path.d2m{opacity:.8}
+.mapbox svg.zooming .adm2,.mapbox svg.zooming .adm2l{display:none}
+.mapbox .d2l{font:500 10.5px var(--sans);fill:var(--mut);text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;letter-spacing:.02em;animation:cityIn .4s ease both}
+.mapbox .city.kh{display:none}

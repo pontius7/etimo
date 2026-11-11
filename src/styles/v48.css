@@ -1,0 +1,60 @@
+
+/* ===== v48: brand header, centred controls, calmer map, tile-based search ===== */
+.lmrow{justify-content:center}
+.lmrow .lm{margin:0 auto}
+/* map: one centred toolbar, reset pill drops below it */
+.mtl{left:50%;right:auto;transform:translateX(-50%);white-space:nowrap}
+.mtl .mreset{position:absolute;top:0;left:calc(100% + .45rem);width:42px;min-width:42px;padding:0;transform:translateX(-6px)}
+.mtl .mreset.on{transform:none}
+.mtl .mreset span{display:none}
+.mtl .gbtn.gpill:not(.mreset) span{display:inline}
+.mtl .gbtn.gpill:not(.mreset){padding:0 .95rem 0 .75rem}
+.exv2.isfs .mtl{left:50%}
+/* topography: softer, minor lines only when zoomed in, none while moving */
+.mapbox svg:not(.zin) .tcm{display:none}
+.mapbox svg.zooming .topo .tc,.mapbox svg.zooming .topo .tgrid{visibility:hidden}
+.mapbox .tgrid{opacity:.2}
+.mapbox .tcm{opacity:.14;stroke-width:.45px}
+.mapbox .tci{opacity:.3;stroke-width:.7px}
+.mapbox .tf .tcm{opacity:.26;stroke-width:.5px}
+.mapbox .tf .tci{opacity:.5;stroke-width:.85px}
+.mapbox svg.zin .tcm{opacity:.2}
+.mapbox svg.zin .tf .tcm{opacity:.36}
+.mapbox .tout path{stroke-width:.7px;opacity:.42}
+/* long cluster cards scroll instead of covering the map */
+.card.mcard,.exv2 .card.mcard{max-height:min(46dvh,26rem);overflow-y:auto;overscroll-behavior:contain}
+.card.mcard .mhd,.exv2 .card.mcard .mhd,.kpanel .phd{position:sticky;top:0;z-index:1}
+/* tab pill navy; header stays clear for the brand */
+.tabbar button[aria-current=page] svg{background:var(--hd);color:var(--hd-ink)}
+@media (width<48rem){.cpb span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cpb{padding:0 .6rem}
+}
+/* navy, never black, for every active / focus state */
+.chips button[aria-pressed=true],.seg button[aria-selected=true],.lm button[aria-selected=true],.regs button[aria-pressed=true],.fams button[aria-pressed=true],.lets button[aria-pressed=true],.lets button[aria-selected=true]{background:var(--hd);color:var(--hd-ink);border-color:var(--hd)}
+.qchip,.lchip{background:var(--bd);border-color:var(--bd-line)}
+.qchip:active,.lchip:active{background:var(--hd);color:var(--hd-ink);border-color:var(--hd)}
+body .search input{height:3.5rem;border:1.5px solid var(--bd-line);background:var(--bd);border-radius:16px;font-size:1.0625rem}
+body .search input:focus{border-color:color-mix(in srgb,var(--hd) 60%,var(--bd-line));background:var(--bd);box-shadow:0 0 0 4px color-mix(in srgb,var(--hd) 18%,transparent)}
+/* search page */
+.srch .search{margin:.75rem 0 1rem}
+.sidle .shint{font:400 .9375rem/1.45 var(--sans);margin:0 0 .35rem}
+.sidle .gh{margin:1.1rem 0 .55rem}
+.sbg{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.4rem}
+.sbt{min-height:0;animation:none}
+.sbt .kb{margin-top:0}
+.sbt .kn{font-size:1.2rem;padding:.7rem .95rem .65rem}
+.sbt .kb{font:400 .9375rem/1.35 var(--serif);color:var(--mut);padding:.7rem .95rem .85rem;display:block}
+.sbt:active .kb,.sbt.pressed .kb{color:var(--ink)}
+@media (width>=48rem){.sbg{grid-template-columns:repeat(3,1fr)}
+}
+@media (width>=64rem){.sbg{grid-template-columns:repeat(4,1fr)}
+}
+.sgrid{margin-top:.25rem}
+.rt{min-height:7.25rem}
+.rt .kn{font-size:1.05rem;line-height:1.22;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding:.7rem .95rem .65rem}
+.rt .kn mark{background:#ffffff33;color:inherit;border-radius:3px}
+.rt .kb{padding:.65rem .95rem .8rem;gap:.25rem}
+.rt .kw mark{background:color-mix(in srgb,var(--hd) 18%,transparent);color:inherit;border-radius:3px}
+.sres .tiles{display:flex;flex-wrap:wrap;gap:.5rem}
+.sres .tiles .tile{background:var(--hd);color:var(--hd-ink);border:1px solid var(--hd);border-radius:12px;padding:.65rem 1rem;font:500 1.15rem/1.15 var(--serif);width:auto}
+.sres .tiles .tile mark{background:#ffffff33;color:inherit}

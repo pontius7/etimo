@@ -1,0 +1,3 @@
+.cenl .cdia{display:flex;flex-wrap:wrap;gap:.35rem 1rem;margin:.35rem 0 .55rem;font-weight:500}
+.cenl .cdi{display:inline-flex;align-items:center;gap:.45rem;font-size:.9375rem;opacity:.95}
+.cenl .cdi i{flex:none;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.9)}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild automatically whenever you add or edit a word, meaning or language.
 
-Watches content/ (words/*.csv, meanings.csv, languages/*.json) and the build scripts, waits for you to
+Watches content/ (words/*.csv, meanings.csv, languages/*.json), src/ and the build scripts, waits for you to
 stop saving for 3 seconds, then runs scripts/add-words.sh (rebuild site/, overlap check, word report,
 colour check: map = palette = wheel). Prints a short summary and keeps watching.
 No dependencies; polls every 2 seconds.   Stop with Ctrl-C.
@@ -9,7 +9,7 @@ No dependencies; polls every 2 seconds.   Stop with Ctrl-C.
 import glob, os, subprocess, sys, time
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-PATTERNS = ['content/**/*.csv', 'content/**/*.json', 'content/**/*.md', 'scripts/merge/*.py', 'scripts/merge/*.mjs', 'scripts/merge/*.json']
+PATTERNS = ['content/**/*.csv', 'content/**/*.json', 'content/**/*.md', 'src/**/*.html', 'src/**/*.css', 'src/**/*.js', 'scripts/*.py', 'scripts/merge/*.py', 'scripts/merge/*.mjs', 'scripts/merge/*.json']
 
 
 def snapshot():
