@@ -22,7 +22,7 @@ await send('Page.addScriptToEvaluateOnNewDocument', { source: `try{localStorage.
 await send('Page.navigate', { url });
 await sleep(5000);
 const click = re => ev(`(()=>{const b=[...document.querySelectorAll('button,a,[role=tab]')].find(x=>/^\\s*${re}\\s*$/i.test(x.textContent));if(b){b.click();return true}return false})()`);
-if (!await click('Explore')) die('no Explore tab');
+if (!await click('(Map|Explore)')) die('no Map tab');   // the tab was called Explore before; the reference copy still calls it that
 let zones = null;
 for (let i = 0; i < 40 && !zones; i++) {
   await sleep(1000);
