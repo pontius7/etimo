@@ -105,7 +105,9 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  const MEG=['Megleno-Romanian (northern)','Megleno-Romanian (central)','Megleno-Romanian (Tsarnarekan)'];
  const VSET=new Set([...ARO,...MEG,'Aromanian','Megleno-Romanian']);
  const HIDEPIN=new Set([...ADIAL,'Albanian',...ARO,...MEG]);
- const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian']);
+ // a variety drawn inside its parent's detailed areas: its areas light up for the parent too
+ const PAR={'Sandžak Bosniak':'Bosnian'};const isSel=(r,sel)=>!!sel&&(r.name===sel.lang||PAR[r.name]===sel.lang);
+ const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian',...Object.keys(PAR)]);
  const albObj=languages.find(l=>l.lang==='Albanian');
  let famSel=null,dialects=null,vlach=null;
  // One rule for every detailed area layer (Albanian dialects, Vlach, Serbia, Montenegro):
@@ -149,7 +151,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   .on('pointermove',(ev,r)=>{if(ev.pointerType&&ev.pointerType!=='mouse')return;const l=target(r);const nm=l?l.lang:r.name;const t=tipEl();const b=host.getBoundingClientRect();t.innerHTML='<b>'+(window.__dn?__dn(nm):nm)+'</b><span>'+(l?l.family:'')+' · tap to select</span>';t.hidden=false;t.style.transform='translate('+Math.round(Math.min(ev.clientX-b.left+14,b.width-t.offsetWidth-8))+'px,'+Math.round(ev.clientY-b.top+16)+'px)';})
   .on('pointerleave',()=>{tipEl().hidden=true;})
   .on('click',(ev,r)=>{const l=target(r);if(!l||!window.__kt)return;ev.stopPropagation();tipEl().hidden=true;window.__kt.select(l.id);});
- const areaRows=()=>{const sel=current();const out=[];if(albMode()&&dialects)dialects.forEach(r=>{if(aOp(r,sel)>=.5)out.push(r);});if(serbia&&!albMode()){const s0=current();serbia.forEach(r=>{if(s0&&r.name===s0.lang)out.push(r);});}if(vlach&&!albMode())vlach.forEach(r=>{if(sel&&VSET.has(sel.lang)&&vOp(r,sel)>=.5)out.push(r);});return out;};
+ const areaRows=()=>{const sel=current();const out=[];if(albMode()&&dialects)dialects.forEach(r=>{if(aOp(r,sel)>=.5)out.push(r);});if(serbia&&!albMode()){const s0=current();serbia.forEach(r=>{if(isSel(r,s0))out.push(r);});if(meAreas&&s0&&PAR[s0.lang])meAreas.forEach(r=>{if(r.name===s0.lang)out.push(r);});}if(vlach&&!albMode())vlach.forEach(r=>{if(sel&&VSET.has(sel.lang)&&vOp(r,sel)>=.5)out.push(r);});return out;};
  // On phones, city names show only inside the selected area.
  const cityFilter=()=>{
   const phone=window.matchMedia&&matchMedia('(max-width: 768px)').matches;
@@ -175,7 +177,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  let meAreas=null;
  const meLayer=parent.insert('g',()=>layer.node()).attr('class','me-areas').attr('pointer-events','none');
  fetch('data/montenegro-areas.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{const proj=path.projection&&path.projection();if(!proj)return;meAreas=Object.entries(j).map(([k,rings])=>mkRow(k,rings,proj));if(parent.node().isConnected)draw();}).catch(()=>{});
- const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(sel&&r.name===sel.lang)return OP.sel;return restOp(l&&l.family,sel);};
+ const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(isSel(r,sel))return OP.sel;return restOp(l&&l.family,sel);};
  const paintDialects=()=>{
   const sel=current();const alb=albMode();const vSel=!!(sel&&VSET.has(sel.lang)&&vlach);
   parent.selectAll('path.terr').style('display',(alb||vSel)?'none':'');
@@ -185,7 +187,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   vlachLayer.selectAll('path').data(vrows,r=>r.name).join('path').attr('d',r=>r.d).attr('fill',r=>PAL[r.name]||'#888').attr('fill-rule','evenodd').attr('fill-opacity',r=>vOp(r,sel)).attr('stroke',r=>sel&&r.name===sel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sel&&r.name===sel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);vlachLayer.selectAll('path').filter(r=>sel&&r.name===sel.lang).raise();
   cityFilter();
   const sSel=current();const srows=(serbia&&!alb)?serbia:[];
-  serbiaLayer.selectAll('path').data(srows,r=>r.name+r.d.length).join('path').attr('d',r=>r.d).attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-rule','evenodd').attr('fill-opacity',r=>sOp(r,sSel)).attr('stroke',r=>sSel&&r.name===sSel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sSel&&r.name===sSel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);
+  serbiaLayer.selectAll('path').data(srows,r=>r.name+r.d.length).join('path').attr('d',r=>r.d).attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-rule','evenodd').attr('fill-opacity',r=>sOp(r,sSel)).attr('stroke',r=>isSel(r,sSel)?(PAL[r.name]||(l=>l&&color(l))(languages.find(x=>x.lang===r.name))||'#888'):'none').attr('stroke-width',r=>isSel(r,sSel)?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);
   let legend=host.querySelector('.alb-legend');
   const show=alb||vSel;
   if(show){
@@ -254,7 +256,8 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   }).filter(row=>(row.observation||row.feature.properties.country_code==='ME')&&!(albMode()&&['AL','XK','MK','GR'].includes(row.feature.properties.country_code)));
   if(!albMode())for(const feature of greece.features){const region=gr[feature.properties.region_id];const presence=selected?region.presence.filter(p=>p.language===selected.lang):region.presence;rows.push({feature,presence,language:selected,qualitative:true});}
   const meOn=!!(meAreas&&!selected&&!albMode());const meRow=row=>meOn&&row.feature.properties.country_code==='ME';
-  meLayer.selectAll('path').data(meOn?meAreas:[],r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return restOp(l&&l.family,null);});
+  const meRows=meOn?meAreas:(meAreas&&selected&&PAR[selected.lang]&&!albMode()?meAreas.filter(r=>r.name===selected.lang):[]);
+  meLayer.selectAll('path').data(meRows,r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return meOn?restOp(l&&l.family,null):OP.sel;});
   const fill=row=>(row.qualitative||meRow(row))?'transparent':color(row.language)||'var(--ink,#60796a)';
   // Where the selected language is a minority, it shows as stripes over the majority colour.
   const overRows=rows.filter(r=>r.over);

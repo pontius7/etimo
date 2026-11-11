@@ -263,3 +263,22 @@ caching: files in `h/` carry a content hash and are cached for a year, `data/` f
 itself is always revalidated.
 
 Command line: `wrangler deployments list --name etimo` shows recent deploys.
+
+## Phone panel, first view and Sandžak Bosniak, 2026-11-10
+
+- **Phone panel (the card that appears when a language is picked).** Order is now: name with its native
+  name, three labelled facts (region, census count, status), the "Where" chips, then two buttons:
+  **Details** and **Open words**. Details opens, inside the same card, what the desktop panel shows: the
+  branch line, census by country, classification and the two neighbours in the family. Both panels are
+  filled by the same two functions (`panelSecs`, `nearFam` in `src/app/6-app-screens-and-startup.js`), so
+  they cannot drift apart. Styles: the `.msheet` block at the end of `src/styles/fd.css`. While Details is
+  open the zoom and reset buttons fade out so nothing overlaps.
+- **Phone first view.** The coloured part of the map is centred between the search field and the menu
+  (`phoneHome` in the same file, screens under 640 px only). Desktop is unchanged.
+- **Sandžak Bosniak** is a language entry in `content/languages/sandzak-bosniak.json` with the same `path`
+  as Bosnian. Its area is not a new drawing: the settlement areas that were labelled Bosnian in
+  `site/data/serbia-areas.json` (161 areas, Serbia census 2022) and `site/data/montenegro-areas.json`
+  (Plav-Gusinje and Rožaje-Petnjica, 2011 settlement map) all lie inside Sandžak and now carry this name.
+  `PAR` in `site/regional-layer.js` names the parent, so the same areas also light up when Bosnian is
+  picked. The speaker figure is the sum of the two whole-country census counts for Bosnian as mother
+  tongue (Serbia 145,329 in 2022, Montenegro 43,470 in 2023). It has no word list yet, like Bosnian.

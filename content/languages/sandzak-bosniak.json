@@ -1,0 +1,105 @@
+{
+ "name": "Sandžak Bosniak",
+ "name_sr": "Sandžački bošnjački",
+ "name_sq": "Boshnjakishtja e Sanxhakut",
+ "region": "balk",
+ "family": "Slavic",
+ "lat": 43.137,
+ "lon": 20.512,
+ "place": "Sandžak (Serbia and Montenegro)",
+ "place_sr": "Sandžak (Srbija i Crna Gora)",
+ "place_sq": "Sanxhak (Serbi dhe Mal i Zi)",
+ "path": [
+  "Slavic",
+  "South Slavic",
+  "Western South Slavic",
+  "Serbian-Croatian-Bosnian"
+ ],
+ "self_name": "bosanski",
+ "countries": [
+  "RS",
+  "ME"
+ ],
+ "speakers": "≈ 188,800",
+ "speakers_year": "2022–2023",
+ "speakers_source": "Bosnian as mother tongue, whole-country census totals: Serbia 145,329 (2022) and Montenegro 43,470 (2023)",
+ "source": "Pin at Novi Pazar; area is the outline of the settlements where Bosnian is the largest mother tongue (Serbia census 2022; Montenegro 2011 settlement map)",
+ "area": [
+  [
+   19.326,
+   43.507
+  ],
+  [
+   19.331,
+   43.492
+  ],
+  [
+   19.833,
+   42.564
+  ],
+  [
+   19.843,
+   42.554
+  ],
+  [
+   19.895,
+   42.526
+  ],
+  [
+   19.91,
+   42.521
+  ],
+  [
+   19.916,
+   42.522
+  ],
+  [
+   20.027,
+   42.544
+  ],
+  [
+   20.078,
+   42.556
+  ],
+  [
+   20.427,
+   42.837
+  ],
+  [
+   20.442,
+   42.852
+  ],
+  [
+   20.672,
+   43.087
+  ],
+  [
+   20.667,
+   43.117
+  ],
+  [
+   20.042,
+   43.424
+  ],
+  [
+   20.026,
+   43.428
+  ],
+  [
+   19.558,
+   43.525
+  ],
+  [
+   19.537,
+   43.529
+  ],
+  [
+   19.362,
+   43.522
+  ],
+  [
+   19.326,
+   43.507
+  ]
+ ]
+}

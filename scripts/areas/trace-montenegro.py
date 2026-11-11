@@ -142,6 +142,8 @@ for k in LANGS:
             rings.append([[round(x, 4), round(y, 4)] for x, y in list(r.coords)[:-1]])
     out[k] = rings
     print('%-12s %6.0f km2, %d rings, %d points' % (k, areas[k].area * 111.2 ** 2 * CL, len(rings), sum(len(r) for r in rings)))
+# the Bosnian areas of Montenegro all lie in Sandžak: the map shows them as the Sandžak Bosniak variety
+out = {('Sandžak Bosniak' if k == 'Bosnian' else k): v for k, v in out.items()}
 json.dump(out, open(OUT + '/montenegro-areas.json', 'w'), separators=(',', ':'), ensure_ascii=False)
 
 # ---------- side by side ----------

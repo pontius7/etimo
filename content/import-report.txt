@@ -230,7 +230,7 @@ duplicates-report.txt) / skipped (label left out on purpose in content/language-
   Montenegrin (regional CLDR proxy): CLDR proxy list, re-spelling of Serbo-Croatian forms
   Proto-Turkic (reconstructed): reconstructed proto-language, not a living site language
 
-data/lexicon.json: 7,877,968 bytes
+data/lexicon.json: 7,878,070 bytes
 dictionary files: 55 languages, 26,696,724 bytes
   Romanian: 6,062,929 bytes
   Hungarian: 3,958,112 bytes
