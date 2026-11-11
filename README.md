@@ -1,10 +1,21 @@
 # Etimo
 
-A dictionary and language map: 209 languages in 9 families, each with its words, its place on the
+A dictionary and language map: 210 languages in 9 families, each with its words, its place on the
 map, and its place in the family wheel and tree.
 
 Live: https://etimo.nikocevic7.workers.dev (Cloudflare). Preview on your Mac:
 `python3 -m http.server 8092 -d site`, then open http://localhost:8092
+
+## Publishing
+
+Cloudflare serves the `site/` folder as it is. Nothing is built on Cloudflare's side.
+
+- **Push to `main` on GitHub** and Cloudflare publishes it (Workers Builds, set up 2026-11-11: no
+  build command, deploy command `npx wrangler deploy --name etimo --assets ./site --compatibility-date 2026-11-10`).
+  So always run `./scripts/add-words.sh` and commit `site/` before pushing: what is in `site/` is what goes live.
+- **By hand**, if a push does not publish: run that same `wrangler deploy` line from this folder.
+- **Check** with `npx wrangler deployments list --name etimo` (newest entry should be minutes old) and by
+  opening the live address. Build history: Cloudflare dashboard, Workers, etimo, Deployments.
 
 ## Folders
 
@@ -42,6 +53,7 @@ content/                      your additions (the only place to add words, langu
   meanings.csv                extra meanings and where they sit in the categories
   language-aliases.csv        other spellings of language names found in word lists
   sheets.txt                  Google Sheet links that are fetched as word lists
+  minority-areas.csv          which language areas are drawn in a lighter tint, with the census figure and source for each
   import-report.txt           built: where the rows of the large word lists went
 
 src/                          the page's source (see "How the page is built")
@@ -102,6 +114,7 @@ All four are content changes. No code is touched. Details and every field: `cont
 | **Words** | Put a CSV in `content/words/`, or paste a Google Sheet link into `content/sheets.txt` |
 | **A language** | Copy `content/languages/_example.json.txt` to `content/languages/<name>.json` and fill it in |
 | **A dialect** | Words only: write the language as `Serbian (Torlak)` in the CSV and map the label in `content/language-aliases.csv`. With its own area on the map: add it as a language that has the same `path` as its parent |
+| **A lighter (minority) area** | Add a row to `content/minority-areas.csv`: language, `min` or `plu`, region, the census shares, the source |
 | **A language family** | Add one entry to `content/families.json` (name, two colours, where its name sits on the map). A ready Baltic example is in the file: remove the `_` in `_Baltic` to switch it on |
 
 Then:
@@ -125,7 +138,7 @@ a colour check fails. First run sets up Python in `.venv` (needs Python 3, Node 
 | `test-search-key.js` | plain Latin typing finds special letters and other scripts (`voda` finds вода) |
 | `check-overlaps.py` | no two language areas on the map overlap |
 | `words-report.py` | every new word landed in a language, a family and a category |
-| `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like `reference/`; every family has a colour |
+| `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like `reference/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
 
 ## Colours: one source
 
@@ -133,8 +146,10 @@ a colour check fails. First run sets up Python in `.venv` (needs Python 3, Node 
 
 - A **family** has one colour per theme (light, dark). Five come from the original Etimo and never
   change, four were chosen for the merge, and any further family is defined in `content/families.json`.
-- A **language** has its own colour: Etimo's table for its 78 languages, and for every other language a
-  shade of its family colour. Override one with `"color": "#rrggbb"` in its JSON.
+- A **language** has its own colour: Etimo's table for its 78 languages (in `src/app/7-language-colours.js`),
+  and for every other language a shade of its family colour. Override one with `"color": "#rrggbb"` in its JSON.
+- Changing one of the 78 original colours: edit it in `src/app/7-language-colours.js` and add the name to
+  `RECOLOURED` in `scripts/merge/check-colors.py`, otherwise the check fails because it no longer matches `reference/`.
 - The build writes that one table into the page. Map areas, dialect areas, pins, the wheel, the tree,
   cards and dots all read it, in both themes.
 - Rule for dots: a dot beside a **family name** is the family colour; a language's **area, pin and
@@ -155,7 +170,7 @@ the preview.
 | in `src/` | what it is |
 |---|---|
 | `page.html` | the page itself: the head, and the order in which the styles and scripts are joined |
-| `styles/` | the style sheets, one file per block, one rule per line. `main.css` is the base; `v41.css` to `v62.css` and the `etimo-*.css` files are later layers (a later file wins); `fd.css` styles the full dictionary and the language page |
+| `styles/` | the style sheets, one file per block, one rule per line. `main.css` is the base; `v41.css` to `v62.css` and the `etimo-*.css` files are later layers (a later file wins). New rules go at the end of `v62.css` as a numbered block (`v63` to `v68` are there now); `fd.css` styles the full dictionary and the language page |
 | `app/1-libraries-ui.js`, `app/3-libraries-map.js` | other people's libraries (React and the interface kit; d3 for the map). Not meant to be edited |
 | `app/2-app-text-and-tables.js` | every interface text in each language (`Zr`), the word categories, language and place names, region tabs |
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
@@ -224,9 +239,24 @@ Each was measured in Chrome before and after (phone size 390 x 844 and desktop 1
 
 Audit of all 209 languages after these changes: with nothing selected, every language has a drawn
 area (its own, its varieties', or its parent's); selecting any language highlights an area for it.
-What still differs on purpose: 28 languages of Russia are drawn lighter where the census shows the
-people as a minority or plurality in their region (that data exists only for Russia), and the 8
-historical languages are drawn faint with a dashed outline.
+What still differs on purpose: languages listed in `content/minority-areas.csv` are drawn lighter where
+the census shows the people as a minority or plurality in their region, and the 8 historical languages
+are drawn faint with a dashed outline.
+
+## Interface, colours and minority areas, 2026-11-11 (second pass)
+
+Each was checked in Chrome at phone size (390 x 844) and desktop (1440 x 900), light and dark.
+
+| change | where |
+|---|---|
+| **Words button** shows only for a language that has words (33 of 210 have none yet). It appears by itself once words are added, and is re-checked when the word list finishes loading | `gw()` in `src/app/6-app-screens-and-startup.js`; phone card and desktop panel |
+| **Phone search field**: while a language card is open the field shows "Find a language or family" again and the card's close button is the only one. Family filters and desktop keep the name in the field | `_p` in the same file |
+| **Menu**: the Explore tab is called **Map**; the active tab is a soft tinted pill instead of a solid one | same file; block `v66` in `src/styles/v62.css`. `scripts/merge/probe-colors.mjs` clicks the tab by either name |
+| **Favicon, description, title** in the page head; the icon is the logo's "e" drawn from the logo font (Noto Serif Display, weight 600), dark or light with the browser. Logo is labelled as an image for screen readers | `src/page.html`, `Op` |
+| **Map labels**: while one language is selected, only its own label, the two languages its card names as near, and the eight nearest to its area keep a label | `nearMap()`, `kn` |
+| **Minority areas**: a solid lighter tint of the language's own colour (was see-through, which went grey over the colour underneath). The list moved from the copied map data into `content/minority-areas.csv`, one rule for every country, each row with its census figure and source. Added from the Russian 2021 census already in the data: Adyghe, Khakas, Southern and Northern Altai, Abaza. Added from China's 2020 census: Uyghur (largest group under half, medium tint), Inner Mongolian. Not decided, so still normal colour: Karakalpak, Sorbian, Walloon, Kashubian and others listed at the foot of the file | `apply_minority_areas()` in `scripts/merge/merge-data.py`; block `v67` |
+| **Croatian, Bosnian, Serbian, Montenegrin** were two pairs of near-twins (weakest pair 15 on the colour-difference scale, 11 in dark). Now deep green `#05571d`, light spring green `#a2e78b`, turquoise `#36dbd2`, deep petrol `#095a67`: weakest pair 24 light, 20 dark. Sandžak Bosniak is a sibling shade of Bosnian (`#7dc953`) | `src/app/7-language-colours.js`, `content/languages/sandzak-bosniak.json` |
+| **Family names on the first map view** are sized by the family's territory (Turkic and Slavic largest, Albanian smallest), with tighter letter spacing on small ones. Ranges: phone 9 to 12.5px, tablet 10.5 to 15px, desktop 11.5 to 20px | `--fk` set where the names are drawn; block `v68` |
 
 ## Montenegro and Arvanitika: areas traced from reference maps
 
