@@ -104,3 +104,10 @@ body{font-weight:400;letter-spacing:.005em}
 /* ---- v67: minority areas are a solid lighter tint of the language's own colour (was see-through, which went muddy over the colour underneath) ---- */
 .mapbox path.zone.zmin{fill:color-mix(in srgb,var(--zc,transparent) 46%,var(--land))!important;fill-opacity:1}
 .mapbox path.zone.zplu{fill:color-mix(in srgb,var(--zc,transparent) 74%,var(--land))!important;fill-opacity:1}
+
+/* ---- v68: family names on the first map view are sized by the family's territory (--fk: 0 smallest .. 1 largest, set by the app) ---- */
+.mapbox .regn.fam{--f0:9px;--f1:12.5px;font-size:calc(var(--f0) + var(--fk,.6)*(var(--f1) - var(--f0)));letter-spacing:calc(.14em + var(--fk,.6)*.2em);stroke-width:.3em}
+@media (width>=48rem){.mapbox .regn.fam{--f0:10.5px;--f1:15px}
+}
+@media (width>=64rem){.mapbox .regn.fam{--f0:11.5px;--f1:20px}
+}
