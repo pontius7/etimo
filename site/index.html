@@ -17819,7 +17819,7 @@ let n=e.info,r=n.sp,a=Vf(e)||"",i=nearFam(e);
 xe=function(e){let t=$f(e.id);
 return t&&t.ancestors().find(e=>1===e.depth)||Af()}(e),je=e.id;
 let s='<div class="phd" style="--pc:'+a+'"><button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><span class="pfam"><i class="dot '+e.family+'"></i>'+ei(Ca(e.family))+"</span><h3>"+ei(Na(e))+"</h3>"+(n.an?'<p class="pan">'+ei(n.an)+"</p>":"")+'<p class="plin">'+ei(Pf(e))+'</p></div><div class="pstats"><div><small>'+ei(ye("rgn"))+"</small><b>"+ei(Ma(e))+"</b></div>"+(r?"<div><small>"+ei(ye("spk"))+"</small><b>"+ei(za(r.v))+"</b></div>":"")+(n.lv?"<div><small>"+ei(ye("st"))+"</small><b>"+ei(Aa(n.lv))+"</b></div>":"")+"</div>";
-s+=panelSecs(e,i),s+='<section class="psec pwh"><div class="pwbox">'+Se(xe,e.id,null)+'</div></section><div class="pdyn"></div><div class="acts"><button type="button" class="btn pri pgo" data-go="'+e.id+'">'+ei(ye("go"))+"</button></div>",t.innerHTML=s,delete t.dataset.sourceCountry,delete t.dataset.regionId,t.querySelector("#cx").onclick=()=>{t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Promise.all([Zf(),Df(),ff||null]).then(([r,a])=>{if(nt!==e||!t.classList.contains("kpanel"))return;
+s+=panelSecs(e,i),s+='<section class="psec pwh"><div class="pwbox">'+Se(xe,e.id,null)+'</div></section><div class="pdyn"></div><div class="acts"><button type="button" class="btn pri pgo" data-go="'+e.id+'">'+ei(ye("go"))+"</button></div>",t.innerHTML=s,gw(),delete t.dataset.sourceCountry,delete t.dataset.regionId,t.querySelector("#cx").onclick=()=>{t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Promise.all([Zf(),Df(),ff||null]).then(([r,a])=>{if(nt!==e||!t.classList.contains("kpanel"))return;
 let i=t.querySelector(".pdyn");
 if(!i)return;
 let s="",o=r&&r.M[e.lang];
@@ -18101,10 +18101,12 @@ if(!t)return;
 let n=+t.dataset.i;
 n===Vt?Ja(g[n].id):Jt(n,!0)});
 let tn='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+function gw(){t.querySelectorAll("button[data-go]").forEach(e=>{let n=fa[e.dataset.go],r=!(n&&n.entries&&n.entries.length),a=e.parentNode;
+e.hidden=r,a.classList.contains("acts")&&(a.hidden=r&&!a.querySelector("button:not([data-go])"))}),window.__lexReady||window.addEventListener("etimo:lex",gw,{once:!0})}
 function nn(e){$t(e),q.selectAll("text.plabel").classed("fade",t=>t!==e);
 let n=e.info,r=n.sp;
 t.innerHTML='<button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><div class="mhd"><span class="pill"><span class="dot '+e.family+'"></span>'+ei(Ca(e.family))+"</span><h3>"+ei(Na(e))+(n.an&&n.an!==Na(e)?'<span class="man">'+ei(n.an)+"</span>":"")+'</h3></div><div class="mst"><div><small>'+ei(ye("rgn"))+"</small><b>"+ei(Ma(e))+"</b></div>"+(r?"<div><small>"+ei(ye("spk"))+"</small><b>"+ei(za(r.v))+"</b></div>":"")+(n.lv?"<div><small>"+ei(ye("st"))+"</small><b>"+ei(Aa(n.lv))+"</b></div>":"")+'</div><div class="rgl" id="rgl" hidden></div><div class="acts"><button type="button" class="btn mmore" aria-expanded="false">'+ei(ye("more"))+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><button type="button" class="btn pri" data-go="'+e.id+'">'+ei(h.openWords)+'</button></div><div class="mx" hidden>'+(Pf(e)?'<p class="mlin">'+ei(Pf(e))+"</p>":"")+(me()?"":panelSecs(e,nearFam(e)))+"</div>",t.classList.toggle("msheet",!me()),t.classList.remove("mopen"),t.querySelector(".mmore").onclick=function(){let o=t.classList.toggle("mopen");
-this.setAttribute("aria-expanded",o),t.querySelector(".mx").hidden=!o,o||(t.scrollTop=0)},t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Ee(e)}
+this.setAttribute("aria-expanded",o),t.querySelector(".mx").hidden=!o,o||(t.scrollTop=0)},gw(),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Ee(e)}
 t.onclick=e=>{let n=e.target,r=n.closest("[data-sel]"),a=n.closest("[data-pl]");
 if(a)return void function(e){let n=we[e];
 if(!n)return;
