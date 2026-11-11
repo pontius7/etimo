@@ -692,6 +692,11 @@ i<a&&(a=i,t=n)}),n.push(t),i.delete(t)}
 ke[t]=n}
 let r=n.indexOf(e);
 return r<0||n.length<2?null:[n[(r-1+n.length)%n.length],n[(r+1)%n.length]]}
+function nearMap(e){let t=e.info||{},n=new Set(nearFam(e)||[]),r=e=>e.info&&e.info.dialectOf,a=Bh(q.node()),i=null,s=e=>[a.applyX(e._xy[0]),a.applyY(e._xy[1])],o=s(e);
+try{let e=R.select("path.terr").node(),t=e&&e.getBoundingClientRect(),n=q.node().getBoundingClientRect();
+t&&t.width&&(i=[t.left-n.left,t.top-n.top,t.right-n.left,t.bottom-n.top])}catch{}
+return x.filter(n=>n!==e&&n._xy&&(void 0===r(n)||r(n)===e.lang||void 0!==t.dialectOf&&r(n)===t.dialectOf)).map(e=>{let t=s(e);
+return[e,i?Math.hypot(Math.max(i[0]-t[0],0,t[0]-i[2]),Math.max(i[1]-t[1],0,t[1]-i[3])):0,Math.hypot(t[0]-o[0],t[1]-o[1])]}).sort((e,t)=>e[1]-t[1]||e[2]-t[2]).slice(0,8).forEach(e=>n.add(e[0])),n}
 function panelSecs(e,i){let n=e.info,s="";
 void 0!==n.dialectOf&&n.cls&&n.cls.length&&(s+='<section class="psec pcen"><p class="ph">'+ei(ka(Zr[ya()].clsT))+"</p><ul>"+n.cls.map(e=>"<li><b>"+ei(za(e[0]))+"</b><span></span><i>"+ei(za(e[1]))+"</i></li>").join("")+"</ul></section>"),n.cen&&n.cen.length&&(s+='<section class="psec pcen"><p class="ph">'+ei(ka(Zr[ya()].cenT))+"</p><ul>"+n.cen.map(e=>'<li data-source-country="'+ei(e[0])+'"><b>'+ei(za(e[0]))+"</b><span>"+ei(za(e[1]))+"</span><i>"+ei(e[2])+" · "+ei(za(e[3]))+"</i></li>").join("")+"</ul></section>"),i&&(s+='<section class="psec"><p class="ph">'+ei(ye("near"))+'</p><div class="pnav"><button type="button" class="pn" data-sel="'+i[0].id+'" style="--nc:'+(Vf(i[0])||"")+'"><span class="pa">‹</span><i></i><b>'+ei(Na(i[0]))+'</b></button><button type="button" class="pn nx" data-sel="'+i[1].id+'" style="--nc:'+(Vf(i[1])||"")+'"><b>'+ei(Na(i[1]))+'</b><i></i><span class="pa">›</span></button></div></section>');
 return s}
@@ -834,7 +839,7 @@ s.append("circle").attr("r",2.8),s.append("text").attr("x",6).attr("y",3.8).text
 function ut(e){return e===nt?1e12:e.cl?1e9+e.m.length:Xa(e)}
 at.attr("class",e=>"pin "+e.family+(p&&!p.has(e.id)?" dim":"")),at.select("path.mk").attr("d",e=>{var t;
 return yh(vf[t=e.family]||hh,5.6*Math.PI*5.6*(bf[t]||1))()}).style("fill",e=>Vf(e)),ot(1),at.on("pointerenter pointermove",(e,t)=>Y(e,"<b>"+ei(Na(t))+"</b><span>"+ei(Ca(t.family))+" · "+ei(Ma(t))+"</span>")).on("pointerleave",()=>J()),at.attr("tabindex",e=>p&&!p.has(e.id)?-1:0).attr("role","button").attr("aria-label",e=>Na(e)).on("click",(e,t)=>en(t)).on("keydown",(e,t)=>{"Enter"===e.key&&en(t)}),et.selectAll("text.ln").data(p?g:x).join("text").attr("class","plabel ln").text(e=>Na(e)).style("opacity",0);
-let ct={},dt=[],ht=[],ft=new Set,pt=null;
+let ct={},dt=[],ht=[],ft=new Set,pt=null,kn=null;
 p&&(g.forEach(e=>{let t=m[e.id][0];
 ct[e.id]=Fa(t.lat||t.word)}),dt=g.map(e=>g.map(t=>e!==t&&Ka(ct[e.id],ct[t.id]))));
 let mt=e=>2===e.cl?8.5+2.1*Math.sqrt(e.m.length-1):9+2.4*Math.sqrt(e.m.length-1);
@@ -902,7 +907,7 @@ Qe.selectAll("g.city").each(e=>{let n=t.applyX(e.x),r=t.applyY(e.y);
 a.push([n-6,r-9,n+9+6.2*e.n.length,r+9])});
 let c=e=>a.some(t=>e[0]+1<t[2]&&e[2]-1>t[0]&&e[1]+1<t[3]&&e[3]-1>t[1]),d=e=>e[0]>=2&&e[2]<=b-2&&e[1]>=2&&e[3]<=y-2;
 if(l.forEach(e=>{let n=e.__data__;
-if((n===nt?tt:et).node().appendChild(e),!i||!n.cl&&ft.has(n.id)||rt&&!n.cl&&n.family!==rt&&n!==nt||!Xe&&!rt&&!n.cl&&n!==nt&&t.k<3.4)return void(e.style.opacity=0);
+if((n===nt?tt:et).node().appendChild(e),!i||!n.cl&&ft.has(n.id)||rt&&!n.cl&&n.family!==rt&&n!==nt||!Xe&&!rt&&!n.cl&&n!==nt&&t.k<3.4||kn&&!n.cl&&n!==nt&&!kn.has(n))return void(e.style.opacity=0);
 let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
 for(let e=0;e<p.length;e++)if(d(p[e][3])&&!c(p[e][3])){m=p[e];
 break}
@@ -955,11 +960,11 @@ function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nes
 Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
 q.transition().duration(f?0:a).ease(Po).call(Dt.transform,Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2))}
-function $t(e){nt=e,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
+function $t(e){nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
 let t=Bh(q.node()).k;
 Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&(T(e)?O.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].d).each(function(){let c=Vf(e);
 c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)}):R.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",G(e)).each(function(){let c=Vf(e);
-c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)})),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),lt(e),Fe(e),bt(),Ae()}
+c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)})),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),kn=e&&!p?nearMap(e):null,lt(e),Fe(e),bt(),Ae()}
 Rt&&(Rt.onclick=()=>Te()),window.__kMapHome=Te;
 let Vt=-1,Zt=null;
 function Qt(e,t){let n=1e9;
