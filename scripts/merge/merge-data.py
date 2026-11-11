@@ -307,11 +307,38 @@ def merge_terr(langs):
         nv['b'] = [round(min(xs), 1), round(min(ys), 1), round(max(xs), 1), round(max(ys), 1)]
         out[k] = nv
     add_content_areas(out, langs)
+    clip_to_country(out, 'Montenegrin', 'montenegro-municipalities.geojson')
     nest = add_visual_partition(out, set(e), langs, set(load(E_DIR, 'languages.json')))
     for k, n in nest.items():
         langs[k]['nest'] = n
     fill_coast_gaps(out, langs)
     return out
+
+
+def clip_to_country(terr, lang, geojson):
+    """Keep a hand-drawn area inside its country's real outline.
+
+    Montenegro is drawn by its own layer (site/regional-layer.js), which erases hand-drawn areas inside
+    the real border. The hand-drawn Montenegrin area overshoots that border, and because smaller areas
+    cut larger ones, it bit strips out of the Bosnian, Serbian and Albanian areas on the far side: they
+    showed as slivers of the wrong colour (or as gaps) along the border.
+    """
+    from shapely import union_all
+    from shapely.geometry import Polygon
+    from shapely.validation import make_valid
+    parts = []
+    for f in load(E_DIR, geojson)['features']:
+        g = f['geometry']
+        for poly in ([g['coordinates']] if g['type'] == 'Polygon' else g['coordinates']):
+            parts.append(make_valid(Polygon([ETIMO.fwd(lon, lat) for lon, lat in poly[0]])))
+    outline = union_all(parts).buffer(0.05).buffer(-0.1)
+    v = terr[lang]
+    before = _path_geom(v['d'])
+    g = make_valid(before.intersection(outline))
+    v['d'] = _geom_path(g, min_area=0)
+    bx = g.bounds
+    v['b'] = [round(bx[0], 1), round(bx[1], 1), round(bx[2], 1), round(bx[3], 1)]
+    print(f'  terr: {lang} kept inside its country outline ({(before.area - g.area) * 40.6:,.0f} km2 outside removed)')
 
 
 COAST_GAP_CORE = 5      # frame units, about 32 km: blank land wider than twice this is blank on purpose

@@ -159,6 +159,12 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  fetch('data/serbia-areas.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{const proj=path.projection&&path.projection();if(!proj)return;serbia=(serbia||[]).concat(Object.entries(j).map(([k,rings])=>mkRow(k,rings,proj)));if(parent.node().isConnected)draw();}).catch(()=>{});
  fetch('data/greece-areas.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{const proj=path.projection&&path.projection();if(!proj)return;serbia=(serbia||[]).concat(Object.entries(j).map(([k,rings])=>mkRow(k,rings,proj)));if(parent.node().isConnected)draw();}).catch(()=>{});
  const serbiaLayer=parent.insert('g',()=>hatchLayer.node()).attr('class','serbia-areas').attr('pointer-events','none');
+ // Montenegro: broad language areas (data/montenegro-areas.json, generalised from the 2011 settlement map) carry the colour
+ // while no language is selected; they span municipalities. The municipalities stay on top with their borders, labels,
+ // hover and click. With a language selected, the municipalities show that language's census share as before.
+ let meAreas=null;
+ const meLayer=parent.insert('g',()=>layer.node()).attr('class','me-areas').attr('pointer-events','none');
+ fetch('data/montenegro-areas.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{const proj=path.projection&&path.projection();if(!proj)return;meAreas=Object.entries(j).map(([k,rings])=>mkRow(k,rings,proj));if(parent.node().isConnected)draw();}).catch(()=>{});
  const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(sel)return r.name===sel.lang?.85:(l&&l.family===sel.family)?.3:.06;if(famSel)return(l&&l.family===famSel)?.6:.1;return .6;};
  const paintDialects=()=>{
   const sel=current();const alb=albMode();const vSel=!!(sel&&VSET.has(sel.lang)&&vlach);
@@ -237,7 +243,9 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
    return {feature,observation:own||observation,over,top,eff,language:over?(langBy.get(top.language_id)||eff):(eff||langBy.get(observation?.language_id))};
   }).filter(row=>(row.observation||row.feature.properties.country_code==='ME')&&!(albMode()&&['AL','XK','MK','GR'].includes(row.feature.properties.country_code)));
   if(!albMode())for(const feature of greece.features){const region=gr[feature.properties.region_id];const presence=selected?region.presence.filter(p=>p.language===selected.lang):region.presence;rows.push({feature,presence,language:selected,qualitative:true});}
-  const fill=row=>row.qualitative?'transparent':color(row.language)||'var(--ink,#60796a)';
+  const meOn=!!(meAreas&&!selected&&!albMode());const meRow=row=>meOn&&row.feature.properties.country_code==='ME';
+  meLayer.selectAll('path').data(meOn?meAreas:[],r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return famSel?((l&&l.family===famSel)?.75:.12):.75;});
+  const fill=row=>(row.qualitative||meRow(row))?'transparent':color(row.language)||'var(--ink,#60796a)';
   // Where the selected language is a minority, it shows as stripes over the majority colour.
   const overRows=rows.filter(r=>r.over);
   hatchLine.attr('stroke',overRows.length?color(overRows[0].eff)||'#9e2b2b':'#9e2b2b');
@@ -257,7 +265,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
     tooltip(event,'<b>'+esc(row.feature.properties.name)+' · '+esc(o.language_id)+'</b><span>'+esc(value)+'</span><span>'+esc(o.observation_period+' · '+o.measure.replaceAll('_',' '))+'</span><span>'+esc(status)+'</span><span>'+esc(source?.population_scope)+'</span><span>'+esc(row.feature.properties.country_code==='ME'?'MONSTAT counts · © OpenStreetMap contributors; indicative boundaries':'Official regional table · © EuroGeographics / GISCO boundaries')+'</span>');
    }).on('pointerleave',hideTooltip))
    .attr('fill',fill)
-   .attr('fill-opacity',r=>famFactor(r)*(r.qualitative?.001:r.over?(r.top.percentage>50?.75:.45):r.observation?.percentage==null?.04:r.observation.percentage>50?.75:r.observation.percentage>10?.5:r.observation.percentage>1?.3:r.observation.percentage>0?.14:.05))
+   .attr('fill-opacity',r=>meRow(r)?.001:famFactor(r)*(r.qualitative?.001:r.over?(r.top.percentage>50?.75:.45):r.observation?.percentage==null?.04:r.observation.percentage>50?.75:r.observation.percentage>10?.5:r.observation.percentage>1?.3:r.observation.percentage>0?.14:.05))
    .attr('stroke',r=>r.qualitative?'var(--ink,#60796a)':color(r.language)||'var(--ink,#60796a)');
  };
  const sync=()=>{if(!parent.node().isConnected)return;const c=current();const key=c?c.lang:null;if(key!==last)draw();};

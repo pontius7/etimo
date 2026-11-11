@@ -4,3 +4,4 @@ content/duplicates-report.txt
 .DS_Store
 .relief-work/
 .cache/
+.areas-venv/

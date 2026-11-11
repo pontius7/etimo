@@ -25,7 +25,7 @@ What produces each part of `site/`:
 | `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `apply-patches.py` |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
-| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/athos.json` | written by hand; these are the only files in `site/` you edit directly |
+| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json`, `data/athos.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
@@ -113,12 +113,24 @@ Each was reproduced in Chrome before it was changed and re-measured after.
 | Dark slivers and small dark islands beside the Greek coast: the hand-drawn Greek area follows a coarser coast than Greece's own regions | hand-drawn areas are erased within about 5 km of Greece's outline; neighbours' land is restored so areas across a land border are untouched |
 | Blank land at the coast that read as sea (the Karaburun peninsula by Izmir, strips along many coasts): hand-drawn areas stop short of the coastline | `merge-data.py` (`fill_coast_gaps`) gives narrow blank coastal land to the nearest drawn area, only inside countries that are at least 60% mapped. 921 pieces, 29 languages. The result is cached in `.cache/` until an area changes |
 | Mount Athos (328 km2) showed as a crude dark shape: it is missing from the Greek regions file | `site/data/athos.json` is added to Central Macedonia when the map loads |
+| The hand-drawn Montenegrin area reached 710 km2 past Montenegro's border and cut strips out of the Bosnian, Serbian and Albanian areas there | `merge-data.py` (`clip_to_country`) keeps it inside Montenegro's outline |
 | Arvanitika was one rough blob | redrawn from the owner's reference map (`site/data/greece-areas.json`) |
 
 Checked and found correct (not changed): language areas, pins and wheel slices match in both
 themes on a fresh load; no console errors on the home, map, language, dictionary and wheel screens;
 downloads are compressed and cached (first visit about 2.5 MB, mostly the word list, then served
 from cache).
+
+## Montenegro and Arvanitika: areas traced from reference maps
+
+- **Montenegro** (`site/data/montenegro-areas.json`): four broad areas (Serbian, Montenegrin, Albanian,
+  Bosnian) generalised from the 2011 census settlement map on Wikimedia Commons. They span municipalities
+  and carry the colour while no language is selected. The 25 municipalities stay as they were, on top:
+  borders, labels, hover and click. Selecting a language shows its census share per municipality, as before.
+  Romani and the no-data classes are left out; Bosniak counts as Bosnian.
+- **Arvanitika** (`site/data/greece-areas.json`): traced from the owner's reference map.
+
+How they are traced, and how to re-trace from another image: `scripts/areas/README.md`.
 
 ## Relief (the soft mountain shading)
 
