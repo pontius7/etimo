@@ -59,6 +59,10 @@ def probe(tag, url, theme, tmp, port):
     return subprocess.Popen(cmd, stderr=subprocess.PIPE, text=True, env=env), out
 
 
+# Originals given new colours on purpose (2026-11-11): the four Serbo-Croatian languages were too alike
+# on the map, so they no longer have to match the reference app. Everything else still must.
+RECOLOURED = {'Croatian', 'Bosnian', 'Montenegrin', 'Serbian'}
+
 def main():
     site = serve(os.path.join(ROOT, 'site'))
     ref = serve(os.path.join(ROOT, 'reference', 'etimo-artifact'))
@@ -124,6 +128,8 @@ def main():
                 errors.append(f'(f) {theme}: {name} area {hexof(c)} != zone {hexof(z[name])}')
         # (c) originals == reference
         for name in ref_langs:
+            if name in RECOLOURED:
+                continue
             if name not in zr:
                 errors.append(f'(c) {theme}: reference has no zone for {name}')
             elif name in z and hexof(z[name]) != hexof(zr[name]):
