@@ -566,7 +566,7 @@ let r=g.append("g").attr("clip-path","url(#tcp"+l+e+")").attr("class","tf "+e).a
 r.append("use").attr("href","#tm"+l).attr("class","tc tcm"),r.append("use").attr("href","#ti"+l).attr("class","tc tci");
 let a=m[e].filter(e=>e.t).map(e=>e.d).join("");
 a&&g.append("g").attr("class","tout "+e).attr("transform",n).append("path").attr("d",a).attr("fill","none").attr("fill-rule","evenodd").attr("vector-effect","non-scaling-stroke")})})}(E,j,L,x,T,G,z(mf())),Yf(I),A.selectAll("path.zone").each(function(e){let t=Vf(e);
-t&&(this.style.fill=t,this.style.stroke=t)}),Df().then(e=>{let t=e&&e.st;
+t&&(this.style.fill=t,this.style.stroke=t,this.style.setProperty("--zc",t))}),Df().then(e=>{let t=e&&e.st;
 t&&A.selectAll("path.zone").classed("zmin",e=>"min"===t[e.lang]).classed("zplu",e=>"plu"===t[e.lang])}),e.querySelectorAll(".mtip").forEach(e=>e.remove());
 let Z=document.createElement("div");
 Z.className="mtip",Z.hidden=!0,e.appendChild(Z);

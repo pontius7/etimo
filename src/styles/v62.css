@@ -100,3 +100,7 @@ body{font-weight:400;letter-spacing:.005em}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .tabbar .ktab-ind{background:color-mix(in srgb,var(--ink) 13%,transparent)!important}
 :root:not([data-theme=light]) .tabbar button[aria-current=page],:root:not([data-theme=light]) .tabbar button[aria-current=page] .icn,:root:not([data-theme=light]) .tabbar button[aria-current=page] .icn svg{color:var(--ink)!important}
 }
+
+/* ---- v67: minority areas are a solid lighter tint of the language's own colour (was see-through, which went muddy over the colour underneath) ---- */
+.mapbox path.zone.zmin{fill:color-mix(in srgb,var(--zc,transparent) 46%,var(--land))!important;fill-opacity:1}
+.mapbox path.zone.zplu{fill:color-mix(in srgb,var(--zc,transparent) 74%,var(--land))!important;fill-opacity:1}

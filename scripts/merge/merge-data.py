@@ -720,6 +720,30 @@ def copy_verbatim(name):
     print(f'  copied data/{name} ({len(data):,} bytes)')
 
 
+def apply_minority_areas(langs):
+    """content/minority-areas.csv decides which language areas get the lighter tint (ethno.json "st")."""
+    import csv
+    path = os.path.join(CONTENT, 'minority-areas.csv')
+    if not os.path.exists(path):
+        return
+    st, seen = {}, set()
+    with open(path, encoding='utf-8', newline='') as f:
+        rows = [(i, line) for i, line in enumerate(f, 1) if line.strip() and not line.lstrip().startswith('#')]
+    for (i, _), r in zip(rows[1:], csv.DictReader(line for _, line in rows)):
+        name, status = (r.get('language') or '').strip(), (r.get('status') or '').strip()
+        assert name in langs, f'content/minority-areas.csv line {i}: no language called "{name}" on the site'
+        assert status in ('min', 'plu', 'full'), f'content/minority-areas.csv line {i}: status must be min, plu or full, not "{status}"'
+        assert name not in seen, f'content/minority-areas.csv line {i}: "{name}" is listed twice'
+        seen.add(name)
+        if status != 'full':
+            assert (r.get('source') or '').strip(), f'content/minority-areas.csv line {i}: "{name}" needs a source'
+            st[name] = status
+    ethno = load(OUT, 'ethno.json')
+    ethno['st'] = st
+    dump('ethno.json', ethno)
+    print(f'  minority areas: {sum(v == "min" for v in st.values())} light, {sum(v == "plu" for v in st.values())} medium (content/minority-areas.csv)')
+
+
 def main():
     selftest_projection()
     os.makedirs(OUT, exist_ok=True)
@@ -746,6 +770,7 @@ def main():
     dump('today.json', merge_today())
     for n in ('adm2.json', 'micro.json', 'ethno.json'):
         copy_verbatim(n)
+    apply_minority_areas(langs)
     # micro.json h/x index into adm2.json features by array position: keep them in sync
     adm2 = load(OUT, 'adm2.json')
     nfeat = len(adm2['objects']['d']['geometries'])

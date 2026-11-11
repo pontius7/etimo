@@ -1,0 +1,57 @@
+# Which language areas are drawn in a lighter tint on the map, and why.
+# Rule (same for every country): look at the region the area is drawn on, in the latest census of peoples.
+#   min  = the language's people are not the largest group there      -> light tint
+#   plu  = they are the largest group, but under half                 -> medium tint
+#   full = they are the majority (listed only to show it was checked)  -> normal colour
+# A language with no row is drawn in its normal colour. Add a row only with a census figure and its source.
+# "carried over" = flag kept from the original map data; the figure is not in this repository yet.
+language,status,region,own_share,largest_group,largest_share,year,source
+Adyghe,min,Republic of Adygea (Russia),25.7,Russians,64.4,2021,Russian census 2021 (site/data/ethno.json)
+Southern Altai,min,Altai Republic (Russia),37.0,Russians,53.7,2021,Russian census 2021 (site/data/ethno.json)
+Northern Altai,min,Altai Republic (Russia),37.0,Russians,53.7,2021,Russian census 2021 (site/data/ethno.json); Altai counted as one people
+Khakas,min,Republic of Khakassia (Russia),12.7,Russians,82.1,2021,Russian census 2021 (site/data/ethno.json)
+Abaza,min,Karachay-Cherkess Republic (Russia),8.1,Karachays,44.4,2021,Russian census 2021 (site/data/ethno.json)
+Bashkir,min,Bashkortostan (Russia),31.5,Russians,37.5,2021,Russian census 2021 (site/data/ethno.json)
+Buryat,min,Republic of Buryatia (Russia),32.5,Russians,64.0,2021,Russian census 2021 (site/data/ethno.json)
+Karelian,min,Karelia (Russia),5.5,Russians,86.4,2021,Russian census 2021 (site/data/ethno.json)
+Livvi Karelian,min,Karelia (Russia),5.5,Russians,86.4,2021,Russian census 2021 (site/data/ethno.json); Karelians counted as one people
+Komi,min,Komi Republic (Russia),22.3,Russians,69.7,2021,Russian census 2021 (site/data/ethno.json)
+Mari,min,Mari El Republic (Russia),40.1,Russians,52.5,2021,Russian census 2021 (site/data/ethno.json)
+Hill Mari,min,Mari El Republic (Russia),40.1,Russians,52.5,2021,Russian census 2021 (site/data/ethno.json); Mari counted as one people
+Erzya,min,Republic of Mordovia (Russia),38.7,Russians,54.1,2021,Russian census 2021 (site/data/ethno.json); Mordvins counted as one people
+Moksha,min,Republic of Mordovia (Russia),38.7,Russians,54.1,2021,Russian census 2021 (site/data/ethno.json); Mordvins counted as one people
+Udmurt,min,Udmurt Republic (Russia),24.1,Russians,67.7,2021,Russian census 2021 (site/data/ethno.json)
+Khanty,min,Khanty-Mansi Autonomous Okrug (Russia),1.5,Russians,70.3,2021,Russian census 2021 (site/data/ethno.json)
+Mansi,min,Khanty-Mansi Autonomous Okrug (Russia),0.9,Russians,70.3,2021,Russian census 2021 (site/data/ethno.json)
+Nenets,min,Yamalo-Nenets Autonomous Okrug (Russia),8.9,Russians,62.9,2021,Russian census 2021 (site/data/ethno.json); Nenets Autonomous Okrug 18.0 against Russians 69.6
+Selkup,min,Yamalo-Nenets Autonomous Okrug (Russia),0.5,Russians,62.9,2021,Russian census 2021 (site/data/ethno.json)
+Nogai,min,Karachay-Cherkess Republic (Russia),3.7,Karachays,44.4,2021,Russian census 2021 (site/data/ethno.json); Dagestan 1.2
+Crimean Tatar,min,Crimea,10.6,Russians,67.9,2021,Russian census 2021 (site/data/ethno.json)
+Karachay-Balkar,plu,Karachay-Cherkess Republic (Russia),44.4,Karachays,44.4,2021,Russian census 2021 (site/data/ethno.json)
+Uyghur,plu,Xinjiang (China),44.96,Uyghurs,44.96,2020,China census 2020: Han 42.24 https://english.www.gov.cn/news/topnews/202106/14/content_WS60c6ee93c6d0df57f98db2e8.html
+Peripheral Mongolian,min,Inner Mongolia (China),17.66,Han,78.74,2020,China census 2020 https://www.citypopulation.de/en/china/prov/admin/15__nei_menggu
+Veps,min,,,,,,carried over
+Komi-Permyak,min,,,,,,carried over
+Enets,min,,,,,,carried over
+Nganasan,min,,,,,,carried over
+Northern Sami,min,,,,,,carried over
+Lule Sami,min,,,,,,carried over
+Southern Sami,min,,,,,,carried over
+Inari Sami,min,,,,,,carried over
+Skolt Sami,min,,,,,,carried over
+Kildin Sami,min,,,,,,carried over
+Livonian,min,,,,,,carried over
+Tatar,full,Republic of Tatarstan (Russia),53.6,Tatars,53.6,2021,Russian census 2021 (site/data/ethno.json)
+Chuvash,full,Chuvash Republic (Russia),63.7,Chuvash,63.7,2021,Russian census 2021 (site/data/ethno.json)
+Chechen,full,Chechen Republic (Russia),96.4,Chechens,96.4,2021,Russian census 2021 (site/data/ethno.json)
+Ingush,full,Republic of Ingushetia (Russia),96.4,Ingush,96.4,2021,Russian census 2021 (site/data/ethno.json)
+Kabardian,full,Kabardino-Balkaria (Russia),57.1,Kabardians,57.1,2021,Russian census 2021 (site/data/ethno.json)
+Kalmyk,full,Republic of Kalmykia (Russia),62.5,Kalmyks,62.5,2021,Russian census 2021 (site/data/ethno.json)
+Ossetic,full,Republic of North Ossetia-Alania (Russia),68.1,Ossetians,68.1,2021,Russian census 2021 (site/data/ethno.json)
+Yakut,full,Sakha Republic (Russia),55.3,Yakuts,55.3,2021,Russian census 2021 (site/data/ethno.json)
+Tuvan,full,Tuva Republic (Russia),88.7,Tuvans,88.7,2021,Russian census 2021 (site/data/ethno.json)
+Abkhaz,full,Abkhazia,51.4,Abkhaz,51.4,,site/data/ethno.json (census table carried in the map data)
+# Not decided yet (no row = normal colour). Each needs one census or official figure before it gets a status:
+#   Karakalpak (Karakalpakstan): figures conflict; one set for 1 Jan 2020 gives Uzbeks 40.3, Karakalpaks 36.9, unverified.
+#   Upper Sorbian, Lower Sorbian (Lusatia), Walloon (Wallonia), Kashubian (Pomerania): no census of language or people; estimates only.
+#   Friulian, Sardinian, Ladin, Catalan, Gagauz, Rusyn, Karaim, the Greek and Albanian varieties, Kurdish, Balochi and the rest: not checked.
