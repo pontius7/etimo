@@ -2576,6 +2576,15 @@ body{font-weight:400;letter-spacing:.005em}
 
 /* ---- v65: keep the active tab visible before the pill appears ---- */
 .tabbar .in:not(:has(.ktab-ind.on)) button[aria-current=page],.tabbar .in:not(:has(.ktab-ind.on)) button[aria-current=page] .icn,.tabbar .in:not(:has(.ktab-ind.on)) button[aria-current=page] .icn svg{color:var(--ink)!important}
+
+/* ---- v66: lighter active tab: a tinted pill instead of a solid one, text in the header colour ---- */
+.tabbar .ktab-ind{background:color-mix(in srgb,var(--hd) 15%,transparent)!important}
+.tabbar button[aria-current=page],.tabbar button[aria-current=page] .icn,.tabbar button[aria-current=page] .icn svg{color:var(--hd)!important}
+:root[data-theme=dark] .tabbar .ktab-ind{background:color-mix(in srgb,var(--ink) 13%,transparent)!important}
+:root[data-theme=dark] .tabbar button[aria-current=page],:root[data-theme=dark] .tabbar button[aria-current=page] .icn,:root[data-theme=dark] .tabbar button[aria-current=page] .icn svg{color:var(--ink)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .tabbar .ktab-ind{background:color-mix(in srgb,var(--ink) 13%,transparent)!important}
+:root:not([data-theme=light]) .tabbar button[aria-current=page],:root:not([data-theme=light]) .tabbar button[aria-current=page] .icn,:root:not([data-theme=light]) .tabbar button[aria-current=page] .icn svg{color:var(--ink)!important}
+}
 </style>
 <style id="etimo1">:root{--hd:#2e4369;--hd-line:#24385d;--hd-muted:#d6e0f2}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--hd:#273a5b;--hd-line:#33486e;--hd-muted:#c7d3e7}
