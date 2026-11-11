@@ -30,6 +30,69 @@ What produces each part of `site/`:
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
+## Structure
+
+Everything in the repository, one line each. "Built" means a script writes it; do not edit those by hand.
+
+```
+content/                      your additions (the only place to add words, languages, families, meanings)
+  words/                      word lists as CSV (one template, two large imports)
+  languages/                  one JSON file per language you add (_example.json.txt shows every field)
+  families.json               extra language families (name, two colours, label position)
+  meanings.csv                extra meanings and where they sit in the categories
+  language-aliases.csv        other spellings of language names found in word lists
+  sheets.txt                  Google Sheet links that are fetched as word lists
+  import-report.txt           built: where the rows of the large word lists went
+
+src/                          the page's source (see "How the page is built")
+  page.html                   the page and the order of its parts
+  styles/                     30 style files: main.css, the layers v41..v62 and etimo-*.css, fd.css
+  app/                        the app script in seven parts (1 and 3 are libraries)
+
+scripts/
+  add-words.sh                THE build: fetch sheets, merge data, build the page, run every check
+  build-page.py               joins src/ into site/index.html and fills the placeholders
+  build-regional.py           census and regional tables (run only when that source data changes)
+  watch.py, watch.sh          rebuild whenever a file in content/ or src/ is saved
+  hooks/                      optional commit check (refuses a commit if site/ is out of date)
+  launchd/                    optional: run the watcher in the background on a Mac
+  merge/
+    merge-data.py             all map and word data in site/data and site/h (areas, coast-gap fill, country clip)
+    bulk_import.py            the large word lists: full dictionaries and the search index
+    dedupe.py, fetch-sheets.py, topo.py   helpers for the two above
+    palette.py, families.py   the one source of colours and of the family list
+    devter-synonyms.json      synonym table used when content/meanings.csv adds a meaning
+    check-overlaps.py         check: no two language areas overlap
+    check-colors.py, probe-colors.mjs   check in Chrome: map = palette = wheel, light and dark
+    words-report.py, jslit.js check: every new word landed in a language, family and category
+    search_keys.js, test-search-key.js  check: Latin typing finds other scripts
+  relief/                     builds the mountain shading images from elevation data (build.sh)
+  areas/                      traces language areas from reference map images (Arvanitika, Montenegro)
+
+site/                         the published website (Cloudflare serves this folder as it is)
+  index.html                  built from src/
+  regional-layer.js           by hand: the detailed layers on the map (Albanian dialects, Vlach, Serbia,
+                              Montenegro, Greece), country borders and coast, municipality labels
+  country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources
+  search-key.js               by hand: turns any script into Latin search keys (also part of the page)
+  _headers                    by hand: caching rules for Cloudflare
+  data/                       map data
+    languages.json, lexicon.json, terr.json, dia.json, micro.json, ethno.json, adm2.json   built by merge-data.py
+    world-50m.json, world-50s.json, borders-10m.json, today.json, greece-10m.json          outlines and borders
+    albanian-dialects.json, vlach-areas.json, serbia-areas.json                            traced area layers
+    greece-areas.json, montenegro-areas.json, athos.json                                   traced (scripts/areas/)
+    montenegro-municipalities.geojson, country-sources.json, regional-sources.json         census geography and sources
+    shade.avif, shade-s.avif, shade.webp                                                   relief (scripts/relief/)
+    regional/, tables/        built by build-regional.py: census data per country
+  h/                          built: copies with a content hash in the name, cached for a year
+    dict/                     full dictionary of each language that has one
+    search/                   the search index, in small pieces
+
+reference/                    untouched originals of the two apps the site was merged from; the build still
+                              reads their data files, and the colour check compares against them
+docs/                         merge spec, QA notes, screenshots (history, not needed to build)
+```
+
 ## Everyday tasks
 
 All four are content changes. No code is touched. Details and every field: `content/README.md`.
@@ -147,6 +210,23 @@ Checked and found correct (not changed): language areas, pins and wheel slices m
 themes on a fresh load; no console errors on the home, map, language, dictionary and wheel screens;
 downloads are compressed and cached (first visit about 2.5 MB, mostly the word list, then served
 from cache).
+
+## Layout and map consistency, 2026-11-11
+
+Each was measured in Chrome before and after (phone size 390 x 844 and desktop 1440 x 900).
+
+| problem (measured) | fix |
+|---|---|
+| Phones and tablets: the menu sat under the header, so 110px at the top was chrome | one header row (56px) at the top, the menu as a bar at the bottom of the screen, as in the original design (`src/styles/fd.css`). Search boxes stick directly under the header. The map fills the space between header and bar exactly and the page does not scroll |
+| Desktop: the map page was 51px taller than the screen, so it could scroll | the map page has no end padding on desktop either |
+| With no language selected, central and southern Albania, the Arbëresh areas in Italy and the Arvanitika areas in Greece had nothing drawn: their base areas are hidden in favour of the dialect layer, and that layer was only drawn once Albanian was selected. This was the same in the original app | the dialect areas are always drawn. At rest a click on one selects Albanian; once Albanian is selected a click picks the dialect, as before |
+| The four detailed layers (Albanian dialects, Vlach, Serbia, Montenegro) each used their own strengths: .6 to .78 at rest, .85 to .92 selected, .06 or .07 dimmed | one rule in `site/regional-layer.js` (`OP`, `restOp`): .78 at rest, .9 selected, .3 while another language of the same family is selected, .07 for another family, .14 for families a filter leaves out. They also fade in step with the base areas (.25s; off when the system asks for reduced motion) |
+
+Audit of all 209 languages after these changes: with nothing selected, every language has a drawn
+area (its own, its varieties', or its parent's); selecting any language highlights an area for it.
+What still differs on purpose: 28 languages of Russia are drawn lighter where the census shows the
+people as a minority or plurality in their region (that data exists only for Russia), and the 8
+historical languages are drawn faint with a dashed outline.
 
 ## Montenegro and Arvanitika: areas traced from reference maps
 

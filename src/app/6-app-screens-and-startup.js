@@ -529,7 +529,7 @@ if(T(e)){let t=da[e.lang].b;
 return[t[0]*M+C[0],t[1]*M+C[1],t[2]*M+C[0],t[3]*M+C[1]]}
 return n=(t=F(e)).map(e=>e[0]),[Math.min(...n),Math.min(...r=t.map(e=>e[1])),Math.max(...n),Math.max(...r)]}
 let H=E.append("g").attr("class","adm");
-import("./regional-layer.js?v=36").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
+import("./regional-layer.js?v=37").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
 (!ff&&(ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json")).then(e=>e.json()).then(e=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
 return[...t,...n].forEach(e=>{e.bb=pu(e)}),hf={t:e,R:t,C:n,mesh:af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c)}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(H.append("path").attr("d",z(e.mesh)),bt())});
 try{new ResizeObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t),new MutationObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t,{attributes:!0,attributeFilter:["hidden"]})}catch{}

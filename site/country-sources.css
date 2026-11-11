@@ -85,3 +85,7 @@ g.adm path{display:none}
 
 g.ac[data-off="1"]{display:none!important}
 .etimo-tip{pointer-events:none}
+
+/* Area layers fade when the selection changes, in step with the base language areas (.zones, .25s). */
+.albanian-dialects path,.vlach-areas path,.serbia-areas path,.me-areas path{transition:fill-opacity .25s}
+@media (prefers-reduced-motion:reduce){.albanian-dialects path,.vlach-areas path,.serbia-areas path,.me-areas path{transition:none}}

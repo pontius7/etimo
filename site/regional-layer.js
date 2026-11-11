@@ -108,6 +108,13 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian']);
  const albObj=languages.find(l=>l.lang==='Albanian');
  let famSel=null,dialects=null,vlach=null;
+ // One rule for every detailed area layer (Albanian dialects, Vlach, Serbia, Montenegro):
+ //   nothing selected .78 | the selected language .9 | another language of the same family selected .3 |
+ //   a language of another family selected .07 | under a family filter: that family .78, others .14
+ //   (.14 is what the base language areas use for the families a filter leaves out).
+ // Only the sibling shading inside the Albanian and Vlach groups (aOp, vOp below) goes beyond it.
+ const OP={rest:.78,sel:.9,fam:.3,other:.07,filterOther:.14};
+ const restOp=(fam,sel)=>sel?(sel.family===fam?OP.fam:OP.other):famSel?(famSel===fam?OP.rest:OP.filterOther):OP.rest;
  const albMode=()=>{const s=current();return !!(dialects&&((s&&ALBSET.has(s.lang))||famSel==='Albanian'));};
  const dialectLayer=parent.insert('g',()=>layer.node()).attr('class','albanian-dialects').attr('pointer-events','none');
  const vlachLayer=parent.insert('g',()=>hatchLayer.node()).attr('class','vlach-areas').attr('pointer-events','none');
@@ -122,23 +129,26 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   root.querySelectorAll('g.pin').forEach(el=>{const d=el.__data__;if(d&&HIDEPIN.has(d.lang))el.style.display='none';});
   root.querySelectorAll('g.zones path,g.ters path,path.zone,path.terr').forEach(el=>{const d=el.__data__;if(d&&d.lang&&HIDEZONE.has(d.lang))el.style.display='none';});
   root.querySelectorAll('g.labs text.plabel').forEach(el=>{const t=el.textContent.trim();if(HIDEPIN.has(t))el.style.display='none';});};
- const aOp=(r,sel)=>{const n=sel&&ALBSET.has(sel.lang)?sel.lang:'Albanian';
+ // Not selected: the dialect areas are drawn like every other language area (restOp above).
+ const aOp=(r,sel)=>{if(!albMode())return restOp('Albanian',sel);
+  const n=sel&&ALBSET.has(sel.lang)?sel.lang:'Albanian';
   if(n==='Albanian')return .82;
   if(n==='Gheg Albanian')return GHEG.has(r.name)?.82:.14;
   if(r.name===n)return .9;
   return ((GHEG.has(n)&&GHEG.has(r.name))||(TOSKS.has(n)&&TOSKS.has(r.name)))?.32:.14;};
  const vOp=(r,sel)=>{const n=sel&&VSET.has(sel.lang)?sel.lang:null;
   const aro=ARO.includes(r.name),meg=MEG.includes(r.name),main=r.name==='Megleno-Romanian';
-  if(!n){if(!sel)return aro||main?.78:0;return aro||main?(sel.family==='Romance'?.3:.07):0;}
+  if(!n)return aro||main?restOp('Romance',sel):0;
   if(n==='Aromanian')return aro?.88:main?.25:0;
   if(n==='Megleno-Romanian')return meg?.88:aro?.22:0;
   if(ARO.includes(n))return r.name===n?.92:aro?.2:main?.2:0;
   return r.name===n?.92:meg?.3:aro?.2:0;};
  const tipEl=()=>{let t=host.querySelector('.etimo-tip');if(!t){t=document.createElement('div');t.className='mtip etimo-tip';t.hidden=true;host.appendChild(t);}return t;};
+ const target=r=>(!albMode()&&ADIAL.has(r.name)&&albObj)||languages.find(x=>x.lang===r.name);
  const wire=sel=>sel.attr('pointer-events','auto').style('cursor','pointer')
-  .on('pointermove',(ev,r)=>{if(ev.pointerType&&ev.pointerType!=='mouse')return;const l=languages.find(x=>x.lang===r.name);const t=tipEl();const b=host.getBoundingClientRect();t.innerHTML='<b>'+(window.__dn?__dn(r.name):r.name)+'</b><span>'+(l?l.family:'')+' · tap to select</span>';t.hidden=false;t.style.transform='translate('+Math.round(Math.min(ev.clientX-b.left+14,b.width-t.offsetWidth-8))+'px,'+Math.round(ev.clientY-b.top+16)+'px)';})
+  .on('pointermove',(ev,r)=>{if(ev.pointerType&&ev.pointerType!=='mouse')return;const l=target(r);const nm=l?l.lang:r.name;const t=tipEl();const b=host.getBoundingClientRect();t.innerHTML='<b>'+(window.__dn?__dn(nm):nm)+'</b><span>'+(l?l.family:'')+' · tap to select</span>';t.hidden=false;t.style.transform='translate('+Math.round(Math.min(ev.clientX-b.left+14,b.width-t.offsetWidth-8))+'px,'+Math.round(ev.clientY-b.top+16)+'px)';})
   .on('pointerleave',()=>{tipEl().hidden=true;})
-  .on('click',(ev,r)=>{const l=languages.find(x=>x.lang===r.name);if(!l||!window.__kt)return;ev.stopPropagation();tipEl().hidden=true;window.__kt.select(l.id);});
+  .on('click',(ev,r)=>{const l=target(r);if(!l||!window.__kt)return;ev.stopPropagation();tipEl().hidden=true;window.__kt.select(l.id);});
  const areaRows=()=>{const sel=current();const out=[];if(albMode()&&dialects)dialects.forEach(r=>{if(aOp(r,sel)>=.5)out.push(r);});if(serbia&&!albMode()){const s0=current();serbia.forEach(r=>{if(s0&&r.name===s0.lang)out.push(r);});}if(vlach&&!albMode())vlach.forEach(r=>{if(sel&&VSET.has(sel.lang)&&vOp(r,sel)>=.5)out.push(r);});return out;};
  // On phones, city names show only inside the selected area.
  const cityFilter=()=>{
@@ -165,14 +175,14 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  let meAreas=null;
  const meLayer=parent.insert('g',()=>layer.node()).attr('class','me-areas').attr('pointer-events','none');
  fetch('data/montenegro-areas.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{const proj=path.projection&&path.projection();if(!proj)return;meAreas=Object.entries(j).map(([k,rings])=>mkRow(k,rings,proj));if(parent.node().isConnected)draw();}).catch(()=>{});
- const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(sel)return r.name===sel.lang?.85:(l&&l.family===sel.family)?.3:.06;if(famSel)return(l&&l.family===famSel)?.6:.1;return .6;};
+ const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(sel&&r.name===sel.lang)return OP.sel;return restOp(l&&l.family,sel);};
  const paintDialects=()=>{
   const sel=current();const alb=albMode();const vSel=!!(sel&&VSET.has(sel.lang)&&vlach);
   parent.selectAll('path.terr').style('display',(alb||vSel)?'none':'');
   hideExtras();
-  dialectLayer.selectAll('path').data(alb?dialects:[],r=>r.name).join('path').attr('d',r=>r.d).attr('fill',r=>PAL[r.name]||'#888').attr('fill-rule','evenodd').attr('fill-opacity',r=>aOp(r,sel)).attr('stroke',r=>sel&&r.name===sel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sel&&r.name===sel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);dialectLayer.selectAll('path').filter(r=>sel&&r.name===sel.lang).raise();
+  dialectLayer.selectAll('path').data(dialects||[],r=>r.name).join('path').attr('d',r=>r.d).attr('fill',r=>PAL[r.name]||'#888').attr('fill-rule','evenodd').attr('fill-opacity',r=>aOp(r,sel)).attr('stroke',r=>sel&&r.name===sel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sel&&r.name===sel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);dialectLayer.selectAll('path').filter(r=>sel&&r.name===sel.lang).raise();
   const vrows=(vlach&&!alb)?vlach.filter(r=>vOp(r,sel)>0):[];
-  vlachLayer.selectAll('path').data(vrows,r=>r.name).join('path').attr('d',r=>r.d).attr('fill',r=>PAL[r.name]||'#888').attr('fill-rule','evenodd').attr('fill-opacity',r=>vOp(r,sel)*((famSel&&famSel!=='Romance')?.3:1)).attr('stroke',r=>sel&&r.name===sel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sel&&r.name===sel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);vlachLayer.selectAll('path').filter(r=>sel&&r.name===sel.lang).raise();
+  vlachLayer.selectAll('path').data(vrows,r=>r.name).join('path').attr('d',r=>r.d).attr('fill',r=>PAL[r.name]||'#888').attr('fill-rule','evenodd').attr('fill-opacity',r=>vOp(r,sel)).attr('stroke',r=>sel&&r.name===sel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sel&&r.name===sel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);vlachLayer.selectAll('path').filter(r=>sel&&r.name===sel.lang).raise();
   cityFilter();
   const sSel=current();const srows=(serbia&&!alb)?serbia:[];
   serbiaLayer.selectAll('path').data(srows,r=>r.name+r.d.length).join('path').attr('d',r=>r.d).attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-rule','evenodd').attr('fill-opacity',r=>sOp(r,sSel)).attr('stroke',r=>sSel&&r.name===sSel.lang?(PAL[r.name]||'#888'):'none').attr('stroke-width',r=>sSel&&r.name===sSel.lang?2.4:0).attr('stroke-linejoin','round').attr('vector-effect','non-scaling-stroke').call(wire);
@@ -244,7 +254,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   }).filter(row=>(row.observation||row.feature.properties.country_code==='ME')&&!(albMode()&&['AL','XK','MK','GR'].includes(row.feature.properties.country_code)));
   if(!albMode())for(const feature of greece.features){const region=gr[feature.properties.region_id];const presence=selected?region.presence.filter(p=>p.language===selected.lang):region.presence;rows.push({feature,presence,language:selected,qualitative:true});}
   const meOn=!!(meAreas&&!selected&&!albMode());const meRow=row=>meOn&&row.feature.properties.country_code==='ME';
-  meLayer.selectAll('path').data(meOn?meAreas:[],r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return famSel?((l&&l.family===famSel)?.75:.12):.75;});
+  meLayer.selectAll('path').data(meOn?meAreas:[],r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return restOp(l&&l.family,null);});
   const fill=row=>(row.qualitative||meRow(row))?'transparent':color(row.language)||'var(--ink,#60796a)';
   // Where the selected language is a minority, it shows as stripes over the majority colour.
   const overRows=rows.filter(r=>r.over);
