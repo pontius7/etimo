@@ -18127,7 +18127,8 @@ e&&n.push(e)}),Qe.selectAll("g.city").each(function(){if(this.classList.remove("
 let e=a(this,1);
 e&&(i(e,n)||i(e,r)?this.classList.add("kx"):r.push(e))}),st=n.concat(r),it(e.k)}(t),!i){let e=b>=1024?17*1.15:b>=700?13:11;
 $.selectAll("text").attr("dx",function(n){let r=t.applyX(j([n[1],n[2]])[0]),a=this.textContent.length*e*1.12/2+8;
-return r-a<4?4+a-r:r+a>b-4?b-4-a-r:0})}}
+return r-a<4?4+a-r:r+a>b-4?b-4-a-r:0})}/* the census names follow what the page has just written (family names have moved by now) */
+GL&&gNames()}
 var yt,kt,wt,xt,jt,St,_t,qt,Et,zt,Nt=null,Mt=0,Ct=null,Lt=!1,Tt=0,At="mouse",Pt=0,It=!1;
 /* How the base keeps up with a gesture.
    kT is the view the base was last drawn at. kShow moves that drawing (as a picture) to where view T needs it.
@@ -18161,6 +18162,14 @@ return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-(B[0]+B[2])/2,-(B
 function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k;
 kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
 /* what is chosen goes to the engine, which sets how strong every area is drawn */
+/* GL: what the page has written at this view, measured as it stands (language and family names, both kinds of city names,
+   pins), so the engine writes no census name on top of it, nor one that repeats a city name beside it (GM.avoid in site/map-gl.js) */
+function gNames(){if(!GM||!GM.avoid)return;
+let n=new Set,B=[],T=kV(),R=Q2.node().getBoundingClientRect(),add=el=>{let r=el.getBoundingClientRect();
+r.width&&B.push([r.left-R.left-2,r.top-R.top-2,r.right-R.left+2,r.bottom-R.top+2])};
+Q2.selectAll("text.plabel").each(function(){"0"!==this.style.opacity&&"none"!==this.style.display&&add(this)}),"0"!==$.style("opacity")&&$.selectAll("text").each(function(){add(this)}),Qe.selectAll("g.city").each(function(d){d&&!this.classList.contains("kh")&&!this.classList.contains("kx")&&(n.add(d.n),add(this))}),Ye.selectAll("g.ac").each(function(d){d&&this.__u&&!this.hasAttribute("data-off")&&(n.add(d.n),add(this))}),Ve.selectAll("g.pin").each(function(d){if(!d||!d._xy||"none"===this.style.display)return;
+let X=T.applyX(d._xy[0]),Y=T.applyY(d._xy[1]);
+B.push([X-10,Y-10,X+10,Y+10])}),GM.avoid({boxes:B,cities:[...n]})}
 function gSync(){if(!GM)return;
 gPo||gPinsOn();
 let th=document.documentElement.getAttribute("data-theme");
@@ -18249,7 +18258,7 @@ let TT=Fh.translate(b/2-T.k*P[0],top-T.k*P[1]).scale(T.k);
 GL?kGo(TT,f?0:380):q.transition().duration(f?0:380).ease(Po).call(Dt.transform,TT),setTimeout(show,f?40:440)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),a.fail&&a.fail())},/* a start that takes longer than 20 seconds (a stalled download) also goes back to the old map */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=3").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=4").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}

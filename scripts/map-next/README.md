@@ -51,6 +51,24 @@ Gaza, and PSX without; ALA and ALD): the copy without regions changes nothing an
 Credits: one small line in the bottom left corner of the map (`.mcred`): OpenStreetMap (Montenegro's municipalities),
 EuroGeographics (the other census boundaries, GISCO), and the relief's elevation sources (Terrain Tiles).
 
+Census names and stripes (every country with a census table: Albania, Bulgaria, Croatia, the Czech Republic,
+Liechtenstein, Montenegro, North Macedonia, Romania, Serbia, Slovakia; 9,924 regions):
+- Names are drawn by the engine (layer `names` in `site/map-gl.js`) in the site's font, Manrope, without a font server:
+  with no `glyphs` address in the style MapLibre draws the letters itself. A name shows from the first zoom level, 4 times
+  in or more, where its region is 34 px wide; the larger region wins where two collide. At rest the page tells the engine
+  what it has written (language, family and city names, pins: `gNames` / `GM.avoid`), and a census name that would lie
+  on one of those, or repeats a city name beside it, is left out.
+- Names come from the census region files as they are, except where the source spells them wrongly: Romania's counties
+  (given in capitals without diacritics) and six Montenegrin municipalities (`NAME_FIX` in `build.py`).
+- Stripes, one rule for every country: where the chosen language has 2% or more but another language is the largest
+  (same census question), the region takes that language's colour and the chosen one shows as stripes. The largest
+  language comes from `census-top.json`; it is left out where the languages not listed could outweigh it. Where the
+  largest language is not on the map (German in Liechtenstein, Romani in 30 Slovak municipalities and Šuto Orizari in
+  North Macedonia) there is no colour for it, and the region shows the chosen language's share as everywhere else.
+- Both files are written by `build.py` (`census-names.json`, `census-top.json`); after a change to the census tables
+  or to `NAME_FIX` alone: `.venv/bin/python scripts/map-next/build.py --census`.
+- The old map (`?map=svg`) still has names and stripes for Montenegro only.
+
 One set of outlines: coast, borders, the edge of every language area and every census region come from the same
 country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.
 

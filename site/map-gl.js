@@ -25,9 +25,6 @@ const THEMES = {
 const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coalesce', ['feature-state', 's'], 1], PIN_BIG = ['>', PIN_S, 1.05];
 const ZONE = .6;      // a language area with nothing chosen (--zone-op on the site)
 const BASE = .34;     // a country tinted with its main language, under the areas
-const PRIORITY = new Set(['podgorica', 'gusinje', 'andrijevica', 'budva', 'ulcinj', 'bar'].map(n => 'ME-2023-' + n));
-const NAMES = {'ME-2023-niksic': 'Nikšić', 'ME-2023-savnik': 'Šavnik', 'ME-2023-zabljak': 'Žabljak', 'ME-2023-kolasin': 'Kolašin', 'ME-2023-pluzine': 'Plužine', 'ME-2023-rozaje': 'Rožaje', 'ME-2023-pljevlja': 'Pljevlja'};
-const LABEL_FROM = 12, LABEL_ALL = 40;   // municipality names: the main ones from 12 times in, all from 40 times
 
 const json = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r.status); return r.json(); });
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -70,7 +67,7 @@ async function create(host, id) {
   made = {box, map: null};
 
   const S = {theme: 'light', sel: null, fam: null, conc: false, hover: null, dop: {}, n: 0};
-  let ctx = null, H = {}, labels = null, legend = null;
+  let ctx = null, H = {}, legend = null;
   const T0 = THEMES.light, kind = ['get', 'kind'], name = ['get', 'name'];
   const reliefOp = P => ['interpolate', ['linear'], ['zoom'], 0, P.relief, 22, P.relief];
   const round = {'line-join': 'round', 'line-cap': 'round'};
@@ -89,6 +86,7 @@ async function create(host, id) {
         census: {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 12, tolerance: .25},
         relief: {type: 'image', coordinates: meta.relief},     // no url: the decoded picture is handed over (style.load below)
         pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
+        names:  {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
       },
       /* Bottom to top. Every paint value that depends on the theme or on what is chosen is set in look() and paint(). */
       layers: [
@@ -112,6 +110,10 @@ async function create(host, id) {
         {id: 'border', type: 'line', source: 'lines', filter: ['==', kind, 'border'], layout: round, paint: {'line-color': T0.border, 'line-opacity': .9, 'line-width': 1.2}},
         {id: 'hover-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .9}},
         {id: 'sel-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2.2}},
+        /* names of the census regions (every country with a census table), drawn here in the site's font (Manrope, no font server:
+           without a glyphs address MapLibre draws the letters itself). Shown from the zoom where a region is 34 px wide (text-field in scale());
+           the larger region wins where two collide. Same size on phone and desktop (10.5 px); a phone simply fits fewer. */
+        {id: 'names', type: 'symbol', source: 'names', layout: {'text-field': '', 'text-font': ['Manrope'], 'text-size': 10.5, 'text-max-width': 8, 'text-padding': 3, 'symbol-sort-key': ['get', 'r']}, paint: {'text-color': T0.inner, 'text-halo-color': T0.land, 'text-halo-width': 1.6, 'text-opacity': .86}},
         {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN + 3.4, PIN_S], 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': ['*', .34, PIN_O], 'circle-translate': [0, 1.6]}},
         {id: 'pin-disc', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN, PIN_S], 'circle-color': T0.pin, 'circle-opacity': PIN_O, 'circle-stroke-width': ['case', PIN_BIG, 2, 1], 'circle-stroke-color': ['case', PIN_BIG, T0.pinSel, T0.pinEdge], 'circle-stroke-opacity': PIN_O}},
         {id: 'pin-core', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN * .58, PIN_S], 'circle-color': ['get', 'color'], 'circle-opacity': PIN_O}},
@@ -130,6 +132,18 @@ async function create(host, id) {
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
   map.once('idle', () => box.classList.add('on'));
+  let nameFeats = [];
+  /* the census region names (census-names.json), once the map has drawn and the site's font is ready, so the letters are drawn in it */
+  map.once('idle', () => {
+    Promise.all([json(DATA + 'census-names.json'), document.fonts ? document.fonts.load('10.5px Manrope').catch(() => null) : null]).then(([d]) => {
+      if (id !== gen) return;
+      const features = [];
+      for (const rows of Object.values(d)) for (const [name, x, y, w, h] of rows)
+        features.push({type: 'Feature', id: features.length, properties: {name, z: Math.ceil(Math.log2(34 / (Math.max(w, .01) * 512 * c))), r: -w * h}, geometry: {type: 'Point', coordinates: at(x, y)}});
+      nameFeats = features;
+      map.getSource('names').setData({type: 'FeatureCollection', features});
+    }).catch(e => console.warn('Etimo: the census names could not be loaded', e));
+  });
   /* A map data file that did not arrive leaves a map with holes, and MapLibre still reports the map as loaded: the page is told, and goes back to the old map. */
   let broken = null;
   map.on('error', e => { if (broken || !['land', 'lines', 'areas'].includes(e.sourceId)) return; broken = e.error || e; if (H.fail) H.fail(broken); });
@@ -139,7 +153,7 @@ async function create(host, id) {
   /* ---------------------------------------------------------------- what the page is told and asks */
   const fire = (n, e) => { try { H && H[n] && H[n](e); } catch (err) { console.warn(err); } };
   map.on('movestart', () => fire('start'));
-  map.on('move', () => { fire('move'); placeLabels(); });
+  map.on('move', () => fire('move'));
   map.on('moveend', () => fire('end'));
   map.on('click', e => fire('click', e));
   map.on('mousemove', e => fire('hover', e));
@@ -155,6 +169,11 @@ async function create(host, id) {
     map.setPaintProperty('region', 'line-opacity', [...lin, k(2.2), 0, k(3.2), .22]);
     map.setPaintProperty('region', 'line-width', [...lin, k(3), .6, k(12), .9]);
     map.setPaintProperty('border', 'line-width', [...lin, k(1), 1.05, k(4), 1.5]);
+    /* a name from the first whole zoom level, 4 times in or more, where its region is 34 px wide (z, set when the names load) */
+    const steps = ['step', z, ''];
+    S.z0 = Math.ceil(k(4));
+    for (let Z = S.z0; Z <= Math.ceil(map.getMaxZoom()); Z++) steps.push(Z, ['case', ['<=', ['get', 'z'], Z], ['get', 'name'], '']);
+    map.setLayoutProperty('names', 'text-field', steps.length > 3 ? steps : '');
     look();
   }
 
@@ -194,6 +213,8 @@ async function create(host, id) {
     map.setPaintProperty('border', 'line-color', P.border);
     map.setPaintProperty('region', 'line-color', P.inner);
     map.setPaintProperty('district', 'line-color', P.inner);
+    map.setPaintProperty('names', 'text-color', P.inner);
+    map.setPaintProperty('names', 'text-halo-color', P.land);
     /* relief: full strength on the wide view, a little lighter from 6 times in, gone from 11 times in (as on the site) */
     map.setPaintProperty('relief', 'raster-opacity', ['interpolate', ['linear'], ['zoom'], k(5), P.relief, k(6.5), P.relief * .84, k(9.5), P.relief * .84, k(11.5), 0]);
   }
@@ -243,7 +264,16 @@ async function create(host, id) {
   /* ---------------------------------------------------------------- census view (per municipality or region) */
   const regs = new Map(), rowsOf = new Map(), ready = new Map();
   const regFor = cc => { if (!regs.has(cc)) regs.set(cc, json(DATA + 'regions/' + cc + '.json').then(fc => ({feats: fc.features, byIx: new Map(fc.features.map(ft => [ft.properties.i, ft]))})).catch(e => { regs.delete(cc); throw e; })); return regs.get(cc); };
-  let meFeats = null;
+  let meFeats = null, top = null, topP = null;
+  /* the largest language of every census region outside Montenegro (census-top.json, scripts/map-next/build.py) */
+  /* the width of a census name in the font and size it is drawn in (10.5 px Manrope; text-max-width 8 em = 84 px a line) */
+  const measure = document.createElement('canvas').getContext('2d'), widths = new Map();
+  const textWidth = n => { let w = widths.get(n); if (w == null) { measure.font = '10.5px Manrope, sans-serif'; w = measure.measureText(n).width; widths.set(n, w); } return w; };
+  const topFor = () => topP || (topP = json(DATA + 'census-top.json').then(d => {
+    const T = {};
+    for (const [cc, rows] of Object.entries(d)) if (cc !== 'langs') T[cc] = new Map(rows.map(([i, li, p]) => [i, [d.langs[li], p]]));
+    top = T;
+  }).catch(e => { topP = null; throw e; }));
   /* one language: its census rows joined to the regions of each country it has rows for */
   function rowsFor(key) {
     const info = index.languages[key];
@@ -274,22 +304,31 @@ async function create(host, id) {
   function census() {
     const sel = S.sel, alb = albMode(), n = ++S.n, src = map.getSource('census');
     const again = p => p && p.then(() => { if (n === S.n) census(); }, () => {});
-    if (!meFeats) again(regFor('ME').then(r => { meFeats = r.feats; makeLabels(); }));
+    if (!meFeats) again(regFor('ME').then(r => { meFeats = r.feats; }));
     if (!sel) { src.setData({type: 'FeatureCollection', features: []}); map.setLayoutProperty('census-hatch', 'visibility', 'none'); return; }
     const key = ALBSET.has(sel.lang) ? 'Albanian' : sel.lang;
     const eff = ALBSET.has(sel.lang) ? ctx.languages.find(l => l.lang === 'Albanian') || sel : sel;
     const out = [], row = (ft, col, o, h) => out.push({type: 'Feature', geometry: ft.geometry, properties: {c: col || '#8a93a3', o, h: h || 0}});
     if (!ready.has(key)) again(rowsFor(key));
-    for (const r of ready.get(key) || []) if (!(alb && ['AL', 'XK', 'MK', 'GR'].includes(r.cc))) row(r.ft, ctx.color(eff), censusOp(r.pct, false, 0, eff.family, alb, S.fam));
-    /* Montenegro: every municipality; where the chosen language is a minority (2% or more) the majority keeps its colour and the language shows as stripes */
+    if (!top) again(topFor());
+    /* Every country, one rule: where the chosen language has 2% or more but another language is the largest, the region takes
+       that language's colour and the chosen one shows as stripes. t = [largest language, its share], from the same census question.
+       Only when the largest language is on the map (it has a colour): German in Liechtenstein and Romani in some Slovak and
+       North Macedonian municipalities are not, and there the region shows the chosen language's share as everywhere else. */
     let striped = false;
+    const paintRow = (ft, pct, t) => {
+      const big = t && t[0] !== eff.lang ? ctx.languages.find(l => l.lang === t[0]) : null;
+      const over = !!(pct != null && pct >= 2 && big);
+      const lang = over ? big : eff;
+      row(ft, ctx.color(lang), censusOp(pct, over, t ? t[1] : 0, lang.family, alb, S.fam), over ? hatchOp(pct) : 0);
+      striped = striped || over;
+    };
+    for (const r of ready.get(key) || []) if (!(alb && ['AL', 'XK', 'MK', 'GR'].includes(r.cc))) paintRow(r.ft, r.pct, top && top[r.cc] && top[r.cc].get(r.ft.properties.i) || null);
+    /* Montenegro: its own table has every language for every municipality (regional/ME.json), so every municipality is drawn */
     for (const ft of meFeats || []) {
       const recs = (meValues[ft.properties.id] || []).filter(o => o.percentage != null), own = recs.find(o => o.language_id === eff.lang);
-      const top = recs.slice().sort((a, b) => b.percentage - a.percentage)[0];
-      const over = !!(own && own.percentage >= 2 && top && top.language_id !== eff.lang);
-      const lang = over ? ctx.languages.find(l => l.lang === top.language_id) || eff : eff;
-      row(ft, ctx.color(lang), censusOp(own ? own.percentage : null, over, top && top.percentage, lang.family, alb, S.fam), over ? hatchOp(own.percentage) : 0);
-      striped = striped || over;
+      const t = recs.slice().sort((a, b) => b.percentage - a.percentage)[0];
+      paintRow(ft, own ? own.percentage : null, t ? [t.language_id, t.percentage] : null);
     }
     src.setData({type: 'FeatureCollection', features: out});
     if (striped) map.setPaintProperty('census-hatch', 'fill-pattern', hatch(ctx.color(eff) || '#9e2b2b'));
@@ -316,42 +355,6 @@ async function create(host, id) {
     legend.hidden = false;
   }
 
-  /* ---------------------------------------------------------------- names of Montenegro's municipalities (deep zoom) */
-  function makeLabels() {
-    if (labels) labels.g.remove();
-    labels = null;
-    if (!meFeats || !ctx || !ctx.parent || !ctx.parent.isConnected) return;
-    const NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
-    g.setAttribute('class', 'municipality-labels'); g.setAttribute('pointer-events', 'none'); g.setAttribute('visibility', 'hidden');
-    const texts = meFeats.map(ft => {
-      const t = document.createElementNS(NS, 'text'), p = ctx.px(ft.properties.at);
-      t.setAttribute('x', p[0]); t.setAttribute('y', p[1]); t.setAttribute('text-anchor', 'middle');
-      t.setAttribute('font-family', 'var(--sans,system-ui)'); t.setAttribute('fill', 'var(--ink,#263e32)'); t.setAttribute('stroke', 'var(--bg,#fff)'); t.setAttribute('paint-order', 'stroke');
-      if (PRIORITY.has(ft.properties.id)) t.dataset.pri = '1';
-      t.textContent = NAMES[ft.properties.id] || ft.properties.name;
-      return g.appendChild(t);
-    });
-    ctx.parent.appendChild(g);
-    labels = {g, texts, dq: 0};
-    placeLabels();
-  }
-  function placeLabels() {
-    if (!labels || !ctx) return;
-    const kk = ctx.k();
-    labels.g.setAttribute('visibility', kk >= LABEL_FROM ? 'visible' : 'hidden');
-    if (kk < LABEL_FROM) return;
-    for (const t of labels.texts) { t.setAttribute('display', kk >= LABEL_ALL || t.dataset.pri ? 'inline' : 'none'); t.setAttribute('font-size', 10.5 / kk); t.setAttribute('stroke-width', 3 / kk); }
-    /* a name the map already prints as a city label is not written twice */
-    if (!labels.dq) labels.dq = requestAnimationFrame(() => {
-      if (!labels) return;
-      labels.dq = 0;
-      const host = box.parentNode, shown = new Set(labels.texts.filter(t => t.getAttribute('display') !== 'none').map(t => t.textContent));
-      if (!host || !shown.size) return;
-      const cities = new Set([...host.querySelectorAll('g.acities text,g.cities text')].filter(n => shown.has(n.textContent.trim()) && (n.checkVisibility ? n.checkVisibility() : true)).map(n => n.textContent.trim()));
-      for (const t of labels.texts) if (cities.has(t.textContent)) t.setAttribute('display', 'none');
-    });
-  }
-
   /* ---------------------------------------------------------------- the handle the page works with */
   return {
     map, box,
@@ -363,7 +366,6 @@ async function create(host, id) {
       map.resize();
       colours();
       pins();
-      makeLabels();
     },
     /* the page's two drawings go inside the map, so a gesture that starts on a pin still moves the map */
     overlay(...svgs) { map.getCanvasContainer().append(...svgs); },
@@ -394,6 +396,23 @@ async function create(host, id) {
     },
     /* how visible (o) and how large (s) each pin is: [[number of the language in the page's list, o, s], ...] */
     pinStates(list) { for (const [id, o, s] of list) map.setFeatureState({source: 'pins', id}, {o, s}); },
+    /* What the page has written at this view (its language and family names, city names and pins, as boxes in pixels of the box,
+       and the city names), called when the map is at rest: a census name that would lie on one of those boxes, or that repeats
+       a city name written nearby, is left out until the next rest. The boxes of the names are measured in the font they are drawn in. */
+    avoid({boxes, cities}) {
+      const zz = Math.floor(map.getZoom()), W = box.clientWidth, Hh = box.clientHeight, city = new Set(cities), hide = [];
+      if (zz >= (S.z0 || 99)) for (const f of nameFeats) {
+        const nm = f.properties.name;
+        if (f.properties.z > zz) continue;                                   // not written at this zoom anyway
+        const p = map.project(f.geometry.coordinates);
+        if (p.x < -90 || p.y < -40 || p.x > W + 90 || p.y > Hh + 40) continue;
+        if (city.has(nm)) { hide.push(f.id); continue; }
+        const tw = textWidth(nm), lines = Math.max(1, Math.ceil(tw / 84)), bw = Math.min(tw, 84) / 2 + 3, bh = lines * 6.6 + 3;
+        for (const b of boxes) if (p.x + bw > b[0] && p.x - bw < b[2] && p.y + bh > b[1] && p.y - bh < b[3]) { hide.push(f.id); break; }
+      }
+      const key = hide.join(',');
+      if (key !== S.hide) { S.hide = key; map.setFilter('names', hide.length ? ['!', ['in', ['id'], ['literal', hide]]] : null); }
+    },
     /* the area under the pointer on the first view is outlined */
     hover(n) { if (n !== S.hover) { S.hover = n; map.setFilter('hover-edge', ['all', ['!', ['has', 'kind']], ['==', name, n || '']]); } },
     /* what lies at a point of the box: a detailed area that selects a language, a broad area, or nothing of ours */
@@ -407,6 +426,6 @@ async function create(host, id) {
       }
       return null;
     },
-    off() { H = {}; if (legend) legend.hidden = true; if (labels) { labels.g.remove(); labels = null; } },
+    off() { H = {}; if (legend) legend.hidden = true; },
   };
 }

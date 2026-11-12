@@ -445,6 +445,71 @@ def write(name, obj):
     return os.path.getsize(path)
 
 
+# Census region names the sources give wrongly: Romania's counties in capitals without diacritics, six Montenegrin
+# municipalities without them. Every other name is used exactly as the source gives it.
+NAME_FIX = {
+    'RO': {'ALBA': 'Alba', 'ARAD': 'Arad', 'ARGES': 'Argeș', 'BACAU': 'Bacău', 'BIHOR': 'Bihor', 'BISTRITA-NASAUD': 'Bistrița-Năsăud',
+           'BOTOSANI': 'Botoșani', 'BRAILA': 'Brăila', 'BRASOV': 'Brașov', 'BUZAU': 'Buzău', 'CALARASI': 'Călărași',
+           'CARAS-SEVERIN': 'Caraș-Severin', 'CLUJ': 'Cluj', 'CONSTANTA': 'Constanța', 'COVASNA': 'Covasna', 'DAMBOVITA': 'Dâmbovița',
+           'DOLJ': 'Dolj', 'GALATI': 'Galați', 'GIURGIU': 'Giurgiu', 'GORJ': 'Gorj', 'HARGHITA': 'Harghita', 'HUNEDOARA': 'Hunedoara',
+           'IALOMITA': 'Ialomița', 'IASI': 'Iași', 'ILFOV': 'Ilfov', 'MARAMURES': 'Maramureș', 'MEHEDINTI': 'Mehedinți', 'MURES': 'Mureș',
+           'NEAMT': 'Neamț', 'OLT': 'Olt', 'PRAHOVA': 'Prahova', 'SALAJ': 'Sălaj', 'SATU MARE': 'Satu Mare', 'SIBIU': 'Sibiu',
+           'SUCEAVA': 'Suceava', 'TELEORMAN': 'Teleorman', 'TIMIS': 'Timiș', 'TULCEA': 'Tulcea', 'VALCEA': 'Vâlcea', 'VASLUI': 'Vaslui',
+           'VRANCEA': 'Vrancea', 'BUCURESTI': 'București'},
+    'ME': {'Savnik': 'Šavnik', 'Kolasin': 'Kolašin', 'Pluzine': 'Plužine', 'Niksic': 'Nikšić', 'Zabljak': 'Žabljak', 'Rozaje': 'Rožaje'},
+}
+
+
+def census_extras():
+    """Two small files from the census regions (regions/) and the census rows (site/data/regional/), every country:
+    census-names.json  {CC: [[name, x, y, width, height], ...]}: where the page writes each region's name at deep zoom
+                       (x / y = the label point inside the region, map units; width / height of its largest part)
+    census-top.json    {"langs": [...], CC: [[i, language, share], ...]}: the largest language in each region, from the
+                       same census question as the rest of that country's rows. Left out where the languages that are
+                       not listed could add up to more than it, so a region never gets a majority that the table does not show.
+    Montenegro's largest language comes from its own table on the page (regional/ME.json), so only its names are here."""
+    idx = load(os.path.join('regional', 'index.json'))
+    shares = {}                                   # cc -> region index -> {language: share}
+    for lang, info in idx['languages'].items():
+        data = load(os.path.join('regional', 'lang', f"{info['file']}.json"))
+        for cc, rows in data['rows'].items():
+            for ix, _m, _count, pct, _den in rows:
+                if pct is not None:
+                    shares.setdefault(cc, {}).setdefault(ix, {})[lang] = pct
+    unit = lambda lon, lat: ((lon / 360) / C + CX, CY - math.asinh(math.tan(math.radians(lat))) / (2 * math.pi * C))
+    names, top, langs = {}, {'langs': []}, {}
+    for fn in sorted(os.listdir(os.path.join(OUT, 'regions'))):
+        cc, fix = fn[:-5], NAME_FIX.get(fn[:-5], {})
+        with open(os.path.join(OUT, 'regions', fn), encoding='utf-8') as f:
+            feats = json.load(f)['features']
+        if cc == 'RO':
+            bad = sorted({ft['properties']['name'] for ft in feats} - set(fix))
+            if bad:
+                sys.exit('map-next: Romanian county names with no correct spelling in NAME_FIX: ' + ', '.join(bad))
+        nm, tp = [], []
+        for ft in feats:
+            p = ft['properties']
+            rings = [[unit(lon, lat) for lon, lat in poly[0]] for poly in ft['geometry']['coordinates']]
+            box = lambda r: (max(x for x, _ in r) - min(x for x, _ in r), max(y for _, y in r) - min(y for _, y in r))
+            w, h = max((box(r) for r in rings), key=lambda wh: wh[0] * wh[1])      # the largest part (islands do not count)
+            xs, ys = (0, w), (0, h)
+            nm.append([fix.get(p['name'], p['name']), p['at'][0], p['at'][1], round(max(xs) - min(xs), 2), round(max(ys) - min(ys), 2)])
+            s = shares.get(cc, {}).get(p['i'])
+            if cc != 'ME' and s:
+                lang, pct = max(s.items(), key=lambda kv: kv[1])
+                if pct > 100 - sum(s.values()):
+                    if lang not in langs:
+                        langs[lang] = len(top['langs'])
+                        top['langs'].append(lang)
+                    tp.append([p['i'], langs[lang], round(pct, 2)])
+        names[cc] = nm
+        if tp:
+            top[cc] = tp
+    sizes = [write('census-names.json', names), write('census-top.json', top)]
+    print(f'map-next: census names {sum(map(len, names.values()))} in {len(names)} countries ({sizes[0] // 1024} KB), '
+          f'largest language known for {sum(len(v) for k, v in top.items() if k != "langs")} regions ({sizes[1] // 1024} KB)')
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     terr, langs, colours = load('terr.json'), load('languages.json'), colour_table()
@@ -524,7 +589,9 @@ def main():
     grey = sorted(n for n in fitted if n not in colours)
     if grey:
         print('map-next: no colour in the table for: ' + ', '.join(grey) + ' (drawn grey)')
+    census_extras()
 
 
 if __name__ == '__main__':
-    main()
+    # --census: only the census names and largest languages (after a change to the census tables or to NAME_FIX)
+    census_extras() if '--census' in sys.argv[1:] else main()
