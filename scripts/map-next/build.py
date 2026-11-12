@@ -65,7 +65,6 @@ DETAIL_FAR = 1.0     # the margin around it, only there to fill tall or wide scr
 NEAR = 25
 THIN = 0.6        # an overshoot or a gap narrower than twice this (about 7.5 km) is treated as a drawing error
 BASE_MIN = 40     # a country is tinted with its main language when that language has at least this share (%)
-DETAIL_OPACITY = .78                      # the detailed area layers (same value as OP.rest in site/regional-layer.js)
 # a language without a drawn area gets a circle around its pin, by number of speakers (same steps as the site): (below, km)
 CIRCLE_KM = ((1e3, 15), (1e4, 25), (1e5, 40), (1e6, 70), (1e7, 140), (float('inf'), 200))
 

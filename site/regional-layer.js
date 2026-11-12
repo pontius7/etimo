@@ -36,7 +36,33 @@ const HIDEPIN=new Set([...ADIAL,'Albanian',...ARO,...MEG]);
 const PAR={'Sandžak Bosniak':'Bosnian'};const isSel=(r,sel)=>!!sel&&(r.name===sel.lang||PAR[r.name]===sel.lang);
 const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian',...Object.keys(PAR)]);
 const OP={rest:.78,sel:.9,fam:.3,other:.07,filterOther:.14};
-export {DNAME,GHEG,TOSKS,ADIAL,ALBSET,ARO,MEG,VSET,HIDEPIN,PAR,OP,get};
+// How strong an area is drawn. The only copy: this map (below) and the engine-drawn one (site/map-gl.js) both call these.
+// dfam / lfam = the family of the area's language, sel = the selected language, fam = the family filter, alb = the Albanian dialect view is on.
+// restOp: one rule for every detailed area layer (Albanian dialects, Vlach, Serbia, Montenegro):
+//   nothing selected .78 | the selected language .9 | another language of the same family selected .3 |
+//   a language of another family selected .07 | under a family filter: that family .78, others .14
+//   (.14 is what the base language areas use for the families a filter leaves out).
+// dialOp, vlachOp: the sibling shading inside the Albanian and Vlach groups, the only places that go beyond it.
+const restOp=(dfam,sel,fam)=>sel?(sel.family===dfam?OP.fam:OP.other):fam?(fam===dfam?OP.rest:OP.filterOther):OP.rest;
+const dialOp=(n,sel,fam,alb)=>{if(!alb)return restOp('Albanian',sel,fam);
+ const s=sel&&ALBSET.has(sel.lang)?sel.lang:'Albanian';
+ if(s==='Albanian')return .82;
+ if(s==='Gheg Albanian')return GHEG.has(n)?.82:.14;
+ if(n===s)return .9;
+ return ((GHEG.has(s)&&GHEG.has(n))||(TOSKS.has(s)&&TOSKS.has(n)))?.32:.14;};
+const vlachOp=(n,sel,fam)=>{const s=sel&&VSET.has(sel.lang)?sel.lang:null;
+ const aro=ARO.includes(n),meg=MEG.includes(n),main=n==='Megleno-Romanian';
+ if(!s)return aro||main?restOp('Romance',sel,fam):0;
+ if(s==='Aromanian')return aro?.88:main?.25:0;
+ if(s==='Megleno-Romanian')return meg?.88:aro?.22:0;
+ if(ARO.includes(s))return n===s?.92:aro||main?.2:0;
+ return n===s?.92:meg?.3:aro?.2:0;};
+// Census view, one region: pct = the selected language's share there. Where it is a minority shown as stripes (over), the
+// region takes the colour of the largest group (top = that group's share, lfam = its family) and hatchOp gives the stripes.
+const censusOp=(pct,over,top,lfam,alb,fam)=>(alb?(lfam==='Albanian'?1:over?.5:.22):fam?(lfam===fam?1:.28):1)*
+ (over?(top>50?.75:.45):pct==null?.04:pct>50?.75:pct>10?.5:pct>1?.3:pct>0?.14:.05);
+const hatchOp=pct=>Math.min(.85,.2+pct/40);
+export {DNAME,GHEG,TOSKS,ADIAL,ALBSET,ARO,MEG,VSET,HIDEPIN,PAR,OP,restOp,dialOp,vlachOp,censusOp,hatchOp,get};
 export async function attachRegionalEvidence({host,parent,path,current,languages,color,tooltip,hideTooltip}) {
  loading ||= Promise.all([get('regional/index.json'),geoFor('ME'),get('regional/ME.json'),get('regional-sources.json'),Promise.all([get('regional/geo/GR-regions.json'),get('athos.json').catch(()=>null)]).then(([t,athos])=>{const features=topoFeatures(t,'GR');/* Mount Athos is Greek land that the NUTS regions file leaves out; without it the peninsula fell back to the coarse hand-drawn area */const cm=athos&&athos.ring&&features.find(f=>/Central Macedonia/.test(f.properties.name||''));if(cm){const g=cm.geometry;cm.geometry={type:'MultiPolygon',coordinates:(g.type==='Polygon'?[g.coordinates]:g.coordinates).concat([[athos.ring]])};}return {type:'FeatureCollection',features};}),get('tables/GR.json')]).catch(e=>{loading=null;throw e;});
  const [index,me,values,sources,greece,grData]=await loading;
@@ -113,12 +139,8 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  // a variety drawn inside its parent's detailed areas: its areas light up for the parent too
  const albObj=languages.find(l=>l.lang==='Albanian');
  let famSel=null,dialects=null,vlach=null;
- // One rule for every detailed area layer (Albanian dialects, Vlach, Serbia, Montenegro):
- //   nothing selected .78 | the selected language .9 | another language of the same family selected .3 |
- //   a language of another family selected .07 | under a family filter: that family .78, others .14
- //   (.14 is what the base language areas use for the families a filter leaves out).
- // Only the sibling shading inside the Albanian and Vlach groups (aOp, vOp below) goes beyond it.
- const restOp=(fam,sel)=>sel?(sel.family===fam?OP.fam:OP.other):famSel?(famSel===fam?OP.rest:OP.filterOther):OP.rest;
+ // The strengths of the detailed areas: the shared rules at the top of this file, with this map's family filter.
+ const rest=(dfam,sel)=>restOp(dfam,sel,famSel);
  const albMode=()=>{const s=current();return !!(dialects&&((s&&ALBSET.has(s.lang))||famSel==='Albanian'));};
  const dialectLayer=parent.insert('g',()=>layer.node()).attr('class','albanian-dialects').attr('pointer-events','none');
  const vlachLayer=parent.insert('g',()=>hatchLayer.node()).attr('class','vlach-areas').attr('pointer-events','none');
@@ -133,20 +155,9 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   root.querySelectorAll('g.pin').forEach(el=>{const d=el.__data__;if(d&&HIDEPIN.has(d.lang))el.style.display='none';});
   root.querySelectorAll('g.zones path,g.ters path,path.zone,path.terr').forEach(el=>{const d=el.__data__;if(d&&d.lang&&HIDEZONE.has(d.lang))el.style.display='none';});
   root.querySelectorAll('g.labs text.plabel').forEach(el=>{const t=el.textContent.trim();if(HIDEPIN.has(t))el.style.display='none';});};
- // Not selected: the dialect areas are drawn like every other language area (restOp above).
- const aOp=(r,sel)=>{if(!albMode())return restOp('Albanian',sel);
-  const n=sel&&ALBSET.has(sel.lang)?sel.lang:'Albanian';
-  if(n==='Albanian')return .82;
-  if(n==='Gheg Albanian')return GHEG.has(r.name)?.82:.14;
-  if(r.name===n)return .9;
-  return ((GHEG.has(n)&&GHEG.has(r.name))||(TOSKS.has(n)&&TOSKS.has(r.name)))?.32:.14;};
- const vOp=(r,sel)=>{const n=sel&&VSET.has(sel.lang)?sel.lang:null;
-  const aro=ARO.includes(r.name),meg=MEG.includes(r.name),main=r.name==='Megleno-Romanian';
-  if(!n)return aro||main?restOp('Romance',sel):0;
-  if(n==='Aromanian')return aro?.88:main?.25:0;
-  if(n==='Megleno-Romanian')return meg?.88:aro?.22:0;
-  if(ARO.includes(n))return r.name===n?.92:aro?.2:main?.2:0;
-  return r.name===n?.92:meg?.3:aro?.2:0;};
+ // Not selected: the dialect areas are drawn like every other language area (restOp).
+ const aOp=(r,sel)=>dialOp(r.name,sel,famSel,albMode());
+ const vOp=(r,sel)=>vlachOp(r.name,sel,famSel);
  const tipEl=()=>{let t=host.querySelector('.etimo-tip');if(!t){t=document.createElement('div');t.className='mtip etimo-tip';t.hidden=true;host.appendChild(t);}return t;};
  const target=r=>(!albMode()&&ADIAL.has(r.name)&&albObj)||languages.find(x=>x.lang===r.name);
  const wire=sel=>sel.attr('pointer-events','auto').style('cursor','pointer')
@@ -179,7 +190,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  let meAreas=null;
  const meLayer=parent.insert('g',()=>layer.node()).attr('class','me-areas').attr('pointer-events','none');
  fetch('data/montenegro-areas.json').then(r=>r.ok?r.json():Promise.reject()).then(j=>{const proj=path.projection&&path.projection();if(!proj)return;meAreas=Object.entries(j).map(([k,rings])=>mkRow(k,rings,proj));if(parent.node().isConnected)draw();}).catch(()=>{});
- const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(isSel(r,sel))return OP.sel;return restOp(l&&l.family,sel);};
+ const sOp=(r,sel)=>{const l=languages.find(x=>x.lang===r.name);if(isSel(r,sel))return OP.sel;return rest(l&&l.family,sel);};
  const paintDialects=()=>{
   const sel=current();const alb=albMode();const vSel=!!(sel&&VSET.has(sel.lang)&&vlach);
   parent.selectAll('path.terr').style('display',(alb||vSel)?'none':'');
@@ -239,7 +250,6 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   paintBase();
  }).catch(()=>{});
  let curSel=null,waiting=null;
- const famFactor=r=>{if(r.qualitative)return 1;const fam=r.language&&r.language.family;if(albMode())return fam==='Albanian'?1:(r.over?.5:.22);if(famSel)return fam===famSel?1:.28;return 1;};
  const draw=()=>{
   if(!parent.node().isConnected){host.removeEventListener('ksel',onKsel);for(const t of ['pointerup','click','keyup'])host.removeEventListener(t,later);observer.disconnect();return;}
   const selected=current();last=selected?selected.lang:null;curSel=selected;paintDialects();paintBase();
@@ -259,12 +269,12 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   if(!albMode())for(const feature of greece.features){const region=gr[feature.properties.region_id];const presence=selected?region.presence.filter(p=>p.language===selected.lang):region.presence;rows.push({feature,presence,language:selected,qualitative:true});}
   const meOn=!!(meAreas&&!selected&&!albMode());const meRow=row=>meOn&&row.feature.properties.country_code==='ME';
   const meRows=meOn?meAreas:(meAreas&&selected&&PAR[selected.lang]&&!albMode()?meAreas.filter(r=>r.name===selected.lang):[]);
-  meLayer.selectAll('path').data(meRows,r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return meOn?restOp(l&&l.family,null):OP.sel;});
+  meLayer.selectAll('path').data(meRows,r=>r.name).join('path').attr('d',r=>r.d).attr('fill-rule','evenodd').attr('fill',r=>{const l=languages.find(x=>x.lang===r.name);return PAL[r.name]||(l&&color(l))||'#888';}).attr('fill-opacity',r=>{const l=languages.find(x=>x.lang===r.name);return meOn?rest(l&&l.family,null):OP.sel;});
   const fill=row=>(row.qualitative||meRow(row))?'transparent':color(row.language)||'var(--ink,#60796a)';
   // Where the selected language is a minority, it shows as stripes over the majority colour.
   const overRows=rows.filter(r=>r.over);
   hatchLine.attr('stroke',overRows.length?color(overRows[0].eff)||'#9e2b2b':'#9e2b2b');
-  hatchLayer.selectAll('path').data(overRows,r=>r.feature.properties.region_id).join(e=>e.append('path').attr('d',r=>dOf(r.feature))).attr('fill','url(#'+id+'-hatch)').attr('fill-opacity',r=>Math.min(.85,.2+r.observation.percentage/40));
+  hatchLayer.selectAll('path').data(overRows,r=>r.feature.properties.region_id).join(e=>e.append('path').attr('d',r=>dOf(r.feature))).attr('fill','url(#'+id+'-hatch)').attr('fill-opacity',r=>hatchOp(r.observation.percentage));
   // Geometry, static attributes and listeners are set once per path (enter); each redraw only restyles.
   layer.selectAll('path').data(rows,r=>r.feature.properties.region_id).join(enter=>enter.append('path')
    .attr('d',r=>dOf(r.feature))
@@ -280,7 +290,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
     tooltip(event,'<b>'+esc(row.feature.properties.name)+' · '+esc(o.language_id)+'</b><span>'+esc(value)+'</span><span>'+esc(o.observation_period+' · '+o.measure.replaceAll('_',' '))+'</span><span>'+esc(status)+'</span><span>'+esc(source?.population_scope)+'</span><span>'+esc(row.feature.properties.country_code==='ME'?'MONSTAT counts · © OpenStreetMap contributors; indicative boundaries':'Official regional table · © EuroGeographics / GISCO boundaries')+'</span>');
    }).on('pointerleave',hideTooltip))
    .attr('fill',fill)
-   .attr('fill-opacity',r=>meRow(r)?.001:famFactor(r)*(r.qualitative?.001:r.over?(r.top.percentage>50?.75:.45):r.observation?.percentage==null?.04:r.observation.percentage>50?.75:r.observation.percentage>10?.5:r.observation.percentage>1?.3:r.observation.percentage>0?.14:.05))
+   .attr('fill-opacity',r=>meRow(r)||r.qualitative?.001:censusOp(r.observation?.percentage,r.over,r.top&&r.top.percentage,r.language&&r.language.family,albMode(),famSel))
    .attr('stroke',r=>r.qualitative?'var(--ink,#60796a)':color(r.language)||'var(--ink,#60796a)');
  };
  const sync=()=>{if(!parent.node().isConnected)return;const c=current();const key=c?c.lang:null;if(key!==last)draw();};

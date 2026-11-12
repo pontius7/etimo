@@ -7,7 +7,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 |---|---|
 | The engine's side: layers, colours of sea / land / lines, how strong each area is when a language or family is chosen, census view, legend | `site/map-gl.js` |
 | The page's side: pins, names, city and district names, outlines, search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
-| Lists and strengths shared by both maps (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace) | top of `site/regional-layer.js` |
+| Lists and strengths shared by both maps (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace; how strong a detailed area or a census region is drawn: `restOp`, `dialOp`, `vlachOp`, `censusOp`, `hatchOp`) | top of `site/regional-layer.js` (the only copy) |
 | The map data | `scripts/map-next/build.py` writes `site/map-next/data/` |
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
@@ -33,6 +33,13 @@ The pins too: each language pin is a disc with a soft shadow and the language's 
 from its own area (size and colours: `PIN` and `THEMES` at the top of `site/map-gl.js`). The page keeps its pin
 elements, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin; it tells the engine how
 visible and how large each pin is (`gPinStep` in the page code). While the map moves, no pin is redrawn by the page.
+
+The relief picture is downloaded and decoded once and handed to the engine as it is (AVIF, or WebP where AVIF cannot be
+decoded). The map never waits for it: without it the map is drawn flat.
+
+Keyboard: a canvas has nothing to focus, so Montenegro's 25 municipalities are buttons nobody sees (`makeKeys` in
+`site/map-gl.js`). They are one Tab stop; arrow keys, Home and End move between them, and the page shows the focused one
+as under the pointer (name and outline). Enter opens its place card with the census rows, at any zoom (`gKey` in the page code).
 
 One set of outlines: coast, borders, the edge of every language area and every census region come from the same
 country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.

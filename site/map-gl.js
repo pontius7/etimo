@@ -11,7 +11,7 @@
 
    Going back to the old map: open the site with ?map=svg (or set localStorage "etimo-map" to "svg"). */
 import * as maplibregl from './map-next/vendor/maplibre-gl.mjs';
-import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, get} from './regional-layer.js?v=39';
+import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js?v=40';
 
 const DATA = 'map-next/data/';
 /* Sea, land and line colours: the same values as the site's stylesheet (--sea, --land, --coast, --bord2, relief opacity). */
@@ -25,8 +25,6 @@ const THEMES = {
 const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coalesce', ['feature-state', 's'], 1], PIN_BIG = ['>', PIN_S, 1.05];
 const ZONE = .6;      // a language area with nothing chosen (--zone-op on the site)
 const BASE = .34;     // a country tinted with its main language, under the areas
-/* census view: how strong a region is drawn for the share of the chosen language there */
-const share = p => p == null ? .04 : p > 50 ? .75 : p > 10 ? .5 : p > 1 ? .3 : p > 0 ? .14 : .05;
 const PRIORITY = new Set(['podgorica', 'gusinje', 'andrijevica', 'budva', 'ulcinj', 'bar'].map(n => 'ME-2023-' + n));
 const NAMES = {'ME-2023-niksic': 'Nikšić', 'ME-2023-savnik': 'Šavnik', 'ME-2023-zabljak': 'Žabljak', 'ME-2023-kolasin': 'Kolašin', 'ME-2023-pluzine': 'Plužine', 'ME-2023-rozaje': 'Rožaje', 'ME-2023-pljevlja': 'Pljevlja'};
 const LABEL_FROM = 12, LABEL_ALL = 40;   // municipality names: the main ones from 12 times in, all from 40 times
@@ -52,15 +50,18 @@ export async function attach(host, ctx) {
 
 async function create(host, id) {
   if (!document.createElement('canvas').getContext('webgl2')) throw Error('no WebGL2');
+  /* The relief picture is downloaded and decoded once, while the map data loads, and handed to the engine as it is:
+     AVIF (smaller one on phones), or WebP where AVIF cannot be decoded. Without it the map still works, just flat. */
+  const small = matchMedia('(max-width:820px),(pointer:coarse) and (max-width:1180px)').matches;
+  const picture = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r.status); return r.blob(); }).then(b => createImageBitmap(b));
+  const relief = picture('data/' + (small ? 'shade-s.avif' : 'shade.avif')).catch(() => picture('data/shade.webp'))
+    .catch(e => { console.warn('Etimo: the relief could not be loaded, the map is drawn without it', e); return null; });
+
   const [meta, index, meValues] = await Promise.all([json(DATA + 'meta.json'), get('regional/index.json'), get('regional/ME.json')]);
   const {cx, cy, c} = meta.unit;
   /* map units <-> the coordinates MapLibre is given (same formula as fake() in scripts/map-next/build.py) */
   const at = (x, y) => [(x - cx) * c * 360, Math.atan(Math.sinh(-2 * Math.PI * (y - cy) * c)) * 180 / Math.PI];
   const zoomOf = s => Math.log2(s / (512 * c));      // s = screen pixels per map unit
-
-  const small = matchMedia('(max-width:820px),(pointer:coarse) and (max-width:1180px)').matches;
-  let reliefUrl = 'data/' + (small ? 'shade-s.avif' : 'shade.avif');
-  try { await createImageBitmap(await (await fetch(reliefUrl)).blob()); } catch { reliefUrl = 'data/shade.webp'; }
 
   if (id !== gen) throw Error('dropped');
   const box = document.createElement('div');
@@ -86,7 +87,7 @@ async function create(host, id) {
         lines:  {type: 'geojson', data: DATA + 'lines.json', maxzoom: 12, tolerance: .25},
         areas:  {type: 'geojson', data: DATA + 'areas.json', maxzoom: 12, tolerance: .25},
         census: {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 12, tolerance: .25},
-        relief: {type: 'image', url: reliefUrl, coordinates: meta.relief},
+        relief: {type: 'image', coordinates: meta.relief},     // no url: the decoded picture is handed over (style.load below)
         pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
       },
       /* Bottom to top. Every paint value that depends on the theme or on what is chosen is set in look() and paint(). */
@@ -118,6 +119,13 @@ async function create(host, id) {
     },
   });
   made.map = map;
+  /* MapLibre counts the map as loaded only once the relief source has a picture. It gets an empty one at once, so the
+     map never waits for the relief, and the real one as soon as it is decoded (nearly always before the map data). */
+  map.once('style.load', () => {
+    const put = img => { if (id === gen) map.getSource('relief').updateImage({image: img}); };
+    put(new ImageData(1, 1));
+    relief.then(img => img && put(img));
+  });
   window.__kgl = map;      // for looking at the map from the browser console
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
@@ -204,29 +212,12 @@ async function create(host, id) {
     /* a country tinted with its main language */
     map.setFilter('base', alb ? ['==', name, ''] : sel ? ['all', ['has', 'base'], ['==', ['get', 'lang'], sel.lang]] : ['has', 'base']);
     map.setPaintProperty('base', 'fill-opacity', fam ? ['case', ['==', ['get', 'bfam'], fam], BASE, .1] : BASE);
-    /* The detailed layers: one rule for all of them (OP in regional-layer.js):
-         nothing chosen .78 | the chosen language .9 | same family .3 | another family .07 | under a family filter .78 / .14
-       Only the sibling shading inside the Albanian and Vlach groups goes beyond it. */
-    const rest = dfam => sel ? (sel.family === dfam ? OP.fam : OP.other) : fam ? (fam === dfam ? OP.rest : OP.filterOther) : OP.rest;
+    /* The detailed layers: the strengths are the ones both maps share (restOp, dialOp, vlachOp in regional-layer.js) */
+    const rest = dfam => restOp(dfam, sel, fam);
     const isSel = n => !!sel && (n === sel.lang || PAR[n] === sel.lang);
     const rules = {
-      dial(n) {
-        if (!alb) return rest('Albanian');
-        const s = sel && ALBSET.has(sel.lang) ? sel.lang : 'Albanian';
-        if (s === 'Albanian') return .82;
-        if (s === 'Gheg Albanian') return GHEG.has(n) ? .82 : .14;
-        if (n === s) return .9;
-        return (GHEG.has(s) && GHEG.has(n)) || (TOSKS.has(s) && TOSKS.has(n)) ? .32 : .14;
-      },
-      vlach(n) {
-        if (alb) return 0;
-        const s = sel && VSET.has(sel.lang) ? sel.lang : null, aro = ARO.includes(n), meg = MEG.includes(n), main = n === 'Megleno-Romanian';
-        if (!s) return aro || main ? rest('Romance') : 0;
-        if (s === 'Aromanian') return aro ? .88 : main ? .25 : 0;
-        if (s === 'Megleno-Romanian') return meg ? .88 : aro ? .22 : 0;
-        if (ARO.includes(s)) return n === s ? .92 : aro || main ? .2 : 0;
-        return n === s ? .92 : meg ? .3 : aro ? .2 : 0;
-      },
+      dial: n => dialOp(n, sel, fam, alb),
+      vlach: n => alb ? 0 : vlachOp(n, sel, fam),
       area: (n, dfam) => alb ? 0 : isSel(n) ? OP.sel : rest(dfam),
       /* Montenegro: broad areas while nothing is chosen; with a language chosen the municipalities show its census share */
       me: (n, dfam) => alb ? 0 : !sel ? rest(dfam) : PAR[sel.lang] && n === sel.lang ? OP.sel : 0,
@@ -283,13 +274,13 @@ async function create(host, id) {
   function census() {
     const sel = S.sel, alb = albMode(), n = ++S.n, src = map.getSource('census');
     const again = p => p && p.then(() => { if (n === S.n) census(); }, () => {});
-    if (!meFeats) again(regFor('ME').then(r => { meFeats = r.feats; makeLabels(); }));
+    if (!meFeats) again(regFor('ME').then(r => { meFeats = r.feats; makeLabels(); makeKeys(); }));
     if (!sel) { src.setData({type: 'FeatureCollection', features: []}); map.setLayoutProperty('census-hatch', 'visibility', 'none'); return; }
     const key = ALBSET.has(sel.lang) ? 'Albanian' : sel.lang;
     const eff = ALBSET.has(sel.lang) ? ctx.languages.find(l => l.lang === 'Albanian') || sel : sel;
     const out = [], row = (ft, col, o, h) => out.push({type: 'Feature', geometry: ft.geometry, properties: {c: col || '#8a93a3', o, h: h || 0}});
     if (!ready.has(key)) again(rowsFor(key));
-    for (const r of ready.get(key) || []) if (!(alb && ['AL', 'XK', 'MK', 'GR'].includes(r.cc))) row(r.ft, ctx.color(eff), share(r.pct));
+    for (const r of ready.get(key) || []) if (!(alb && ['AL', 'XK', 'MK', 'GR'].includes(r.cc))) row(r.ft, ctx.color(eff), censusOp(r.pct, false, 0, eff.family, alb, S.fam));
     /* Montenegro: every municipality; where the chosen language is a minority (2% or more) the majority keeps its colour and the language shows as stripes */
     let striped = false;
     for (const ft of meFeats || []) {
@@ -297,8 +288,7 @@ async function create(host, id) {
       const top = recs.slice().sort((a, b) => b.percentage - a.percentage)[0];
       const over = !!(own && own.percentage >= 2 && top && top.language_id !== eff.lang);
       const lang = over ? ctx.languages.find(l => l.lang === top.language_id) || eff : eff;
-      const fac = alb ? (lang.family === 'Albanian' ? 1 : over ? .5 : .22) : 1;
-      row(ft, ctx.color(lang), fac * (over ? (top.percentage > 50 ? .75 : .45) : share(own ? own.percentage : null)), over ? Math.min(.85, .2 + own.percentage / 40) : 0);
+      row(ft, ctx.color(lang), censusOp(own ? own.percentage : null, over, top && top.percentage, lang.family, alb, S.fam), over ? hatchOp(own.percentage) : 0);
       striped = striped || over;
     }
     src.setData({type: 'FeatureCollection', features: out});
@@ -360,6 +350,45 @@ async function create(host, id) {
       const cities = new Set([...host.querySelectorAll('g.acities text,g.cities text')].filter(n => shown.has(n.textContent.trim()) && (n.checkVisibility ? n.checkVisibility() : true)).map(n => n.textContent.trim()));
       for (const t of labels.texts) if (cities.has(t.textContent)) t.setAttribute('display', 'none');
     });
+  }
+
+  /* ---------------------------------------------------------------- keyboard: Montenegro's municipalities
+     A canvas has nothing to focus, so each municipality is a button nobody sees (style: .kgl-keys in the site's stylesheet).
+     All of them are one Tab stop; the arrow keys, Home and End move between them (alphabetical), Enter or Space opens one.
+     The page is told which one has focus ({at, open}, or null when focus leaves) and shows it as under the pointer. */
+  let keys = null, keyN = 0;
+  function makeKeys() {
+    if (keys || !meFeats) return;
+    keys = document.createElement('div');
+    keys.className = 'kgl-keys';
+    keys.setAttribute('role', 'group');
+    keys.setAttribute('aria-label', 'Montenegro, municipalities · regional language data');
+    const list = meFeats.map(ft => ({ft, name: NAMES[ft.properties.id] || ft.properties.name})).sort((a, b) => a.name.localeCompare(b.name));
+    const btns = list.map(({ft, name}, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.tabIndex = i ? -1 : 0; b.textContent = name;
+      b.setAttribute('aria-label', name + ' · regional language data');
+      b.addEventListener('focus', () => { for (const o of btns) o.tabIndex = o === b ? 0 : -1; focusKey(ft); });
+      b.addEventListener('click', () => fire('key', {at: ft.properties.at, open: true}));
+      return keys.appendChild(b);
+    });
+    keys.addEventListener('keydown', ev => {
+      const i = btns.indexOf(document.activeElement), n = btns.length;
+      const to = {ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: n - 1}[ev.key];
+      if (i < 0 || to == null) return;
+      ev.preventDefault();
+      btns[(to + n) % n].focus();
+    });
+    keys.addEventListener('focusout', ev => { if (!keys.contains(ev.relatedTarget)) { keyN++; fire('key', null); } });
+    box.appendChild(keys);
+  }
+  /* the focused municipality is brought into view if its label point is outside (or at the very edge of) the box, then shown */
+  function focusKey(ft) {
+    const n = ++keyN, ll = at(...ft.properties.at), p = map.project(ll), m = 40;
+    const tell = () => { if (n === keyN) fire('key', {at: ft.properties.at}); };
+    if (p.x > m && p.y > m && p.x < box.clientWidth - m && p.y < box.clientHeight - m) return tell();
+    map.once('moveend', tell);
+    map.easeTo({center: ll, duration: 400, easing: ease});
   }
 
   /* ---------------------------------------------------------------- the handle the page works with */

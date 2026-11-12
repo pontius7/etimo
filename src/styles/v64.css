@@ -11,3 +11,5 @@
 /* the engine draws the pins; the page's pin elements stay for pointer and keyboard, unseen except for the ring that shows keyboard focus */
 .mapbox svg[data-glpins] g.pin .mk{visibility:hidden}
 .mapbox svg[data-glpins] g.pin:focus-visible .mk{visibility:visible;fill:none!important;stroke:var(--ink);stroke-width:2.2px;transform:scale(1.6)}
+/* keyboard: Montenegro's municipalities are buttons nobody sees (site/map-gl.js); the focused one is shown on the map itself, outlined and named as under the pointer */
+.kgl-keys button{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;pointer-events:none}
