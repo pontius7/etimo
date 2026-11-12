@@ -2623,6 +2623,9 @@ body{font-weight:400;letter-spacing:.005em}
 /* with the engine drawing the base, the base drawing only holds the dimming mask and deep-zoom names: nothing to move as a picture, nothing to catch the pointer */
 .mapbox svg[data-kl=base][data-gl]{pointer-events:none;transform:none;will-change:auto}
 @media (prefers-reduced-motion:reduce){.mapbox .kgl{transition:none}}
+/* the engine draws the pins; the page's pin elements stay for pointer and keyboard, unseen except for the ring that shows keyboard focus */
+.mapbox svg[data-glpins] g.pin .mk{visibility:hidden}
+.mapbox svg[data-glpins] g.pin:focus-visible .mk{visibility:visible;fill:none!important;stroke:var(--ink);stroke-width:2.2px;transform:scale(1.6)}
 </style>
 <style id="etimo1">:root{--hd:#2e4369;--hd-line:#24385d;--hd-muted:#d6e0f2}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--hd:#273a5b;--hd-line:#33486e;--hd-muted:#c7d3e7}
@@ -17997,7 +18000,7 @@ n.some(t)||st.some(t)?u=!1:n.push(e)}
 u!==this.__u&&(this.__u=u,this.style.display=u?null:"none"),u&&this.setAttribute("transform","translate("+s.x+","+s.y+") scale("+1/Math.pow(e,.9)+")")})}
 var st=[];
 function ot(e){let t=1/Math.pow(e,.96);
-Ve.selectAll("g.pin").attr("transform",e=>"translate("+e._xy[0]+","+e._xy[1]+") scale("+(e===nt?1.4*t:t)+")"),Qe.selectAll("g.city").attr("transform",t=>"translate("+t.x+","+t.y+") scale("+1/Math.pow(e,.9)+")"),function(e){let t=Qe.selectAll("g.city.kp");
+GL&&gMv||Ve.selectAll("g.pin").attr("transform",e=>"translate("+e._xy[0]+","+e._xy[1]+") scale("+(e===nt?1.4*t:t)+")"),Qe.selectAll("g.city").attr("transform",t=>"translate("+t.x+","+t.y+") scale("+1/Math.pow(e,.9)+")"),function(e){let t=Qe.selectAll("g.city.kp");
 if(t.empty())return;
 let n=e<2?3:e<4?8:e<8?18:60,r=[],a=new Set;
 t.each(t=>{if(a.size>=n)return;
@@ -18036,7 +18039,7 @@ if(u-l<d){let e=(l+u)/2;
 l=e-d/2,u=e+d/2}
 Wt(s,l,o,u,520)}
 function vt(e){return null==e&&(e=kV().k),!!p||!!nt||!!rt||e>=1.7}
-function bt(t){Ne(t=t||kV()),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(kV())},90);
+function bt(t){Ne(t=t||kV()),GL&&ot(t.k),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(kV())},90);
 let n,r=t.k,a=[],i=vt(r);
 q.classed("ov",!i).classed("zin",r>=2.2),A.classed("dim",!!nt||i&&!p).classed("faint",!!p),p&&(a.push([0,0,b,52]),a.push([0,y-w(),b,y])),function(e){if(!p)return function(e){let t=x.length,n=x.map((e,t)=>t),r=e=>{for(;n[e]!==e;)n[e]=n[n[e]],e=n[e];
 return e},a=10/e;
@@ -18139,6 +18142,7 @@ function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k
 kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
 /* what is chosen goes to the engine, which sets how strong every area is drawn */
 function gSync(){if(!GM)return;
+gPo||gPinsOn();
 let th=document.documentElement.getAttribute("data-theme");
 GM.set({sel:nt,fam:nt?null:rt||null,conc:!!p,theme:"dark"===th||!th&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}),clearTimeout(gC),gC=setTimeout(gCity,500)}
 /* on phones, general city names show only inside the chosen language's area */
@@ -18173,6 +18177,26 @@ function gStart(){(window.__etimoMap?Promise.resolve(window.__etimoMap):import("
 let T0=gT;
 GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(err=>{console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,a.fail&&a.fail()})}
+/* GL: the pins are drawn by the engine (site/map-gl.js: a disc with the language's colour at its core), so zooming does not redraw 210 of them on every frame.
+   The pin elements stay in the page, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin (style sheet and classes, unchanged).
+   gPinStep reads what those rules say for every pin and hands it to the engine; it runs for a moment after anything about the pins changes.
+   The elements are put at their right size when the map comes to rest (ot, called from bt), not while it moves.
+   An engine file from before this (still in a browser's cache) has no pinStates: the page then draws the pins itself, as before. */
+let gPx=new Map,gPc=[],gPt=0,gPr=0,gPh=null,gPo=null;
+function gPinSync(ms){gPt=Math.max(gPt,performance.now()+(ms||(q.classed("kboot")?3800:700))),gPr||(gPr=requestAnimationFrame(gPinStep))}
+function gPinStep(){gPr=0;
+if(!GM||!GM.pinStates||!q.node().isConnected)return;
+let a=[],g=+getComputedStyle(Ve.node()).opacity;
+Ve.selectAll("g.pin").each(function(d){let i=gPx.get(d);
+if(null==i)return;
+let cs=getComputedStyle(this),o="none"===cs.display?0:Math.round(100*g*cs.opacity)/100,s=d===nt?1.4:d===gPh?1.18:1,c=gPc[i];
+c&&c[0]===o&&c[1]===s||(gPc[i]=[o,s],a.push([i,o,s]))});
+a.length&&GM.pinStates(a),performance.now()<gPt&&(gPr=requestAnimationFrame(gPinStep))}
+function gPinsOn(){gPo=new MutationObserver(()=>gPinSync());
+if(!GM.pinStates)return;
+x.forEach((e,i)=>gPx.set(e,i)),gPc=[],Q2.attr("data-glpins",1),gPo.observe(Ve.node(),{attributes:!0,subtree:!0,childList:!0,attributeFilter:["class","style"]});
+[q.node(),Q2.node()].forEach(n=>gPo.observe(n,{attributes:!0,attributeFilter:["class","data-f"]}));
+Ve.selectAll("g.pin").on("pointerenter.gl",(e,d)=>{gPh=d,gPinSync(80)}).on("pointerleave.gl",()=>{gPh=null,gPinSync(80)}),gPinSync(3800)}
 let kT=Fh,kCss=!1,kTm=0,kAt=0,kMs=30,kHold=!1;
 function kShow(T){let s=T.k/kT.k,dx=T.x-s*kT.x,dy=T.y-s*kT.y,n=q.node().style;
 return 1e-5>Math.abs(s-1)&&.05>Math.abs(dx)&&.05>Math.abs(dy)?kCss&&(n.transform="",n.willChange="",kCss=!1):(n.transform="translate3d("+dx+"px,"+dy+"px,0) scale("+s+")",kHold||(n.willChange="transform"),kCss=!0),[s,dx,dy]}

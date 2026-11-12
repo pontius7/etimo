@@ -29,6 +29,11 @@ languages without a drawn area), family areas outside the home areas, the detail
 varieties, Serbia, Greece, Montenegro), relief, and the census view: with a language chosen, every municipality or
 region that has a census row for it is filled by its share there (stripes in Montenegro where it is a minority).
 
+The pins too: each language pin is a disc with a soft shadow and the language's colour at its core, so it stands out
+from its own area (size and colours: `PIN` and `THEMES` at the top of `site/map-gl.js`). The page keeps its pin
+elements, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin; it tells the engine how
+visible and how large each pin is (`gPinStep` in the page code). While the map moves, no pin is redrawn by the page.
+
 One set of outlines: coast, borders, the edge of every language area and every census region come from the same
 country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.
 

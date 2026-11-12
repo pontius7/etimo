@@ -8,3 +8,6 @@
 /* with the engine drawing the base, the base drawing only holds the dimming mask and deep-zoom names: nothing to move as a picture, nothing to catch the pointer */
 .mapbox svg[data-kl=base][data-gl]{pointer-events:none;transform:none;will-change:auto}
 @media (prefers-reduced-motion:reduce){.mapbox .kgl{transition:none}}
+/* the engine draws the pins; the page's pin elements stay for pointer and keyboard, unseen except for the ring that shows keyboard focus */
+.mapbox svg[data-glpins] g.pin .mk{visibility:hidden}
+.mapbox svg[data-glpins] g.pin:focus-visible .mk{visibility:visible;fill:none!important;stroke:var(--ink);stroke-width:2.2px;transform:scale(1.6)}

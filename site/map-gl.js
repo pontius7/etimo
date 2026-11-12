@@ -16,9 +16,13 @@ import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, get} from 
 const DATA = 'map-next/data/';
 /* Sea, land and line colours: the same values as the site's stylesheet (--sea, --land, --coast, --bord2, relief opacity). */
 const THEMES = {
-  dark:  {sea: '#0a0f18', land: '#161e2b', coast: '#2d3e5d', border: '#526380', inner: '#eef2f8', relief: .5},
-  light: {sea: '#e5eaf1', land: '#fbfaf6', coast: '#606a7c', border: '#374256', inner: '#06110e', relief: .62},
+  dark:  {sea: '#0a0f18', land: '#161e2b', coast: '#2d3e5d', border: '#526380', inner: '#eef2f8', relief: .5, pin: '#0e141e', pinEdge: 'rgba(238,242,248,.66)', pinSel: '#ffffff'},
+  light: {sea: '#e5eaf1', land: '#fbfaf6', coast: '#606a7c', border: '#374256', inner: '#06110e', relief: .62, pin: '#ffffff', pinEdge: 'rgba(22,32,50,.45)', pinSel: '#141c2c'},
 };
+/* A language pin: a soft shadow, a disc, and the language's colour at its core (so a pin stands out from its own area,
+   which has the same colour). PIN = radius of the disc in screen pixels. How visible and how large each pin is comes
+   from the page, pin by pin: o = 0 to 1, s = 1, or larger for the chosen pin and the one under the pointer. */
+const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coalesce', ['feature-state', 's'], 1], PIN_BIG = ['>', PIN_S, 1.05];
 const ZONE = .6;      // a language area with nothing chosen (--zone-op on the site)
 const BASE = .34;     // a country tinted with its main language, under the areas
 /* census view: how strong a region is drawn for the share of the chosen language there */
@@ -74,6 +78,7 @@ async function create(host) {
         areas:  {type: 'geojson', data: DATA + 'areas.json', maxzoom: 12, tolerance: .25},
         census: {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 12, tolerance: .25},
         relief: {type: 'image', url: reliefUrl, coordinates: meta.relief},
+        pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
       },
       /* Bottom to top. Every paint value that depends on the theme or on what is chosen is set in look() and paint(). */
       layers: [
@@ -97,6 +102,9 @@ async function create(host) {
         {id: 'border', type: 'line', source: 'lines', filter: ['==', kind, 'border'], layout: round, paint: {'line-color': T0.border, 'line-opacity': .9, 'line-width': 1.2}},
         {id: 'hover-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .9}},
         {id: 'sel-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2.2}},
+        {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN + 3.4, PIN_S], 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': ['*', .34, PIN_O], 'circle-translate': [0, 1.6]}},
+        {id: 'pin-disc', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN, PIN_S], 'circle-color': T0.pin, 'circle-opacity': PIN_O, 'circle-stroke-width': ['case', PIN_BIG, 2, 1], 'circle-stroke-color': ['case', PIN_BIG, T0.pinSel, T0.pinEdge], 'circle-stroke-opacity': PIN_O}},
+        {id: 'pin-core', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN * .58, PIN_S], 'circle-color': ['get', 'color'], 'circle-opacity': PIN_O}},
       ],
     },
   });
@@ -138,6 +146,13 @@ async function create(host) {
     for (const l of ctx.languages) add(l.lang, ctx.color(l));
     for (const [, n] of meta.detail) add(n, window.__albColor && window.__albColor({data: {L: {lang: n}}}));
   }
+  /* the pins: one point per language, where the page puts it, in the colour the page gives it in this theme */
+  function pins() {
+    if (!ctx) return;
+    const o = ctx.px([0, 0]), m = ctx.px([1, 0])[0] - o[0];      // the page keeps a pin's place in its own pixels (_xy); back to map units
+    const features = ctx.languages.map((l, i) => l._xy && {type: 'Feature', id: i, properties: {color: ctx.color(l)}, geometry: {type: 'Point', coordinates: at((l._xy[0] - o[0]) / m, (l._xy[1] - o[1]) / m)}}).filter(Boolean);
+    map.getSource('pins').setData({type: 'FeatureCollection', features});
+  }
   const byName = key => { const pairs = Object.entries(colourOf).flat(); return pairs.length ? ['to-color', ['match', ['get', key], ...pairs, ['get', key === 'lang' ? 'base' : 'color']]] : ['get', key === 'lang' ? 'base' : 'color']; };
   /* Light and dark, and the zoom-dependent relief: only colours change, nothing is reloaded. */
   function look() {
@@ -151,6 +166,8 @@ async function create(host) {
     for (const id of ['areas', 'rounds']) map.setPaintProperty(id, 'fill-color', ['match', ['get', 'tint'], 'min', mix(.46), 'plu', mix(.74), col]);
     for (const id of ['detail-a', 'detail-b']) map.setPaintProperty(id, 'fill-color', col);
     for (const id of ['areas-hist', 'hover-edge', 'sel-edge']) map.setPaintProperty(id, 'line-color', col);
+    map.setPaintProperty('pin-disc', 'circle-color', P.pin);
+    map.setPaintProperty('pin-disc', 'circle-stroke-color', ['case', PIN_BIG, P.pinSel, P.pinEdge]);
     map.setPaintProperty('coast', 'line-color', P.coast);
     map.setPaintProperty('border', 'line-color', P.border);
     map.setPaintProperty('region', 'line-color', P.inner);
@@ -341,6 +358,7 @@ async function create(host) {
       if (box.parentNode !== host) host.prepend(box);
       map.resize();
       colours();
+      pins();
       makeLabels();
     },
     /* the page's two drawings go inside the map, so a gesture that starts on a pin still moves the map */
@@ -367,9 +385,11 @@ async function create(host) {
     set(st) {
       const theme = st.theme !== S.theme;
       Object.assign(S, st);
-      if (theme) { colours(); look(); }
+      if (theme) { colours(); pins(); look(); }
       paint();
     },
+    /* how visible (o) and how large (s) each pin is: [[number of the language in the page's list, o, s], ...] */
+    pinStates(list) { for (const [id, o, s] of list) map.setFeatureState({source: 'pins', id}, {o, s}); },
     /* the area under the pointer on the first view is outlined */
     hover(n) { if (n !== S.hover) { S.hover = n; map.setFilter('hover-edge', ['all', ['!', ['has', 'kind']], ['==', name, n || '']]); } },
     /* what lies at a point of the box: a detailed area that selects a language, a broad area, or nothing of ours */
