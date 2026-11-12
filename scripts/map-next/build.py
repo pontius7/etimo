@@ -38,8 +38,8 @@ import time
 import urllib.request
 
 try:
-    from shapely import STRtree, make_valid, voronoi_polygons
-    from shapely.geometry import LineString, MultiPoint, Point, Polygon, box
+    from shapely import STRtree, area as areas_of, get_parts, make_valid, voronoi_polygons
+    from shapely.geometry import LineString, MultiPoint, MultiPolygon, Point, Polygon, box
     from shapely.ops import unary_union
 except ImportError:
     sys.exit('map-next: run with the project Python:  .venv/bin/python scripts/map-next/build.py')
@@ -105,13 +105,27 @@ def polys(g):
         return []
     if g.geom_type == 'Polygon':
         return [g]
+    if g.geom_type == 'MultiPolygon':
+        return list(g.geoms)
     return [p for part in getattr(g, 'geoms', []) for p in polys(part)]
 
 
 def solid(g):
-    """Only the polygon part of a result (set operations can leave stray points and lines)."""
-    ps = [p for p in polys(g) if p.area > 1e-7]
-    return unary_union(ps) if ps else Polygon()
+    """Only the polygon part of a result (set operations can leave stray points and lines).
+    The parts of one result do not overlap, so they are kept as they are; merging them again was most of the
+    build time. Only if they do not form a clean shape together are they merged."""
+    if g.is_empty:
+        return Polygon()
+    ps = get_parts(g) if g.geom_type in ('Polygon', 'MultiPolygon') else polys(g)
+    if len(ps) == 0:
+        return Polygon()
+    keep = [p for p, a in zip(ps, areas_of(ps)) if a > 1e-7]
+    if len(keep) == len(ps) and g.geom_type in ('Polygon', 'MultiPolygon'):
+        return g
+    if len(keep) < 2:
+        return keep[0] if keep else Polygon()
+    m = MultiPolygon(keep)
+    return m if m.is_valid else unary_union(keep)
 
 
 def lines(g):

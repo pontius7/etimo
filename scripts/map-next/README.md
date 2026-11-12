@@ -12,7 +12,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
 - Rebuild after any content or colour change: `python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py`
-  (about four minutes; the census regions are only cut again when their source changed. Delete
+  (about 45 seconds; the census regions are only cut again when their source changed. Delete
   `site/map-next/data/regions/` to cut them all again).
 - What feeds the data: the same files as the site. The list is at the top of `build.py`.
 - How precise the outlines are, and what counts as a drawing error at a border: the constants at the top of `build.py`.
