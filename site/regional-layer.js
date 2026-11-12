@@ -23,6 +23,20 @@ const langFor=(key,index)=>{
   }).catch(e=>{langCache.delete(key);if(pending.get(key)===ctl)pending.delete(key);throw e;}));}
  return langCache.get(key);
 };
+// The lists and strengths below are shared: the engine-drawn map (site/map-gl.js) and the data step (scripts/map-next/build.py) read them from here.
+const DNAME={'Northeastern Gheg':'Northeastern Gheg','Northwestern Gheg':'Northwestern Gheg','Central Gheg':'Central Gheg','South Gheg':'South Gheg','Central–Northeastern Transitional Gheg':'Transitional Gheg','Upper Reka Gheg':'Upper Reka Gheg','Tosk':'Tosk Albanian','Lab':'Labërisht','Çam':'Çam Albanian','Arbëresh':'Arbëresh','Arvanitika':'Arvanitika'};
+const GHEG=new Set(['Northeastern Gheg','Northwestern Gheg','Central Gheg','South Gheg','Transitional Gheg','Upper Reka Gheg']);
+const TOSKS=new Set(['Tosk Albanian','Labërisht','Çam Albanian','Arbëresh','Arvanitika']);
+const ADIAL=new Set(['Northeastern Gheg','Northwestern Gheg','Central Gheg','South Gheg','Transitional Gheg','Upper Reka Gheg','Tosk Albanian','Labërisht','Çam Albanian']);
+const ALBSET=new Set([...Object.values(DNAME),'Gheg Albanian','Albanian']);
+const ARO=['Farsherot','Muscopolean','Gopesh–Malovishte','Pindian','Gramostean'];
+const MEG=['Megleno-Romanian (northern)','Megleno-Romanian (central)','Megleno-Romanian (Tsarnarekan)'];
+const VSET=new Set([...ARO,...MEG,'Aromanian','Megleno-Romanian']);
+const HIDEPIN=new Set([...ADIAL,'Albanian',...ARO,...MEG]);
+const PAR={'Sandžak Bosniak':'Bosnian'};const isSel=(r,sel)=>!!sel&&(r.name===sel.lang||PAR[r.name]===sel.lang);
+const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian',...Object.keys(PAR)]);
+const OP={rest:.78,sel:.9,fam:.3,other:.07,filterOther:.14};
+export {DNAME,GHEG,TOSKS,ADIAL,ALBSET,ARO,MEG,VSET,HIDEPIN,PAR,OP,get};
 export async function attachRegionalEvidence({host,parent,path,current,languages,color,tooltip,hideTooltip}) {
  loading ||= Promise.all([get('regional/index.json'),geoFor('ME'),get('regional/ME.json'),get('regional-sources.json'),Promise.all([get('regional/geo/GR-regions.json'),get('athos.json').catch(()=>null)]).then(([t,athos])=>{const features=topoFeatures(t,'GR');/* Mount Athos is Greek land that the NUTS regions file leaves out; without it the peninsula fell back to the coarse hand-drawn area */const cm=athos&&athos.ring&&features.find(f=>/Central Macedonia/.test(f.properties.name||''));if(cm){const g=cm.geometry;cm.geometry={type:'MultiPolygon',coordinates:(g.type==='Polygon'?[g.coordinates]:g.coordinates).concat([[athos.ring]])};}return {type:'FeatureCollection',features};}),get('tables/GR.json')]).catch(e=>{loading=null;throw e;});
  const [index,me,values,sources,greece,grData]=await loading;
@@ -96,18 +110,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  // and Vlach areas (Wikimedia Commons: South-Balkan-Romance-languages.png, after Koryakov 2001, CC BY-SA 3.0), drawn on the real map in shades of each family colour.
  // Same colour as the language's zone, pin and wheel slice in both themes (dark mode brightens dim colours).
   const PAL=new Proxy(window.__albPalette||{},{get:(t,n)=>t[n]&&window.__albColor?(window.__albColor({data:{L:{lang:n}}})||t[n]):t[n]});
- const DNAME={'Northeastern Gheg':'Northeastern Gheg','Northwestern Gheg':'Northwestern Gheg','Central Gheg':'Central Gheg','South Gheg':'South Gheg','Central–Northeastern Transitional Gheg':'Transitional Gheg','Upper Reka Gheg':'Upper Reka Gheg','Tosk':'Tosk Albanian','Lab':'Labërisht','Çam':'Çam Albanian','Arbëresh':'Arbëresh','Arvanitika':'Arvanitika'};
- const GHEG=new Set(['Northeastern Gheg','Northwestern Gheg','Central Gheg','South Gheg','Transitional Gheg','Upper Reka Gheg']);
- const TOSKS=new Set(['Tosk Albanian','Labërisht','Çam Albanian','Arbëresh','Arvanitika']);
- const ADIAL=new Set(['Northeastern Gheg','Northwestern Gheg','Central Gheg','South Gheg','Transitional Gheg','Upper Reka Gheg','Tosk Albanian','Labërisht','Çam Albanian']);
- const ALBSET=new Set([...Object.values(DNAME),'Gheg Albanian','Albanian']);
- const ARO=['Farsherot','Muscopolean','Gopesh–Malovishte','Pindian','Gramostean'];
- const MEG=['Megleno-Romanian (northern)','Megleno-Romanian (central)','Megleno-Romanian (Tsarnarekan)'];
- const VSET=new Set([...ARO,...MEG,'Aromanian','Megleno-Romanian']);
- const HIDEPIN=new Set([...ADIAL,'Albanian',...ARO,...MEG]);
  // a variety drawn inside its parent's detailed areas: its areas light up for the parent too
- const PAR={'Sandžak Bosniak':'Bosnian'};const isSel=(r,sel)=>!!sel&&(r.name===sel.lang||PAR[r.name]===sel.lang);
- const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian',...Object.keys(PAR)]);
  const albObj=languages.find(l=>l.lang==='Albanian');
  let famSel=null,dialects=null,vlach=null;
  // One rule for every detailed area layer (Albanian dialects, Vlach, Serbia, Montenegro):
@@ -115,7 +118,6 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
  //   a language of another family selected .07 | under a family filter: that family .78, others .14
  //   (.14 is what the base language areas use for the families a filter leaves out).
  // Only the sibling shading inside the Albanian and Vlach groups (aOp, vOp below) goes beyond it.
- const OP={rest:.78,sel:.9,fam:.3,other:.07,filterOther:.14};
  const restOp=(fam,sel)=>sel?(sel.family===fam?OP.fam:OP.other):famSel?(famSel===fam?OP.rest:OP.filterOther):OP.rest;
  const albMode=()=>{const s=current();return !!(dialects&&((s&&ALBSET.has(s.lang))||famSel==='Albanian'));};
  const dialectLayer=parent.insert('g',()=>layer.node()).attr('class','albanian-dialects').attr('pointer-events','none');

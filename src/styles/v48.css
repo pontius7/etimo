@@ -12,7 +12,7 @@
 .exv2.isfs .mtl{left:50%}
 /* topography: softer, minor lines only when zoomed in, none while moving */
 .mapbox svg:not(.zin) .tcm{display:none}
-.mapbox svg.zooming .topo .tc,.mapbox svg.zooming .topo .tgrid{visibility:hidden}
+
 .mapbox .tgrid{opacity:.2}
 .mapbox .tcm{opacity:.14;stroke-width:.45px}
 .mapbox .tci{opacity:.3;stroke-width:.7px}

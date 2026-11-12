@@ -22,7 +22,7 @@
 .sbarc{stroke:var(--bg);stroke-width:.6px}
 .spec .sl,.stage .sl{will-change:opacity,transform}
 .mapbox svg .topo2{opacity:1;transition:opacity .4s ease .08s}
-.mapbox svg.zooming .topo2{opacity:0;visibility:hidden;transition:none}
+
 @media (width>=64rem){.bar h1{left:3.75rem;transform:none;justify-content:flex-start;text-align:left;max-width:16rem}
 }
 #heroSlot .wrap:has(>.spec):not(:has(>.ut-grid)){grid-template-columns:1fr}

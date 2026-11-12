@@ -524,7 +524,8 @@ r.gamma=t,
 r}(1)}
 function Ws(e,t){if(e=function(e){let t;
 for(;t=e.sourceEvent;)e=t;
-return e}(e),void 0===t&&(t=e.currentTarget),t){var n=t.ownerSVGElement||t;
+return e}(e),void 0===t&&(t=e.currentTarget),t){if(t.__kpt)return t.__kpt(e);
+var n=t.ownerSVGElement||t;
 if(n.createSVGPoint){var r=n.createSVGPoint();
 return r.x=e.clientX,
 r.y=e.clientY,

@@ -312,3 +312,8 @@ Command line: `wrangler deployments list --name etimo` shows recent deploys.
   `PAR` in `site/regional-layer.js` names the parent, so the same areas also light up when Bosnian is
   picked. The speaker figure is the sum of the two whole-country census counts for Bosnian as mother
   tongue (Serbia 145,329 in 2022, Montenegro 43,470 in 2023). It has no word list yet, like Bosnian.
+
+## The map engine
+The map is drawn by MapLibre GL since 2026-11-12: `site/map-gl.js` (engine side) and the `GL` parts of the map code in
+`src/app/6-app-screens-and-startup.js` (page side). Data: `scripts/map-next/build.py`. The old map is one switch away
+(`?map=svg`). Everything about it is in `scripts/map-next/README.md`.

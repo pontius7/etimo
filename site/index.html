@@ -1434,7 +1434,7 @@ to{opacity:1;transform:none}
 .mapbox svg.fsel .zones{opacity:calc(var(--zone-op) * 1.1)}
 .mtip .hm{color:var(--hd-ink);border-top:1px solid #ffffff2e;margin-top:.25rem;padding-top:.3rem;font-size:.75rem;line-height:1.35}
 .mtip.pin{pointer-events:none}
-.mapbox svg.zooming .adm,.mapbox svg.zooming .labs{display:none}
+
 :root{--glass:#faf9f6db;--glass-line:#06110e1a;--glass-sh:0 4px 16px #06110e1f}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--glass:#091814d1;--glass-line:#ffffff1a;--glass-sh:0 4px 18px #00000073}
 }
@@ -1516,7 +1516,7 @@ html.mapfs .tabbar,html.mapfs .barw{visibility:hidden}
 .ksel .kr.kdia.kd{fill:none;opacity:.5}
 .mapbox .adm2 path.d2m{fill:none;stroke:var(--coast);stroke-width:.55px;vector-effect:non-scaling-stroke;stroke-dasharray:2 2.5;opacity:0;transition:opacity .35s}
 .mapbox svg.zin .adm2 path.d2m{opacity:.8}
-.mapbox svg.zooming .adm2,.mapbox svg.zooming .adm2l{display:none}
+
 .mapbox .d2l{font:500 10.5px var(--sans);fill:var(--mut);text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;letter-spacing:.02em;animation:cityIn .4s ease both}
 .mapbox .city.kh{display:none}
 </style>
@@ -1630,7 +1630,7 @@ body .search input:focus{border-color:var(--ink);background:var(--bg);box-shadow
 .sbarc{stroke:var(--bg);stroke-width:.6px}
 .spec .sl,.stage .sl{will-change:opacity,transform}
 .mapbox svg .topo2{opacity:1;transition:opacity .4s ease .08s}
-.mapbox svg.zooming .topo2{opacity:0;visibility:hidden;transition:none}
+
 @media (width>=64rem){.bar h1{left:3.75rem;transform:none;justify-content:flex-start;text-align:left;max-width:16rem}
 }
 #heroSlot .wrap:has(>.spec):not(:has(>.ut-grid)){grid-template-columns:1fr}
@@ -1704,7 +1704,7 @@ body .search input:focus{border-color:var(--ink);background:var(--bg);box-shadow
 .exv2.isfs .mtl{left:50%}
 /* topography: softer, minor lines only when zoomed in, none while moving */
 .mapbox svg:not(.zin) .tcm{display:none}
-.mapbox svg.zooming .topo .tc,.mapbox svg.zooming .topo .tgrid{visibility:hidden}
+
 .mapbox .tgrid{opacity:.2}
 .mapbox .tcm{opacity:.14;stroke-width:.45px}
 .mapbox .tci{opacity:.3;stroke-width:.7px}
@@ -2596,6 +2596,33 @@ body{font-weight:400;letter-spacing:.005em}
 }
 @media (width>=64rem){.mapbox .regn.fam{--f0:11.5px;--f1:20px}
 }
+</style><style id="v63">/* Map in two drawings (see the note at the top of the map code in src/app/6-app-screens-and-startup.js).
+   base: areas, borders, relief. Drawn a quarter larger than the box on every side and moved as a picture while a gesture runs.
+   top:  pins, clusters, city names, labels. Redrawn on every frame, so it stays sharp. Only pins and clusters take the pointer; everything else falls through to the base. */
+.mapbox svg[data-kl=base]{position:absolute;left:-25%;top:-25%;width:150%;height:150%;transform-origin:calc(100%/6) calc(100%/6);transform:translateZ(0)}
+.mapbox svg[data-kl=top]{position:absolute;left:0;top:0;pointer-events:none}
+.mapbox svg[data-kl=top] :where(g.pin,.clu){pointer-events:auto}
+/* No fades on the base, and none on the family names. While an SVG group fades, Chrome draws it as a separate layer as large
+   as the group itself. For a whole-map group zoomed in, that is hundreds of thousands of pixels across, and the compositor
+   stalls (measured: frames of up to 2.4 s, and a full lock-up at the deepest zoom). So everything in the base changes state
+   at once (the relief image keeps its one fade-in on load), and no animation there is left "filled" after it ends.
+   Pins, clusters and labels are small and keep their fades. */
+.mapbox svg[data-kl=base] :not(image){transition:none!important}
+.mapbox svg[data-kl=base].m-in .zones{animation-fill-mode:backwards}
+.mapbox svg[data-kl=base] .d2l{animation:none}
+.mapbox svg[data-kl=top] .regs{transition:none!important}
+.mapbox svg[data-kl=top] .city{opacity:1;animation:kCityIn .45s .12s ease backwards}
+@keyframes kCityIn{from{opacity:0}}
+</style><style id="v64">/* The map engine's box (site/map-gl.js): it lies under the page's two drawings, which sit inside it so that a gesture
+   starting on a pin still reaches the map. Only these few rules of the engine's own stylesheet are needed. */
+.mapbox .kgl{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .5s ease}
+.mapbox .kgl.on{opacity:1}
+.kgl .maplibregl-canvas-container{position:absolute;inset:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.kgl canvas.maplibregl-canvas{position:absolute;left:0;top:0;outline:0}
+.maplibregl-canary{background-color:salmon}
+/* with the engine drawing the base, the base drawing only holds the dimming mask and deep-zoom names: nothing to move as a picture, nothing to catch the pointer */
+.mapbox svg[data-kl=base][data-gl]{pointer-events:none;transform:none;will-change:auto}
+@media (prefers-reduced-motion:reduce){.mapbox .kgl{transition:none}}
 </style>
 <style id="etimo1">:root{--hd:#2e4369;--hd-line:#24385d;--hd-muted:#d6e0f2}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--hd:#273a5b;--hd-line:#33486e;--hd-muted:#c7d3e7}
@@ -2821,9 +2848,6 @@ body{font-weight:400;letter-spacing:.005em}
 .fdsg{opacity:.8}
 .fdw:has(.fdsr)>p.empty,.fdw:has(.fdsr) .sres>p.empty{display:none}
 @media (prefers-reduced-motion:reduce){.fdload i{animation:none}
-}
-/* touch screens with dense pixels: cheaper path rasterising on the map (no change on desktop) */
-@media (hover:none) and (min-resolution:2dppx){.mapbox svg .zones path,.mapbox svg g.adm path{shape-rendering:optimizeSpeed}
 }
 /* phones + tablets: one header row at the top, the main menu at the bottom of the screen (the original
    design; it sat under the header only while a hosting badge covered the bottom edge).
@@ -13471,7 +13495,8 @@ r.gamma=t,
 r}(1)}
 function Ws(e,t){if(e=function(e){let t;
 for(;t=e.sourceEvent;)e=t;
-return e}(e),void 0===t&&(t=e.currentTarget),t){var n=t.ownerSVGElement||t;
+return e}(e),void 0===t&&(t=e.currentTarget),t){if(t.__kpt)return t.__kpt(e);
+var n=t.ownerSVGElement||t;
 if(n.createSVGPoint){var r=n.createSVGPoint();
 return r.x=e.clientX,
 r.y=e.clientY,
@@ -17615,6 +17640,13 @@ w=(0,m.useRef)(d);
 w.current=d,
 (0,m.useEffect)(()=>{let n=s.current;
 if(i.current&&n)return o.current=function(e,t,n,r,a={}){let i,s,o,l,u,c,d,h=ja(),f=Ya();
+/* GL: the base of the map (areas, borders, relief, census view) is drawn by the map engine in site/map-gl.js, which also owns zoom and pan.
+   Everything on top (pins, names, outlines, card) is still drawn here. The functions for it are kV ... gStart further down.
+   Without GL (the address ends in ?map=svg, or the engine cannot start) the map is drawn here in full, as before. */
+if(void 0===window.__etimoSVG){let s=!1;
+try{s=/[?&]map=svg/.test(location.search)||"svg"===localStorage.getItem("etimo-map")}catch{}
+window.__etimoSVG=s}
+let GL=!window.__etimoSVG,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gMv=!1;
 e.querySelectorAll(":scope > svg").forEach(e=>e.remove());
 let p=null,m={};
 r&&(p=new Set,ha[r].forEach(e=>{p.add(e.L.id),(m[e.L.id]=m[e.L.id]||[]).push(e.e)}));
@@ -17623,7 +17655,16 @@ v&&(v.innerHTML=g.map((e,t)=>{let n=m[e.id],r=n[0];
 return'<button type="button" class="wcd '+e.family+'" data-i="'+t+'" role="option"><span class="wl"><span class="dot '+e.family+'"></span><span class="wn">'+ei(Na(e))+"</span></span><b>"+ei(r.word)+'</b><span class="wt pr">'+ei(ai(r))+(n.length>1?"<i>+"+(n.length-1)+"</i>":"")+'</span><span class="wi">'+(t+1)+" / "+g.length+"</span></button>"}).join("")),e.classList.toggle("hascar",!!g.length);
 let b=e.clientWidth,y=e.clientHeight,k=v?Array.prototype.slice.call(v.children):[],w=()=>(v&&g.length?v.offsetHeight+16:0)+(!t||t.hidden||me()&&t.classList.contains("kpanel")?0:t.offsetHeight+14),x=ua.filter(e=>e.info&&null!=e.info.lat),j=kd().parallels([35,60]).rotate([-30,0]),S=Math.max(22,.06*b),_=Math.max(22,.07*y);
 j.fitExtent([[S,_],[b-S,y-_]],{type:"FeatureCollection",features:x.filter(e=>la.indexOf(e.family)<5).map(e=>({type:"Feature",geometry:{type:"Point",coordinates:[e.info.lon,e.info.lat]}}))});
-let q=ws(e).insert("svg",":first-child").attr("viewBox",[0,0,b,y]),E=q.append("g");
+/* Two drawings, one on top of the other. q (base): areas, borders, relief. It is drawn a quarter larger than the box on every side (KP) and, while a gesture runs, moved as a picture instead of being redrawn. Q2 (top): pins, city names, labels; light enough to redraw on every frame, so it stays sharp. */
+let KP=.25,q=ws(e).insert("svg",":first-child").attr("viewBox",[-KP*b,-KP*y,(1+2*KP)*b,(1+2*KP)*y]).attr("data-kl","base"),E=q.append("g"),Q2=ws(e).insert("svg",()=>q.node().nextSibling).attr("viewBox",[0,0,b,y]).attr("data-kl","top"),E2=Q2.append("g"),kMo=new MutationObserver(()=>{let a=q.node(),o=Q2.node();
+["class","data-f","data-sf"].forEach(n=>{let v=a.getAttribute(n);
+null==v?o.removeAttribute(n):o.getAttribute(n)!==v&&o.setAttribute(n,v)})});
+kMo.observe(q.node(),{attributes:!0,attributeFilter:["class","data-f","data-sf"]});
+/* GL: what little is left of the base drawing (the dimming mask, names at deep zoom) lives in the top drawing, under the pins: one drawing to refresh per frame instead of two */
+GL&&(q.attr("data-gl",1),E.remove(),E=Q2.insert("g",":first-child"));
+/* pointer position in map-box pixels, whatever the base picture is doing at that moment */
+q.node().__kpt=ev=>{let r=e.getBoundingClientRect();
+return[(ev.clientX-r.left-e.clientLeft)*b/(e.clientWidth||b),(ev.clientY-r.top-e.clientTop)*y/(e.clientHeight||y)]};
 yf(q),j.clipExtent([[-2*b,-2*y],[3*b,3*y]]),x.forEach(e=>{e._xy=j([e.info.lon,e.info.lat])});
 let z=sd(j);
 0;
@@ -17631,9 +17672,9 @@ let z=sd(j);
 q.attr("class","m-wait"),e.classList.add("loading");
 {let t=()=>{q.classed("m-wait",!1).classed("m-in",!0),e.classList.remove("loading")};
 op().then(t,t),setTimeout(t,1800)}
-wt=E.append("path").attr("class","coast").attr("d",z(mf())),xt=E.append("path").attr("class","bord").attr("d",z((df||(df=af(ca,ca.objects.countries,(e,t)=>e!==t)),df))),jt=wt.attr("d"),St=xt.attr("d");
+GL||(wt=E.append("path").attr("class","coast").attr("d",z(mf())),xt=E.append("path").attr("class","bord").attr("d",z((df||(df=af(ca,ca.objects.countries,(e,t)=>e!==t)),df))),jt=wt.attr("d"),St=xt.attr("d"));
 let N=[];
-{let e=mf();
+if(!GL){let e=mf();
 ("FeatureCollection"===e.type?e.features:[e]).forEach(e=>{let t=e.geometry;
 ("Polygon"===t.type?[t.coordinates]:t.coordinates).forEach(e=>{e[0].some(e=>e[0]>=-40&&e[0]<=180&&e[1]>0)&&e.forEach(e=>{let t=e.map(e=>j([Math.max(-60,Math.min(180,e[0])),Math.max(-10,e[1])])),n=1e9,r=1e9,a=-1e9,i=-1e9;
 t.forEach(e=>{e[0]<n&&(n=e[0]),e[0]>a&&(a=e[0]),e[1]<r&&(r=e[1]),e[1]>i&&(i=e[1])}),N.push({r:t,b:[n,r,a,i]})})})})}
@@ -17668,28 +17709,28 @@ if(T(e)){let t=da[e.lang].b;
 return[t[0]*M+C[0],t[1]*M+C[1],t[2]*M+C[0],t[3]*M+C[1]]}
 return n=(t=F(e)).map(e=>e[0]),[Math.min(...n),Math.min(...r=t.map(e=>e[1])),Math.max(...n),Math.max(...r)]}
 let H=E.append("g").attr("class","adm");
-import("./regional-layer.js?v=38").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
+GL||import("./regional-layer.js?v=39").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
 (!ff&&(ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json")).then(e=>e.json()).then(e=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
-return[...t,...n].forEach(e=>{e.bb=pu(e)}),hf={t:e,R:t,C:n,mesh:af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c)}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(H.append("path").attr("d",z(e.mesh)),bt())});
+return[...t,...n].forEach(e=>{e.bb=pu(e)}),hf={t:e,R:t,C:n,mesh:af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c)}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),bt())});
 try{new ResizeObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t),new MutationObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t,{attributes:!0,attributeFilter:["hidden"]})}catch{}
-E.insert("g","g.adm").attr("class","shd").attr("pointer-events","none").attr("transform",L).append("image").attr("href",matchMedia("(max-width:820px),(pointer:coarse) and (max-width:1180px)").matches?"h/shade-s.0274f45a6f.avif":"h/shade.2af37527dd.avif").attr("decoding","async").style("opacity",0).on("error",function(){let w="h/shade.679ada88c2.webp";
+GL||E.insert("g","g.adm").attr("class","shd").attr("pointer-events","none").attr("transform",L).append("image").attr("href",matchMedia("(max-width:820px),(pointer:coarse) and (max-width:1180px)").matches?"h/shade-s.0274f45a6f.avif":"h/shade.2af37527dd.avif").attr("decoding","async").style("opacity",0).on("error",function(){let w="h/shade.679ada88c2.webp";
 this.getAttribute("href")!==w&&this.setAttribute("href",w)}).on("load",function(){this.style.transition="opacity .6s";
 requestAnimationFrame(()=>{this.style.opacity=""})}).attr("x",-1490).attr("y",-1670).attr("width",3150).attr("height",1660).attr("preserveAspectRatio","none"),e.addEventListener("focusin",e=>{e.target.closest&&e.target.closest(".kfb")&&t.classList.contains("kpanel")&&!t.hidden&&(t.hidden=!0,Le(null))});
 let W=E.append("g").attr("class","adm2").attr("pointer-events","none");
-yt=E.append("g").attr("class","adm2l").attr("pointer-events","none"),setTimeout(()=>Zf().then(e=>{e&&q.node().isConnected&&(W.append("path").attr("class","d2m").attr("d",z(af(e.topo,e.topo.objects.d,(e,t)=>e!==t))),se=e.F.map((e,t)=>{let n=e.geometry,r="Polygon"===n.type?[n.coordinates]:n.coordinates,a=null,i=-1;
+yt=E.append("g").attr("class","adm2l").attr("pointer-events","none"),setTimeout(()=>Zf().then(e=>{e&&q.node().isConnected&&(GL||W.append("path").attr("class","d2m").attr("d",z(af(e.topo,e.topo.objects.d,(e,t)=>e!==t))),se=e.F.map((e,t)=>{let n=e.geometry,r="Polygon"===n.type?[n.coordinates]:n.coordinates,a=null,i=-1;
 if(r.forEach(e=>{let t=e[0].map(e=>j(e)).filter(Boolean),n=0,r=0,s=0;
 for(let e=0,a=t.length;e<a;e++){let i=t[e],o=t[(e+1)%a],l=i[0]*o[1]-o[0]*i[1];
 n+=l,r+=(i[0]+o[0])*l,s+=(i[1]+o[1])*l}
 let o=Math.abs(n/2);
 o>i&&o>0&&(i=o,a={r:t,c:[r/(3*n),s/(3*n)]})}),!a)return{i:t,n:""};
 let s=1e9,o=1e9,l=-1e9,u=-1e9;
-return a.r.forEach(e=>{e[0]<s&&(s=e[0]),e[0]>l&&(l=e[0]),e[1]<o&&(o=e[1]),e[1]>u&&(u=e[1])}),{i:t,n:e.properties.n||"",cx:a.c[0],cy:a.c[1],w:l-s,h:u-o}}).filter(e=>e.n&&isFinite(e.cx)&&isFinite(e.w)),Ne(Bh(q.node())))}),1400);
-let $=E.append("g").attr("class","regs"),fA={};
+return a.r.forEach(e=>{e[0]<s&&(s=e[0]),e[0]>l&&(l=e[0]),e[1]<o&&(o=e[1]),e[1]>u&&(u=e[1])}),{i:t,n:e.properties.n||"",cx:a.c[0],cy:a.c[1],w:l-s,h:u-o}}).filter(e=>e.n&&isFinite(e.cx)&&isFinite(e.w)),Ne(kV()))}),1400);
+let $=E2.append("g").attr("class","regs"),fA={};
 x.forEach(e=>{T(e)&&(fA[e.family]=(fA[e.family]||0)+(da[e.lang].a||0))});
 let fV=Object.values(fA).filter(e=>e>0).map(Math.log),f0=Math.min(...fV),f1=Math.max(...fV);
 $.selectAll("text").data([["Slavic",33,53.5],["Romance",.5,44.6],["Iranian",54,33],["Greek",24.6,37],["Albanian",20.1,41.1],["Uralic",62,63.6],["Turkic",70,47.5],["Caucasian",44.6,44.15],["Mongolic",106,45.2]]).join("text").attr("class",e=>"regn fam "+e[0]).style("--fk",e=>fA[e[0]]>0&&f1>f0?((Math.log(fA[e[0]])-f0)/(f1-f0)).toFixed(3):0).attr("x",e=>j([e[1],e[2]])[0]).attr("y",e=>j([e[1],e[2]])[1]).text(e=>Ca(e[0]).toLocaleUpperCase());
 let V=x.filter(T).sort((e,t)=>da[t.lang].a-da[e.lang].a);
-P.selectAll("path").data(V).join("path").attr("class",e=>"zone "+e.family+(e.info&&e.info.hist?" hist":"")).attr("fill-rule","evenodd").attr("d",e=>da[e.lang].v||da[e.lang].d),x.filter(e=>!T(e)).forEach(e=>A.append("path").datum(e).attr("class","zone "+e.family+(e.info&&e.info.hist?" hist":"")).attr("d",G(e,1))),function(e,t,n,r,a,i,s){op().then(o=>{if(!o||!e.node().isConnected)return;
+P.selectAll("path").data(GL?[]:V).join("path").attr("class",e=>"zone "+e.family+(e.info&&e.info.hist?" hist":"")).attr("fill-rule","evenodd").attr("d",e=>da[e.lang].v||da[e.lang].d),x.filter(e=>!GL&&!T(e)).forEach(e=>A.append("path").datum(e).attr("class","zone "+e.family+(e.info&&e.info.hist?" hist":"")).attr("d",G(e,1))),function(e,t,n,r,a,i,s){op().then(o=>{if(!o||!e.node().isConnected)return;
 let l=++sp,u=t.scale()/1e3,c=t.translate(),d="translate("+c[0]+","+c[1]+") scale("+u/o.u+")",h=e.insert("g","path.coast").attr("class","topo").attr("pointer-events","none");
 h.append("path").attr("class","tland").attr("d",s);
 let f=h.append("g").attr("transform",d);
@@ -17705,7 +17746,7 @@ e.t&&n.attr("transform",e.t)});
 let r=g.append("g").attr("clip-path","url(#tcp"+l+e+")").attr("class","tf "+e).append("g").attr("transform",d);
 r.append("use").attr("href","#tm"+l).attr("class","tc tcm"),r.append("use").attr("href","#ti"+l).attr("class","tc tci");
 let a=m[e].filter(e=>e.t).map(e=>e.d).join("");
-a&&g.append("g").attr("class","tout "+e).attr("transform",n).append("path").attr("d",a).attr("fill","none").attr("fill-rule","evenodd").attr("vector-effect","non-scaling-stroke")})})}(E,j,L,x,T,G,z(mf())),Yf(I),A.selectAll("path.zone").each(function(e){let t=Vf(e);
+a&&g.append("g").attr("class","tout "+e).attr("transform",n).append("path").attr("d",a).attr("fill","none").attr("fill-rule","evenodd").attr("vector-effect","non-scaling-stroke")})})}(E,j,L,x,T,G,GL?"":z(mf())),GL||Yf(I),A.selectAll("path.zone").each(function(e){let t=Vf(e);
 t&&(this.style.fill=t,this.style.stroke=t,this.style.setProperty("--zc",t))}),Df().then(e=>{let t=e&&e.st;
 t&&A.selectAll("path.zone").classed("zmin",e=>"min"===t[e.lang]).classed("zplu",e=>"plu"===t[e.lang])}),e.querySelectorAll(".mtip").forEach(e=>e.remove());
 let Z=document.createElement("div");
@@ -17761,7 +17802,7 @@ if(!Ff)return void(Bf||(Bf=fetch("data/world-50m.json").then(e=>e.json()).then(e
 ef(e,e.objects.countries).features.forEach((t,n)=>{t.bb=pu(t),e.objects.countries.geometries[n]._bb=t.bb});
 let n=(t.geometry?t.geometry:t.features[0].geometry).coordinates.map(e=>{let t={type:"Feature",geometry:{type:"Polygon",coordinates:e}};
 return t.bb=pu(t),t});
-return Ff={t:e,lp:n}}).catch(()=>null))).then(e=>{e&&q.node().isConnected&&pe(Bh(q.node()))});
+return Ff={t:e,lp:n}}).catch(()=>null))).then(e=>{e&&q.node().isConnected&&pe(kV())});
 let t=e.k,n=b/t,r=y/t,a=-e.x/t,i=-e.y/t,s=[a-n,i-r,a+2*n,i+2*r,t],o=1e9,l=1e9,u=-1e9,c=-1e9;
 for(let e=0;e<=8;e++)for(let t=0;t<=8;t++){let n=j.invert([s[0]+(s[2]-s[0])*e/8,s[1]+(s[3]-s[1])*t/8]);
 n&&isFinite(n[0])&&(o=Math.min(o,n[0]),u=Math.max(u,n[0]),l=Math.min(l,n[1]),c=Math.max(c,n[1]))}
@@ -17832,9 +17873,11 @@ i<a&&(a=i,t=n)}),n.push(t),i.delete(t)}
 ke[t]=n}
 let r=n.indexOf(e);
 return r<0||n.length<2?null:[n[(r-1+n.length)%n.length],n[(r+1)%n.length]]}
-function nearMap(e){let t=e.info||{},n=new Set(nearFam(e)||[]),r=e=>e.info&&e.info.dialectOf,a=Bh(q.node()),i=null,s=e=>[a.applyX(e._xy[0]),a.applyY(e._xy[1])],o=s(e);
+function nearMap(e){let t=e.info||{},n=new Set(nearFam(e)||[]),r=e=>e.info&&e.info.dialectOf,a=kV(),i=null,s=e=>[a.applyX(e._xy[0]),a.applyY(e._xy[1])],o=s(e);
 try{let e=R.select("path.terr").node(),t=e&&e.getBoundingClientRect(),n=q.node().getBoundingClientRect();
 t&&t.width&&(i=[t.left-n.left,t.top-n.top,t.right-n.left,t.bottom-n.top])}catch{}
+if(GL&&T(e)){let u=U(e);
+i=[a.applyX(u[0]),a.applyY(u[1]),a.applyX(u[2]),a.applyY(u[3])]}
 return x.filter(n=>n!==e&&n._xy&&(void 0===r(n)||r(n)===e.lang||void 0!==t.dialectOf&&r(n)===t.dialectOf)).map(e=>{let t=s(e);
 return[e,i?Math.hypot(Math.max(i[0]-t[0],0,t[0]-i[2]),Math.max(i[1]-t[1],0,t[1]-i[3])):0,Math.hypot(t[0]-o[0],t[1]-o[1])]}).sort((e,t)=>e[1]-t[1]||e[2]-t[2]).slice(0,8).forEach(e=>n.add(e[0])),n}
 function panelSecs(e,i){let n=e.info,s="";
@@ -17846,7 +17889,7 @@ let n=e.info,r=n.sp,a=Vf(e)||"",i=nearFam(e);
 xe=function(e){let t=$f(e.id);
 return t&&t.ancestors().find(e=>1===e.depth)||Af()}(e),je=e.id;
 let s='<div class="phd" style="--pc:'+a+'"><button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><span class="pfam"><i class="dot '+e.family+'"></i>'+ei(Ca(e.family))+"</span><h3>"+ei(Na(e))+"</h3>"+(n.an?'<p class="pan">'+ei(n.an)+"</p>":"")+'<p class="plin">'+ei(Pf(e))+'</p></div><div class="pstats"><div><small>'+ei(ye("rgn"))+"</small><b>"+ei(Ma(e))+"</b></div>"+(r?"<div><small>"+ei(ye("spk"))+"</small><b>"+ei(za(r.v))+"</b></div>":"")+(n.lv?"<div><small>"+ei(ye("st"))+"</small><b>"+ei(Aa(n.lv))+"</b></div>":"")+"</div>";
-s+=panelSecs(e,i),s+='<section class="psec pwh"><div class="pwbox">'+Se(xe,e.id,null)+'</div></section><div class="pdyn"></div><div class="acts"><button type="button" class="btn pri pgo" data-go="'+e.id+'">'+ei(ye("go"))+"</button></div>",t.innerHTML=s,gw(),delete t.dataset.sourceCountry,delete t.dataset.regionId,t.querySelector("#cx").onclick=()=>{t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Promise.all([Zf(),Df(),ff||null]).then(([r,a])=>{if(nt!==e||!t.classList.contains("kpanel"))return;
+s+=panelSecs(e,i),s+='<section class="psec pwh"><div class="pwbox">'+Se(xe,e.id,null)+'</div></section><div class="pdyn"></div><div class="acts"><button type="button" class="btn pri pgo" data-go="'+e.id+'">'+ei(ye("go"))+"</button></div>",t.innerHTML=s,gw(),delete t.dataset.sourceCountry,delete t.dataset.regionId,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Promise.all([Zf(),Df(),ff||null]).then(([r,a])=>{if(nt!==e||!t.classList.contains("kpanel"))return;
 let i=t.querySelector(".pdyn");
 if(!i)return;
 let s="",o=r&&r.M[e.lang];
@@ -17864,7 +17907,7 @@ t[0]>r-8&&t[0]<i+8&&t[1]>a-8&&t[1]<s+8&&u.push([t[0]+30/n,t[1],36/n,11/n])}),Qe.
 let t=3.1*e.n.length+4,r=e.cx,a=e.cy,i=t/n,s=8/n;
 u.some(e=>Math.abs(e[0]-r)<i+e[2]&&Math.abs(e[1]-a)<s+e[3])||(u.push([r,a,i,s]),l.push(e))}),t.selectAll("text").data(l,e=>e.i).join(e=>e.append("text").attr("class","d2l").text(e=>e.n),e=>e,e=>e.remove()).attr("transform",e=>"translate("+e.cx+","+e.cy+") scale("+1/n+")")}
 function Me(){return y}
-function Ce(){Rt&&Rt.classList.toggle("on",!Gt(Bh(q.node()))||!!nt||!!te)}
+function Ce(){Rt&&Rt.classList.toggle("on",!Gt(kV())||!!nt||!!te)}
 function Le(e){te=e||null;
 We.selectAll("path.tap").remove();
 e&&We.append("path").attr("class","kr tap "+(nt?nt.family:"")).attr("d",z(e));
@@ -17874,10 +17917,11 @@ M.raise().selectAll("*").remove();
 window.__kfT=e?Date.now():0;
 e&&(M.append("path").attr("class","kmask").attr("fill-rule","evenodd").attr("d","M-1e6,-1e6H1e6V1e6H-1e6Z"+z(e)),M.append("path").attr("class","kr tap "+(nt?nt.family:"")).attr("d",z(e)))}
 Ce()}
-function Te(){J(),Le(null),t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),$t(null),Ut(800),Ae()}
-function Ae(){try{e.dispatchEvent(new CustomEvent("ksel",{detail:{lang:nt?nt.id:null,fam:nt?null:rt||null}}))}catch{}}
-function Pe(){t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null)}
-function Ie(){t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),J(),Le(null),nt&&$t(null)}
+function Te(){J(),Le(null),t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),$t(null),Ut(800),Ae()}
+function Ae(){GL&&gSync();
+try{e.dispatchEvent(new CustomEvent("ksel",{detail:{lang:nt?nt.id:null,fam:nt?null:rt||null}}))}catch{}}
+function Pe(){t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),$t(null)}
+function Ie(){t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),J(),Le(null),nt&&$t(null)}
 function Re(e,n,r){let a=t.querySelector("#rgl");
 if(!a||nt!==e||!n)return;
 if(!n.home.length&&!n.dia.length)return void(a.hidden=!0);
@@ -17907,13 +17951,13 @@ t&&(o=1,s.set(t,1))}
 let l=[...s].map(([e,t])=>({f:e,cnt:t,isC:!e.properties.t&&!r[e.properties.c]||hf.C.includes(e),n:n(e),cn:hf.C.includes(e)?"":r[e.properties.c]||""})).sort((e,t)=>t.cnt-e.cnt),u=l.filter(e=>e.cnt>=2||e.cnt/o>=.03);
 return(u.length?u:l.slice(0,3)).slice(0,60)},i=a(da[e.lang].d,!0),s=new Set(i.map(e=>e.f)),o=a(da[e.lang].x||"",!1).filter(e=>!s.has(e.f));
 return ne[e.lang]={home:i,dia:o}}(e);
-n&&(n.dia.slice(0,40).forEach((t,n)=>We.append("path").attr("class","kr kdia "+e.family+(t.d?" kd":"")).style("--ri",Math.min(n,24)).style("--kf",window.__albColor?__albColor({data:{L:e}}):null).attr("d",z(t.f))),n.home.slice(0,64).forEach((t,n)=>We.append("path").attr("class","kr home "+e.family+(t.d?" kd":"")).style("--ri",Math.min(n,24)).style("--kf",window.__albColor?__albColor({data:{L:e}}):null).attr("d",z(t.f))),Re(e,n,!1),q.classed("kdm",!!(n.home[0]&&n.home[0].d||n.dia[0]&&n.dia[0].d)),oe=new Set(n.home.concat(n.dia).filter(e=>e.d).map(e=>e.i)),Ne(Bh(q.node())))})}
+n&&(n.dia.slice(0,40).forEach((t,n)=>We.append("path").attr("class","kr kdia "+e.family+(t.d?" kd":"")).style("--ri",Math.min(n,24)).style("--kf",window.__albColor?__albColor({data:{L:e}}):null).attr("d",z(t.f))),n.home.slice(0,64).forEach((t,n)=>We.append("path").attr("class","kr home "+e.family+(t.d?" kd":"")).style("--ri",Math.min(n,24)).style("--kf",window.__albColor?__albColor({data:{L:e}}):null).attr("d",z(t.f))),Re(e,n,!1),q.classed("kdm",!!(n.home[0]&&n.home[0].d||n.dia[0]&&n.dia[0].d)),oe=new Set(n.home.concat(n.dia).filter(e=>e.d).map(e=>e.i)),Ne(kV()))})}
 var Be=0;
 function Ke(e,t){let n=z.bounds(e),r=(n[0][0]+n[1][0])/2,a=(n[0][1]+n[1][1])/2,i=Math.max((n[1][0]-n[0][0])/2*2.6,b/90),s=Math.max((n[1][1]-n[0][1])/2*2.6,y/90);
 return Wt(r-i,a-s,r+i,a+s,t,60),[r,a]}
 function Ge(n,r,a){let i=Ct;
 if(n)return J(),Le(n),X=!1,function(e){if(!e)return;
-$t(null),q.selectAll("text.plabel").classed("fade",!1);
+$t(null),Q2.selectAll("text.plabel").classed("fade",!1);
 let n=e.hl.concat(e.dl),r=new Set(n.map(e=>($f(e.id)||{ancestors:()=>[]}).ancestors().find(e=>1===e.depth))),a=1===r.size&&[...r][0]?[...r][0]:(n[0]&&($f(n[0].id)||{ancestors:()=>[]}).ancestors().find(e=>1===e.depth))||Af();
 xe=a,je=null;
 let i='<div class="phd preg"><button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><span class="pfam"><i></i>'+ei(ve("rg"))+"</span><h3>"+ei(e.t||"")+"</h3>"+(e.s?'<p class="plin">'+ei(e.s)+"</p>":"")+"</div>";
@@ -17924,9 +17968,9 @@ if(J(),Le(n),X=!0,!n)return Z.classList.add("pin"),void Y({pointerType:"mouse",c
 let s=Ke(n,f?0:820);
 clearTimeout(Be),Be=setTimeout(()=>{if(te!==n)return;
 X=!0;
-let t=Bh(q.node()),a=z.centroid(n),i=e.getBoundingClientRect(),o=t.applyX(isFinite(a[0])?a[0]:s[0]),l=t.applyY(isFinite(a[1])?a[1]:s[1]);
+let t=kV(),a=z.centroid(n),i=e.getBoundingClientRect(),o=t.applyX(isFinite(a[0])?a[0]:s[0]),l=t.applyY(isFinite(a[1])?a[1]:s[1]);
 Z.classList.add("pin"),Y({pointerType:"mouse",clientX:i.left+o,clientY:i.top+l,target:q.node()},r)},f?30:880)}
-function Ue(e){let t=Bh(q.node()),n=Ws(e,q.node());
+function Ue(e){let t=kV(),n=Ws(e,q.node());
 return j.invert([t.invertX(n[0]),t.invertY(n[1])])}
 let He=0;
 q.on("pointermove.place",e=>{if(X||e.buttons||q.node().classList.contains("zooming")||"mouse"!==e.pointerType||!hf)return;
@@ -17939,14 +17983,14 @@ if(t.closest&&t.closest("g.pin,.clu")||!vt()||!hf)return;
 let n=le(Ue(e));
 if(!n)return X=!1,Le(null),J(),void(nt&&!p&&Pe());
 Ge((Ue(e),de(Ue(e))),n,e)}),A.selectAll("path").on("click",(e,t)=>{vt()&&hf||(e.stopPropagation(),J(),nn(t),Ht(t,950))}),E.append("g");
-let We=E.append("g").attr("class","ksel").attr("pointer-events","none"),$e=E.append("g"),Ve=E.append("g"),Ze=E.append("g"),Qe=E.append("g").attr("class","cities").attr("pointer-events","none"),Ye=E.insert("g","g.cities").attr("class","acities").attr("pointer-events","none"),Je=Jf.map(e=>{let t=j([e[2],e[1]]);
-return{n:e[0],p:e[3],x:t[0],y:t[1]}}),Xe=!!p,et=q.append("g").attr("class","labs"),tt=q.append("g").attr("class","labs");
+let We=E2.append("g").attr("class","ksel").attr("pointer-events","none"),$e=E2.append("g"),Ve=E2.append("g"),Ze=E2.append("g"),Qe=E2.append("g").attr("class","cities").attr("pointer-events","none"),Ye=E2.insert("g","g.cities").attr("class","acities").attr("pointer-events","none"),Je=Jf.map(e=>{let t=j([e[2],e[1]]);
+return{n:e[0],p:e[3],x:t[0],y:t[1]}}),Xe=!!p,et=Q2.append("g").attr("class","labs"),tt=Q2.append("g").attr("class","labs");
 x.forEach(e=>{e._xy=j([e.info.lon,e.info.lat])});
 let nt=null,rt=null,at=Ve.selectAll("g.pin").data(p?x.slice().sort((e,t)=>!!p.has(e.id)-!!p.has(t.id)):x).join(e=>{let t=e.append("g");
 return t.append("circle").attr("class","hit").attr("r",12.32),t.append("path").attr("class","mk"),t});
 function it(e){if(!Ye.selectAll("g.ac").size()){let e=Ye.selectAll("g.ac").data(Je).join("g").attr("class","ac");
 e.append("circle").attr("r",2.2),e.append("text").attr("x",5).attr("y",3.6).text(e=>e.n)}
-let t=Bh(q.node()),n=[],r=new Set(Qe.selectAll("g.city").data().map(e=>e.n)),a=x.map(e=>[t.applyX(e._xy[0]),t.applyY(e._xy[1])]),i=e<1.5?2500:e<2.2?1200:e<3.2?600:e<4.6?300:e<7?160:0;
+let t=kV(),n=[],r=new Set(Qe.selectAll("g.city").data().map(e=>e.n)),a=x.map(e=>[t.applyX(e._xy[0]),t.applyY(e._xy[1])]),i=e<1.5?2500:e<2.2?1200:e<3.2?600:e<4.6?300:e<7?160:0;
 Ye.selectAll("g.ac").each(function(s){let o=t.applyX(s.x),l=t.applyY(s.y),u=s.p>=i&&!r.has(s.n)&&o>6&&o<b-30&&l>6&&l<y-6;
 if(u&&a.some(e=>Math.hypot(e[0]-o,e[1]-l)<13)&&(u=!1),u){let e=[o-5,l-9,o+9+6.1*s.n.length,l+8],t=t=>e[0]<t[2]&&e[2]>t[0]&&e[1]<t[3]&&e[3]>t[1];
 n.some(t)||st.some(t)?u=!1:n.push(e)}
@@ -17958,12 +18002,12 @@ if(t.empty())return;
 let n=e<2?3:e<4?8:e<8?18:60,r=[],a=new Set;
 t.each(t=>{if(a.size>=n)return;
 let i=[t.x-5/e,t.y-9/e,t.x+t.w/e,t.y+9/e];
-r.some(e=>!(i[2]<e[0]||i[0]>e[2]||i[3]<e[1]||i[1]>e[3]))||(r.push(i),a.add(t.i))}),t.classed("kh",e=>!a.has(e.i))}(e),it(e),q.classed("zmid",e>=6).classed("zdeep",e>=11)}
+r.some(e=>!(i[2]<e[0]||i[0]>e[2]||i[3]<e[1]||i[1]>e[3]))||(r.push(i),a.add(t.i))}),t.classed("kh",e=>!a.has(e.i))}(e),it(e)}
 function lt(e){if(Qe.selectAll("g.city").remove(),!e||!e.info)return;
 let t=Kf&&Kf.M[e.lang];
 if(t&&t.p&&t.p.length){let e=t.p.map((e,t)=>{let n=j([e[1],e[2]]);
 return{n:e[0],x:n[0],y:n[1],i:t,w:6.4*e[0].length+12}}),n=Qe.selectAll("g.city").data(e).join("g").attr("class","city kp").style("animation-delay",(e,t)=>45*Math.min(t,20)+"ms");
-return n.append("circle").attr("r",2.5),n.append("text").attr("x",6).attr("y",3.8).text(e=>e.n),void ot(Bh(q.node()).k)}
+return n.append("circle").attr("r",2.5),n.append("text").attr("x",6).attr("y",3.8).text(e=>e.n),void ot(kV().k)}
 let n=ee[e.lang];
 if(!n){n=[];
 let t=T(e)?da[e.lang].d:"";
@@ -17975,7 +18019,7 @@ if(a.forEach(e=>{i.length<4&&!i.some(t=>Math.hypot(t.x-e.x,t.y-e.y)<14)&&i.push(
 return 6371*Math.hypot(n,r)};
 r.filter(e=>a.indexOf(e)<0&&t(e)<280&&e.p>=90).sort((e,n)=>t(e)-t(n)).slice(0,2-i.length).forEach(e=>i.push(e))}
 let s=Qe.selectAll("g.city").data(i).join("g").attr("class","city");
-s.append("circle").attr("r",2.8),s.append("text").attr("x",6).attr("y",3.8).text(e=>e.n),ot(Bh(q.node()).k)}
+s.append("circle").attr("r",2.8),s.append("text").attr("x",6).attr("y",3.8).text(e=>e.n),ot(kV().k)}
 function ut(e){return e===nt?1e12:e.cl?1e9+e.m.length:Xa(e)}
 at.attr("class",e=>"pin "+e.family+(p&&!p.has(e.id)?" dim":"")),at.select("path.mk").attr("d",e=>{var t;
 return yh(vf[t=e.family]||hh,5.6*Math.PI*5.6*(bf[t]||1))()}).style("fill",e=>Vf(e)),ot(1),at.on("pointerenter pointermove",(e,t)=>Y(e,"<b>"+ei(Na(t))+"</b><span>"+ei(Ca(t.family))+" · "+ei(Ma(t))+"</span>")).on("pointerleave",()=>J()),at.attr("tabindex",e=>p&&!p.has(e.id)?-1:0).attr("role","button").attr("aria-label",e=>Na(e)).on("click",(e,t)=>en(t)).on("keydown",(e,t)=>{"Enter"===e.key&&en(t)}),et.selectAll("text.ln").data(p?g:x).join("text").attr("class","plabel ln").text(e=>Na(e)).style("opacity",0);
@@ -17991,8 +18035,8 @@ s=e-c/2,o=e+c/2}
 if(u-l<d){let e=(l+u)/2;
 l=e-d/2,u=e+d/2}
 Wt(s,l,o,u,520)}
-function vt(e){return null==e&&(e=Bh(q.node()).k),!!p||!!nt||!!rt||e>=1.7}
-function bt(t){Ne(t=t||Bh(q.node())),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(Bh(q.node()))},90);
+function vt(e){return null==e&&(e=kV().k),!!p||!!nt||!!rt||e>=1.7}
+function bt(t){Ne(t=t||kV()),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(kV())},90);
 let n,r=t.k,a=[],i=vt(r);
 q.classed("ov",!i).classed("zin",r>=2.2),A.classed("dim",!!nt||i&&!p).classed("faint",!!p),p&&(a.push([0,0,b,52]),a.push([0,y-w(),b,y])),function(e){if(!p)return function(e){let t=x.length,n=x.map((e,t)=>t),r=e=>{for(;n[e]!==e;)n[e]=n[n[e]],e=n[e];
 return e},a=10/e;
@@ -18040,7 +18084,7 @@ a.push([n-i,r-i,n+i,r+i])}),Ve.selectAll("g.pin").each(e=>{if(p&&!p.has(e.id)||f
 let n=t.applyX(e._xy[0]),r=t.applyY(e._xy[1]);
 if(n>-20&&n<b+20&&r>-20&&r<y+20){let e=.82*s;
 a.push([n-e,r-e,n+e,r+e])}});
-let l=q.selectAll("text.plabel").attr("font-size",e=>e===nt||e.cl?14:12.5).classed("act",e=>e===nt).nodes().slice().sort((e,t)=>ut(t.__data__)-ut(e.__data__)),u=e.querySelector(".zoom");
+let l=Q2.selectAll("text.plabel").attr("font-size",e=>e===nt||e.cl?14:12.5).classed("act",e=>e===nt).nodes().slice().sort((e,t)=>ut(t.__data__)-ut(e.__data__)),u=e.querySelector(".zoom");
 if(u){let t=e.getBoundingClientRect(),n=u.getBoundingClientRect();
 a.push([n.left-t.left-4,n.top-t.top-4,n.right-t.left+4,n.bottom-t.top+4])}
 Qe.selectAll("g.city").each(e=>{let n=t.applyX(e.x),r=t.applyY(e.y);
@@ -18051,9 +18095,9 @@ if((n===nt?tt:et).node().appendChild(e),!i||!n.cl&&ft.has(n.id)||rt&&!n.cl&&n.fa
 let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
 for(let e=0;e<p.length;e++)if(d(p[e][3])&&!c(p[e][3])){m=p[e];
 break}
-m||n!==nt||(m=p[0]),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=q.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
+m||n!==nt||(m=p[0]),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),e.__o=[m[1]-l,m[2]-u],a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=Q2.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
 return r.width?[r.left-t.left-n,r.top-t.top-n,r.right-t.left+n,r.bottom-t.top+n]:null},i=(e,t)=>t.some(t=>e[0]<t[2]&&e[2]>t[0]&&e[1]<t[3]&&e[3]>t[1]);
-q.selectAll("text.plabel").each(function(){if("0"===this.style.opacity)return;
+Q2.selectAll("text.plabel").each(function(){if("0"===this.style.opacity)return;
 let e=a(this,1);
 e&&n.push(e)}),"0"!==$.style("opacity")&&$.selectAll("text").each(function(){let e=a(this,2);
 e&&n.push(e)}),Qe.selectAll("g.city").each(function(){if(this.classList.remove("kx"),this.classList.contains("kh"))return;
@@ -18062,17 +18106,96 @@ e&&(i(e,n)||i(e,r)?this.classList.add("kx"):r.push(e))}),st=n.concat(r),it(e.k)}
 $.selectAll("text").attr("dx",function(n){let r=t.applyX(j([n[1],n[2]])[0]),a=this.textContent.length*e*1.12/2+8;
 return r-a<4?4+a-r:r+a>b-4?b-4-a-r:0})}}
 var yt,kt,wt,xt,jt,St,_t,qt,Et,zt,Nt=null,Mt=0,Ct=null,Lt=!1,Tt=0,At="mouse",Pt=0,It=!1;
+/* How the base keeps up with a gesture.
+   kT is the view the base was last drawn at. kShow moves that drawing (as a picture) to where view T needs it.
+   kPaint redraws it exactly at the view. A redraw in mid-gesture happens only when the picture no longer covers
+   the box or has been enlarged past 1.6 times, and never more often than the device can take (kMs = how long the
+   last redraw took).
+   The will-change hint is on only while the picture is being moved, and off for the frame of every redraw. With
+   the hint on, Chrome never re-picks the resolution of a layer: a layer made while zoomed in 150 times kept that
+   resolution after zooming out and the whole map was then drawn about 190 times too large (measured: 324 tiles
+   per redraw instead of 15, frames of 300 to 900 ms, and in the end a locked compositor). The base stays its own
+   layer through translateZ(0) in the stylesheet, so switching the hint costs nothing. */
+/* ---- GL: the view, and the link to the map engine (site/map-gl.js) ----
+   The rest of this code thinks in one transform T (k = how many times the first view, x / y = shift in pixels), as it always did.
+   kV reads it from the engine, kGo sends one to it, kTick runs on every frame the engine draws. */
+function kV(){if(!GL)return Bh(q.node());
+if(!GM)return gT;
+let v=GM.view(),k=v.s/M;
+return Fh.translate(b/2-k*(v.x*M+C[0]),y/2-k*(v.y*M+C[1])).scale(k)}
+function kGo(T,ms){gT=T;
+GM?GM.jump({s:T.k*M,x:((b/2-T.x)/T.k-C[0])/M,y:((y/2-T.y)/T.k-C[1])/M},f?0:ms||0):(kTick(T),clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&bt()},0))}
+function kTick(T){let t=T.k,z=t>=11?2:t>=6?1:0;
+Rt&&Rt.classList.toggle("on",!Gt(T)||!!nt||!!te),GL?(E.attr("transform",T),z!==gZ&&(gZ=z,q.classed("zmid",z>0).classed("zdeep",z>1))):kMove(T),E2.attr("transform",T),ot(t),kFollow(T),$.selectAll("text").attr("transform",e=>{let n=j([e[1],e[2]]);
+return"translate("+n[0]+","+n[1]+") scale("+1/Math.max(t,gOne)+") translate("+-n[0]+","+-n[1]+")"}),$e.selectAll("circle").attr("r",11.76/Math.pow(t,.96)),Ot=T}
+function gHome(){let B=[1e9,1e9,-1e9,-1e9];
+x.forEach(e=>{if(!T(e))return;
+let u=U(e);
+B=[Math.min(B[0],u[0]),Math.min(B[1],u[1]),Math.max(B[2],u[2]),Math.max(B[3],u[3])]});
+if(!(B[2]>B[0]))return Fh;
+let pad=b<640?10:36,top=b<640?58:30,k=Math.min((b-2*pad)/(B[2]-B[0]),(y-top-pad)/(B[3]-B[1]));
+return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-(B[0]+B[2])/2,-(B[1]+B[3])/2)}
+function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k;
+kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
+/* what is chosen goes to the engine, which sets how strong every area is drawn */
+function gSync(){if(!GM)return;
+let th=document.documentElement.getAttribute("data-theme");
+GM.set({sel:nt,fam:nt?null:rt||null,conc:!!p,theme:"dark"===th||!th&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}),clearTimeout(gC),gC=setTimeout(gCity,500)}
+/* on phones, general city names show only inside the chosen language's area */
+function gCity(){if(!q.node().isConnected)return;
+let ph=matchMedia("(max-width: 768px)").matches;
+Ye.selectAll("g.ac").each(function(d){!ph||nt&&ce(nt,"d",[(d.x-C[0])/M,(d.y-C[1])/M])?this.removeAttribute("data-off"):this.setAttribute("data-off","1")})}
+let gLang=h=>h&&x.find(e=>e.lang===h.name),gTip=l=>"<b>"+ei(Na(l))+"</b><span>"+ei(Ca(l.family))+" · "+ei(Ma(l))+"</span>";
+/* pointer over the map: a detailed area names its language; on the first view a broad area does; further in, the place under the pointer */
+function gHover(ev){let o=ev.originalEvent;
+if(!o||X||o.buttons||q.node().classList.contains("zooming"))return;
+if(o.target.closest&&o.target.closest("g.pin,.clu"))return;
+let h=GM.hit(ev.point),l=h&&("lang"===h.t||"zone"===h.t&&!vt())?gLang(h):null;
+GM.map.getCanvas().style.cursor=l||vt()&&hf?"pointer":"";
+GM.hover(l&&"zone"===h.t?l.lang:null);
+if(l)return De(null),Y(o,gTip(l));
+if(!vt()||!hf)return J(),De(null);
+He||(He=requestAnimationFrame(()=>{He=0;
+let t=Ue(o),n=le(t);
+n?(Y(o,n),De(de(t))):(J(),De(null))}))}
+/* click or tap on the map: a detailed area chooses its language; on the first view a broad area does; further in, the place opens */
+function gClick(ev){let o=ev.originalEvent,t=o&&o.target;
+if(!o||t.closest&&t.closest("g.pin,.clu"))return;
+let h=GM.hit(ev.point);
+if(h&&"lang"===h.t){let l=gLang(h);
+return void(l&&kt&&(J(),kt.select(l.id)))}
+if(!vt()||!hf){let l=h&&"zone"===h.t&&gLang(h);
+return void(l&&(J(),nn(l),Ht(l,950)))}
+let n=le(Ue(o));
+if(!n)return X=!1,Le(null),J(),void(nt&&!p&&Pe());
+Ge(de(Ue(o)),n,o)}
+function gStart(){(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=1").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(!q.node().isConnected)return;
+let T0=gT;
+GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
+start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(err=>{console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,a.fail&&a.fail()})}
+let kT=Fh,kCss=!1,kTm=0,kAt=0,kMs=30,kHold=!1;
+function kShow(T){let s=T.k/kT.k,dx=T.x-s*kT.x,dy=T.y-s*kT.y,n=q.node().style;
+return 1e-5>Math.abs(s-1)&&.05>Math.abs(dx)&&.05>Math.abs(dy)?kCss&&(n.transform="",n.willChange="",kCss=!1):(n.transform="translate3d("+dx+"px,"+dy+"px,0) scale("+s+")",kHold||(n.willChange="transform"),kCss=!0),[s,dx,dy]}
+function kPaint(P){clearTimeout(kTm),kTm=0;
+let t0=performance.now(),n=q.node().style;
+Et&&fe(P)&&he(),kT=P,E.attr("transform",P),q.classed("zmid",P.k>=6).classed("zdeep",P.k>=11),n.transform="",n.willChange="",kCss=!1,kHold=!0,kAt=t0,requestAnimationFrame(()=>{kHold=!1,requestAnimationFrame(()=>{kMs=.5*kMs+.5*Math.max(0,Math.min(500,performance.now()-t0-16))})})}
+function kMove(T){let now=performance.now(),s=T.k/kT.k,dx=T.x-s*kT.x,dy=T.y-s*kT.y,open=dx-KP*b*s>.5||dx+(1+KP)*b*s<b-.5||dy-KP*y*s>.5||dy+(1+KP)*y*s<y-.5,gap=Math.min(420,Math.max(120,4*kMs));
+/* the picture is never shown stretched past 4 times or shrunk below a quarter: beyond that it is redrawn at once, however recent the last redraw */
+if((open||s>1.6)&&now-kAt>gap||s>4||s<.25)return kPaint(T);
+kShow(T),clearTimeout(kTm),kTm=setTimeout(()=>{kTm=0,kCss&&q.node().isConnected&&kPaint(kV())},130)}
+/* labels keep their place next to their pin while the map moves; they are laid out again when it rests */
+function kFollow(T){Q2.selectAll("text.plabel").each(function(d){let o=this.__o;
+o&&d&&d._xy&&"0"!==this.style.opacity&&(this.setAttribute("x",(T.applyX(d._xy[0])+o[0]).toFixed(1)),this.setAttribute("y",(T.applyY(d._xy[1])+o[1]).toFixed(1)))})}
+function kEnd(){kPaint(kV()),q.classed("zooming",!1),bt()}
 let Rt=e.querySelector(".mreset")||(()=>{let t=e,n=document.createElement("button");
 n.type="button",n.className="mreset kreset";
 let r={en:"Reset",sq:"Rifillo",de:"Neustart",sr:"Ispočetka",sc:"Испочетка"}[ya()]||"Reset";
-return n.setAttribute("aria-label",r),n.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',n.setAttribute("title",r),t.appendChild(n),n})(),Ot=null,Dt=Qh().scaleExtent([.8,150]).translateExtent(function(e,t,n){let r=e.scale()/1e3,a=e.translate(),i=a[0]+-1490*r,s=a[0]+1660*r,o=a[1]+-1670*r,l=a[1]+-10*r,u=t/.55,c=n/.55,d=(i+s)/2,h=(o+l)/2;
-return s-i<u&&(i=d-u/2,s=d+u/2),l-o<c&&(o=h-c/2,l=h+c/2),[[i,o],[s,l]]}(j,b,y)).filter(e=>!(e.button||e.ctrlKey&&"wheel"!==e.type||0===String(e.type).indexOf("touch")||"touch"===e.pointerType)).on("start",()=>{clearTimeout(Mt),De(null),q.classed("zooming",!0),X=!1,J()}).on("end",()=>{Lt||(q.classed("zooming",!1),cancelAnimationFrame(0),bt())}).on("zoom",e=>{Et&&fe(e.transform)&&he();
-let t=e.transform.k;
-Rt&&Rt.classList.toggle("on",!Gt(e.transform)||!!nt||!!te),E.attr("transform",e.transform),ot(t),$.selectAll("text").attr("transform",e=>{let n=j([e[1],e[2]]);
-return"translate("+n[0]+","+n[1]+") scale("+1/Math.max(t,1)+") translate("+-n[0]+","+-n[1]+")"}),$e.selectAll("circle").attr("r",11.76/Math.pow(t,.96)),Ot=e.transform});
-q.call(Dt);
-{let e=q.node(),t=new Map,n=null,r=0,a=null,i=!1,s=null,o=0,l=null,u=()=>{let t=Nt||(Nt=e.getBoundingClientRect());
-return[b/(t.width||b),y/(t.height||y),t.left,t.top]},c=e=>{let t=u();
+return n.setAttribute("aria-label",r),n.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',n.setAttribute("title",r),t.appendChild(n),n})(),Ot=null,Dt=Qh().extent([[0,0],[b,y]]).scaleExtent([.8,150]).translateExtent(function(e,t,n){let r=e.scale()/1e3,a=e.translate(),i=a[0]+-1490*r,s=a[0]+1660*r,o=a[1]+-1670*r,l=a[1]+-10*r,u=t/.55,c=n/.55,d=(i+s)/2,h=(o+l)/2;
+return s-i<u&&(i=d-u/2,s=d+u/2),l-o<c&&(o=h-c/2,l=h+c/2),[[i,o],[s,l]]}(j,b,y)).filter(e=>!(e.button||e.ctrlKey&&"wheel"!==e.type||0===String(e.type).indexOf("touch")||"touch"===e.pointerType)).on("start",()=>{clearTimeout(Mt),De(null),q.classed("zooming",!0),X=!1,J()}).on("end",()=>{Lt||kEnd()}).on("zoom",e=>kTick(e.transform));
+GL||q.call(Dt);
+if(GL){let w=t=>{"Escape"===t.key&&(!t.target||!/INPUT|TEXTAREA/.test(t.target.tagName))&&(nt||rt||!Gt(kV()))&&Te()},pd=ev=>{At=ev.pointerType};
+window.addEventListener("keydown",w),e.addEventListener("pointerdown",pd,!0),zt=()=>{window.removeEventListener("keydown",w),e.removeEventListener("pointerdown",pd,!0),kMo.disconnect(),clearTimeout(gB),clearTimeout(gC),GM&&GM.off(),GM=null}}else{let e=q.node(),t=new Map,n=null,r=0,a=null,i=!1,s=null,o=0,l=null,u=()=>{let h=e.parentNode,t=Nt||(Nt=h.getBoundingClientRect());
+return[b/(h.clientWidth||b),y/(h.clientHeight||y),t.left+h.clientLeft,t.top+h.clientTop]},c=e=>{let t=u();
 return[(e.clientX-t[2])*t[0],(e.clientY-t[3])*t[1]]},d=e=>Dt.constrain()(Fh.translate(e.x,e.y).scale(Math.max(.8,Math.min(150,e.k))),[[0,0],[b,y]],Dt.translateExtent()),h=()=>{let r=[...t.values()],a=Bh(e);
 n=r.length>1?{m:"z",T:a,c:[(r[0][0]+r[1][0])/2,(r[0][1]+r[1][1])/2],d:Math.hypot(r[0][0]-r[1][0],r[0][1]-r[1][1])||1}:r.length?{m:"p",T:a,c:r[0].slice()}:null},m=()=>{if(!n)return;
 let e,i=[...t.values()];
@@ -18085,24 +18208,41 @@ let n=c(e);
 t.set(e.pointerId,n),!i&&Math.hypot(n[0]-s[0],n[1]-s[1])>14&&(i=!0),i&&m()},v=e=>{if(!t.has(e.pointerId))return;
 if(t.delete(e.pointerId),t.size)return void h();
 let s=Lt;
-if(Lt=!1,n=null,cancelAnimationFrame(r),r=0,a=null,i)Tt=performance.now(),s&&(q.classed("zooming",!1),cancelAnimationFrame(0),bt());
+if(Lt=!1,n=null,cancelAnimationFrame(r),r=0,a=null,i)Tt=performance.now(),s&&kEnd();
 else if("pointercancel"!==e.type){let t=c(e),n=performance.now();
 l&&n-o<320&&Math.hypot(t[0]-l[0],t[1]-l[1])<32&&!(e.target&&e.target.closest&&e.target.closest("g.pin,.clu"))?(o=0,l=null,Tt=n,q.transition().duration(f?0:300).ease(Ao).call(Dt.scaleBy,2,t)):(o=n,l=t)}},k=e=>{if(performance.now()-Tt<380)return e.stopPropagation(),void e.preventDefault();
 It&&(It=!1,e.stopPropagation(),e.preventDefault(),X=!1,Le(null),J(),nt&&!p&&Pe(),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null),bt(),Ae()))},w=t=>{"Escape"===t.key&&(!t.target||!/INPUT|TEXTAREA/.test(t.target.tagName))&&(nt||rt||!Gt(Bh(e)))&&Te()};
-q.on("pointerdown.kt",e=>{Nt=null,It=!1,At=e.pointerType,"mouse"!==e.pointerType&&(t.set(e.pointerId,c(e)),1===t.size?(i=!1,s=c(e),q.interrupt()):i=!0,h())}),window.addEventListener("pointermove",g,{passive:!0}),window.addEventListener("pointerup",v),window.addEventListener("pointercancel",v),window.addEventListener("keydown",w),e.addEventListener("click",k,!0),zt=()=>{window.removeEventListener("pointermove",g),window.removeEventListener("pointerup",v),window.removeEventListener("pointercancel",v),window.removeEventListener("keydown",w),e.removeEventListener("click",k,!0),cancelAnimationFrame(r)}}
+q.on("pointerdown.kt",e=>{Nt=null,It=!1,At=e.pointerType,"mouse"!==e.pointerType&&(t.set(e.pointerId,c(e)),1===t.size?(i=!1,s=c(e),q.interrupt()):i=!0,h())}),window.addEventListener("pointermove",g,{passive:!0}),window.addEventListener("pointerup",v),window.addEventListener("pointercancel",v),window.addEventListener("keydown",w),e.addEventListener("click",k,!0);
+/* wheel and trackpad: each step sets a target and the view glides to it, instead of jumping a notch at a time */
+let wK=0,wP=null,wR=0,wT=0,wS=()=>{let now=performance.now(),T=Bh(e),a=1-Math.exp(-Math.max(8,Math.min(50,now-wT))/55);
+wT=now;
+let lk=Math.log(T.k)+a*(Math.log(wK)-Math.log(T.k)),kk=.004>Math.abs(Math.log(wK)-lk)?wK:Math.exp(lk),x0=(wP[0]-T.x)/T.k,y0=(wP[1]-T.y)/T.k;
+Lt=!0,q.call(Dt.transform,d(Fh.translate(wP[0]-x0*kk,wP[1]-y0*kk).scale(kk))),kk===wK?(wR=0,Lt=!1,kEnd()):wR=requestAnimationFrame(wS)};
+q.on("wheel.zoom",null),e.addEventListener("wheel",ev=>{ev.preventDefault();
+let T=Bh(e),dl=-ev.deltaY*(1===ev.deltaMode?.05:ev.deltaMode?1:.002)*(ev.ctrlKey?10:1);
+wR||(wK=T.k,wT=performance.now()-16);
+let nk=Math.max(.8,Math.min(150,wK*Math.pow(2,dl)));
+if(!wR&&1e-4>Math.abs(Math.log(nk/T.k)))return;
+wR||q.interrupt(),wK=nk,wP=e.__kpt(ev),wR||(wR=requestAnimationFrame(wS))},{passive:!1});
+/* what lands on a pin or a cluster (top drawing) still drives the map underneath */
+let o2=Q2.node(),fw=ev=>{"wheel"===ev.type&&ev.preventDefault(),e.dispatchEvent(new ev.constructor(ev.type,{bubbles:!1,cancelable:!0,view:window,detail:ev.detail,clientX:ev.clientX,clientY:ev.clientY,screenX:ev.screenX,screenY:ev.screenY,ctrlKey:ev.ctrlKey,shiftKey:ev.shiftKey,altKey:ev.altKey,metaKey:ev.metaKey,button:ev.button,buttons:ev.buttons,deltaX:ev.deltaX,deltaY:ev.deltaY,deltaMode:ev.deltaMode,pointerId:ev.pointerId,pointerType:ev.pointerType,isPrimary:ev.isPrimary}))};
+["wheel","mousedown","dblclick","pointerdown"].forEach(t=>o2.addEventListener(t,fw,{passive:!1})),o2.addEventListener("click",k,!0),zt=()=>{window.removeEventListener("pointermove",g),window.removeEventListener("pointerup",v),window.removeEventListener("pointercancel",v),window.removeEventListener("keydown",w),e.removeEventListener("click",k,!0),cancelAnimationFrame(r),cancelAnimationFrame(wR),clearTimeout(kTm),kMo.disconnect()}}
 let Ft=e.querySelector("#zi"),Bt=e.querySelector("#zo");
-Ft&&(Ft.onclick=()=>q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1.8)),Bt&&(Bt.onclick=()=>q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1/1.8));
+Ft&&(Ft.onclick=()=>GL?gZoom(1.8):q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1.8)),Bt&&(Bt.onclick=()=>GL?gZoom(1/1.8):q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1/1.8));
 let Kt=(i=x.map(e=>e._xy[0]),s=x.map(e=>e._xy[1]),o=Math.min(...i),l=Math.max(...i),u=Math.min(...s),(d=Math.max(1,Math.min(1.6,.62*y/Math.max(1,(c=Math.max(...s))-u))))<9?(b<640?phoneHome():Fh):Fh.translate(b/2,y/2+10).scale(d).translate(-(o+l)/2-.06*(l-o),-(u+c)/2)),Gt=e=>.04>Math.abs(e.k-Kt.k)&&30>Math.abs(e.x-Kt.x)&&30>Math.abs(e.y-Kt.y);
+/* GL: the first view shows every language area, on every screen; what appears at which scale is unchanged */
+GL&&(Kt=gHome(),gOne=Math.min(1,Kt.k));
 function phoneHome(){let ys=x.filter(e=>e._xy[0]>0&&e._xy[0]<b).map(e=>e._xy[1]),u=Math.min(...ys),c=Math.max(...ys),top=64,free=y-top-12,k=Math.max(1,Math.min(1.15,.8*free/Math.max(1,c-u)));
 return Fh.translate(b/2,top+free/2).scale(k).translate(-b/2,-(u+c)/2)}
-function Ut(e){q.transition().duration(f?0:e||620).ease(Po).call(Dt.transform,Kt)}
+function Ut(e){GL?kGo(Kt,e||620):q.transition().duration(f?0:e||620).ease(Po).call(Dt.transform,Kt)}
 function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,i=Math.max(n[2]-n[0],b/c),s=Math.max(n[3]-n[1],y/c);
 Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
-q.transition().duration(f?0:a).ease(Po).call(Dt.transform,Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2))}
+let TT=Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2);
+GL?kGo(TT,a):q.transition().duration(f?0:a).ease(Po).call(Dt.transform,TT)}
 function $t(e){nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
-let t=Bh(q.node()).k;
-Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&(T(e)?O.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].d).each(function(){let c=Vf(e);
+let t=kV().k;
+Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&!GL&&(T(e)?O.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].d).each(function(){let c=Vf(e);
 c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)}):R.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",G(e)).each(function(){let c=Vf(e);
 c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)})),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),kn=e&&!p?nearMap(e):null,lt(e),Fe(e),bt(),Ae()}
 Rt&&(Rt.onclick=()=>Te()),window.__kMapHome=Te;
@@ -18111,7 +18251,8 @@ function Qt(e,t){let n=1e9;
 g.forEach(t=>{if(t!==e){let r=Math.hypot(t._xy[0]-e._xy[0],t._xy[1]-e._xy[1]);
 r<n&&(n=r)}});
 let r=Math.min(40,Math.max(5,30/Math.max(n,.3))),a=52+(y-52-w())/2;
-q.transition().duration(f?0:t).ease(Po).call(Dt.transform,Fh.translate(b/2,a).scale(r).translate(-e._xy[0],-e._xy[1]))}
+let TT=Fh.translate(b/2,a).scale(r).translate(-e._xy[0],-e._xy[1]);
+GL?kGo(TT,t):q.transition().duration(f?0:t).ease(Po).call(Dt.transform,TT)}
 function Yt(e,t){(e!==Vt||t)&&(Vt=e,k.forEach((t,n)=>{t.classList.toggle("on",n===e),t.setAttribute("aria-selected",n===e)}),$t(g[e]),t&&Qt(g[e],560))}
 function Jt(e,t){let n=k[e];
 v.scrollTo({left:n.offsetLeft-(v.clientWidth-n.offsetWidth)/2,behavior:t&&!f?"smooth":"auto"})}
@@ -18130,10 +18271,10 @@ n===Vt?Ja(g[n].id):Jt(n,!0)});
 let tn='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 function gw(){t.querySelectorAll("button[data-go]").forEach(e=>{let n=fa[e.dataset.go],r=!(n&&n.entries&&n.entries.length),a=e.parentNode;
 e.hidden=r,a.classList.contains("acts")&&(a.hidden=r&&!a.querySelector("button:not([data-go])"))}),window.__lexReady||window.addEventListener("etimo:lex",gw,{once:!0})}
-function nn(e){$t(e),q.selectAll("text.plabel").classed("fade",t=>t!==e);
+function nn(e){$t(e),Q2.selectAll("text.plabel").classed("fade",t=>t!==e);
 let n=e.info,r=n.sp;
 t.innerHTML='<button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><div class="mhd"><span class="pill"><span class="dot '+e.family+'"></span>'+ei(Ca(e.family))+"</span><h3>"+ei(Na(e))+(n.an&&n.an!==Na(e)?'<span class="man">'+ei(n.an)+"</span>":"")+'</h3></div><div class="mst"><div><small>'+ei(ye("rgn"))+"</small><b>"+ei(Ma(e))+"</b></div>"+(r?"<div><small>"+ei(ye("spk"))+"</small><b>"+ei(za(r.v))+"</b></div>":"")+(n.lv?"<div><small>"+ei(ye("st"))+"</small><b>"+ei(Aa(n.lv))+"</b></div>":"")+'</div><div class="rgl" id="rgl" hidden></div><div class="acts"><button type="button" class="btn mmore" aria-expanded="false">'+ei(ye("more"))+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button><button type="button" class="btn pri" data-go="'+e.id+'">'+ei(h.openWords)+'</button></div><div class="mx" hidden>'+(Pf(e)?'<p class="mlin">'+ei(Pf(e))+"</p>":"")+(me()?"":panelSecs(e,nearFam(e)))+"</div>",t.classList.toggle("msheet",!me()),t.classList.remove("mopen"),t.querySelector(".mmore").onclick=function(){let o=t.classList.toggle("mopen");
-this.setAttribute("aria-expanded",o),t.querySelector(".mx").hidden=!o,o||(t.scrollTop=0)},gw(),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,q.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Ee(e)}
+this.setAttribute("aria-expanded",o),t.querySelector(".mx").hidden=!o,o||(t.scrollTop=0)},gw(),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Ee(e)}
 t.onclick=e=>{let n=e.target,r=n.closest("[data-sel]"),a=n.closest("[data-pl]");
 if(a)return void function(e){let n=we[e];
 if(!n)return;
@@ -18158,14 +18299,17 @@ o&&(t.hidden=!0,Ja(o.dataset.go))};
 let rn=a.view;
 a.fam&&(rt=a.fam,q.classed("fsel",!0).attr("data-f",a.fam));
 let an=rn?rn.sel?fa["l-"+rn.sel]:null:n?fa["l-"+n]:null;
-if(bt(),rn){an&&nn(an);
-let e=j(rn.c),t=Math.max(1,Math.min(150,rn.zs/j.scale())),n=y-52-w();
-q.call(Dt.transform,Fh.translate(b/2,t>1.01?52+n/2:y/2).scale(t).translate(-e[0],-e[1]))}else if(an)nn(an),setTimeout(()=>Ht(an,760),60*!f);
+if(GL&&kGo(Kt,0),bt(),rn){an&&nn(an);
+let e=j(rn.c),t=Math.max(GL?.8*gOne:1,Math.min(150,rn.zs/j.scale())),n=y-52-w();
+{let TT=Fh.translate(b/2,t>1.01?52+n/2:y/2).scale(t).translate(-e[0],-e[1]);
+GL?kGo(TT,0):q.call(Dt.transform,TT)}}else if(an)nn(an),setTimeout(()=>Ht(an,760),60*!f);
 else if(g.length){if(g.length){let e=g.map(e=>e._xy[0]),t=g.map(e=>e._xy[1]);
-Yt(0,!1),setTimeout(()=>Wt(Math.min(...e)-12,Math.min(...t)-12,Math.max(...e)+12,Math.max(...t)+12,700),60*!f)}}else if(f)q.call(Dt.transform,Kt);
+Yt(0,!1),setTimeout(()=>Wt(Math.min(...e)-12,Math.min(...t)-12,Math.max(...e)+12,Math.max(...t)+12,700),60*!f)}}else if(GL);
+else if(f)q.call(Dt.transform,Kt);
 else{let e=(b/2-Kt.x)/Kt.k,t=(y/2-Kt.y)/Kt.k,n=Math.max(.6,.58*Kt.k);
 q.call(Dt.transform,Fh.translate(b/2-e*n,y/2-t*n).scale(n)),q.transition().delay(250).duration(1600).ease(Po).call(Dt.transform,Kt)}
 f||(Ve.selectAll("g.pin").each(function(e,t){this.style.setProperty("--pi",t%90)}),q.classed("kboot",!0),setTimeout(()=>q.classed("kboot",!1),3600));
+GL&&gStart();
 let sn={cauc:[38,39.5,50.5,45],dag:[45.2,40.8,48.6,43.7],north:[12,55,140,75]};
 return Uf&&!p&&setTimeout(()=>{let e=Uf;
 if(e&&q.node().isConnected&&kt&&(Uf=null,kt.family(e.fam),e.sub)){let t=new Set(e.ids),n=1e9,r=1e9,a=-1e9,i=-1e9;
@@ -18176,11 +18320,11 @@ let n,r;
 n=j([(t=sn[e])[0],t[3]]),r=j([t[2],t[1]]),Wt(Math.min(n[0],r[0]),Math.min(n[1],r[1]),Math.max(n[0],r[0]),Math.max(n[1],r[1]),560)}},select(e){let t=x.find(t=>t.id===e);
 if(t){if(p){let e=g.indexOf(t);
 return void(e>=0&&(e===Vt?Qt(t,520):Jt(e,!0)))}
-J(),Le(null),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),nn(t),Ht(t,1e3)}},home(){Te()},view(){let e=Bh(q.node()),t=y-52-w(),n=e.k>1.01?52+t/2:y/2;
+J(),Le(null),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),nn(t),Ht(t,1e3)}},home(){Te()},view(){let e=kV(),t=y-52-w(),n=e.k>1.01?52+t/2:y/2;
 return{c:j.invert([e.invertX(b/2),e.invertY(n)]),zs:e.k*j.scale(),sel:nt&&!p?nt.id.replace(/^l-/,""):null}},family(e){if(e&&Ie(),rt=e,q.classed("fsel",!!e).attr("data-f",e||null),pt=null,!e)return bt(),Ut(800),void Ae();
 let t=1e9,n=1e9,r=-1e9,a=-1e9;
 x.filter(t=>t.family===e).forEach(e=>{let i=T(e)?U(e):[e._xy[0]-4,e._xy[1]-4,e._xy[0]+4,e._xy[1]+4];
-t=Math.min(t,i[0]),n=Math.min(n,i[1]),r=Math.max(r,i[2]),a=Math.max(a,i[3])}),bt(),Wt(t,n,r,a,1e3),Ae()},destroy(){zt(),clearTimeout(Pt),window.__kMapHome=null,t.hidden=!0,t.onclick=null,v&&v.removeEventListener("scroll",Xt),q.interrupt(),q.remove()}}}(i.current,n,e,t,{view:l.current,fam:w.current}),()=>{o.current&&(l.current=o.current.view(),o.current.destroy()),o.current=null}},[e,t,n,r,y]),
+t=Math.min(t,i[0]),n=Math.min(n,i[1]),r=Math.max(r,i[2]),a=Math.max(a,i[3])}),bt(),Wt(t,n,r,a,1e3),Ae()},destroy(){zt(),clearTimeout(Pt),window.__kMapHome=null,t.hidden=!0,t.onclick=null,v&&v.removeEventListener("scroll",Xt),q.interrupt(),q.remove(),Q2.remove()}}}(i.current,n,e,t,{view:l.current,fam:w.current,fail:()=>k(e=>e+1)}),()=>{o.current&&(l.current=o.current.view(),o.current.destroy()),o.current=null}},[e,t,n,r,y]),
 (0,m.useEffect)(()=>{l.current=null},[e,t]),
 (0,m.useEffect)(()=>{let e=i.current?i.current.clientWidth:0,t=i.current?i.current.clientHeight:0,n=null,r=new ResizeObserver(()=>{clearTimeout(n),n=setTimeout(()=>{let n=i.current;
 n&&(Math.abs(n.clientWidth-e)>24||Math.abs(n.clientHeight-t)>24)&&(e=n.clientWidth,t=n.clientHeight,k(e=>e+1))},140)}),__mo=new MutationObserver(()=>k(e=>e+1));

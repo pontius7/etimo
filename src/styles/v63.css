@@ -1,0 +1,17 @@
+/* Map in two drawings (see the note at the top of the map code in src/app/6-app-screens-and-startup.js).
+   base: areas, borders, relief. Drawn a quarter larger than the box on every side and moved as a picture while a gesture runs.
+   top:  pins, clusters, city names, labels. Redrawn on every frame, so it stays sharp. Only pins and clusters take the pointer; everything else falls through to the base. */
+.mapbox svg[data-kl=base]{position:absolute;left:-25%;top:-25%;width:150%;height:150%;transform-origin:calc(100%/6) calc(100%/6);transform:translateZ(0)}
+.mapbox svg[data-kl=top]{position:absolute;left:0;top:0;pointer-events:none}
+.mapbox svg[data-kl=top] :where(g.pin,.clu){pointer-events:auto}
+/* No fades on the base, and none on the family names. While an SVG group fades, Chrome draws it as a separate layer as large
+   as the group itself. For a whole-map group zoomed in, that is hundreds of thousands of pixels across, and the compositor
+   stalls (measured: frames of up to 2.4 s, and a full lock-up at the deepest zoom). So everything in the base changes state
+   at once (the relief image keeps its one fade-in on load), and no animation there is left "filled" after it ends.
+   Pins, clusters and labels are small and keep their fades. */
+.mapbox svg[data-kl=base] :not(image){transition:none!important}
+.mapbox svg[data-kl=base].m-in .zones{animation-fill-mode:backwards}
+.mapbox svg[data-kl=base] .d2l{animation:none}
+.mapbox svg[data-kl=top] .regs{transition:none!important}
+.mapbox svg[data-kl=top] .city{opacity:1;animation:kCityIn .45s .12s ease backwards}
+@keyframes kCityIn{from{opacity:0}}

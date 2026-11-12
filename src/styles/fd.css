@@ -31,9 +31,6 @@
 .fdw:has(.fdsr)>p.empty,.fdw:has(.fdsr) .sres>p.empty{display:none}
 @media (prefers-reduced-motion:reduce){.fdload i{animation:none}
 }
-/* touch screens with dense pixels: cheaper path rasterising on the map (no change on desktop) */
-@media (hover:none) and (min-resolution:2dppx){.mapbox svg .zones path,.mapbox svg g.adm path{shape-rendering:optimizeSpeed}
-}
 /* phones + tablets: one header row at the top, the main menu at the bottom of the screen (the original
    design; it sat under the header only while a hosting badge covered the bottom edge).
    --tabh is the full height of the bottom bar: the buttons, its top border, and its bottom padding.

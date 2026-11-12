@@ -1423,7 +1423,7 @@ to{opacity:1;transform:none}
 .mapbox svg.fsel .zones{opacity:calc(var(--zone-op) * 1.1)}
 .mtip .hm{color:var(--hd-ink);border-top:1px solid #ffffff2e;margin-top:.25rem;padding-top:.3rem;font-size:.75rem;line-height:1.35}
 .mtip.pin{pointer-events:none}
-.mapbox svg.zooming .adm,.mapbox svg.zooming .labs{display:none}
+
 :root{--glass:#faf9f6db;--glass-line:#06110e1a;--glass-sh:0 4px 16px #06110e1f}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--glass:#091814d1;--glass-line:#ffffff1a;--glass-sh:0 4px 18px #00000073}
 }

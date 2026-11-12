@@ -1,0 +1,10 @@
+/* The map engine's box (site/map-gl.js): it lies under the page's two drawings, which sit inside it so that a gesture
+   starting on a pin still reaches the map. Only these few rules of the engine's own stylesheet are needed. */
+.mapbox .kgl{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .5s ease}
+.mapbox .kgl.on{opacity:1}
+.kgl .maplibregl-canvas-container{position:absolute;inset:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.kgl canvas.maplibregl-canvas{position:absolute;left:0;top:0;outline:0}
+.maplibregl-canary{background-color:salmon}
+/* with the engine drawing the base, the base drawing only holds the dimming mask and deep-zoom names: nothing to move as a picture, nothing to catch the pointer */
+.mapbox svg[data-kl=base][data-gl]{pointer-events:none;transform:none;will-change:auto}
+@media (prefers-reduced-motion:reduce){.mapbox .kgl{transition:none}}
