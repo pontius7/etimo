@@ -34,16 +34,23 @@ const LABEL_FROM = 12, LABEL_ALL = 40;   // municipality names: the main ones fr
 const json = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r.status); return r.json(); });
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-let engine = null;
+let engine = null, made = null, gen = 0;
+/* Takes the engine out of the page again: its box, its map and the kept copy. The page calls it when it goes back to the old map. */
+export function drop() {
+  gen++;
+  if (made) { try { made.map && made.map.remove(); } catch {} made.box.remove(); made = null; }
+  if (window.__kgl) delete window.__kgl;
+  engine = null;
+}
 /* The page calls this every time it (re)builds its map box. The map itself is made once and kept. */
 export async function attach(host, ctx) {
-  if (!engine) engine = create(host).catch(e => { engine = null; throw e; });
+  if (!engine) { const id = gen; engine = create(host, id).catch(e => { if (id === gen) drop(); throw e; }); }
   const G = await engine;
   G.use(host, ctx);
   return G;
 }
 
-async function create(host) {
+async function create(host, id) {
   if (!document.createElement('canvas').getContext('webgl2')) throw Error('no WebGL2');
   const [meta, index, meValues] = await Promise.all([json(DATA + 'meta.json'), get('regional/index.json'), get('regional/ME.json')]);
   const {cx, cy, c} = meta.unit;
@@ -55,9 +62,11 @@ async function create(host) {
   let reliefUrl = 'data/' + (small ? 'shade-s.avif' : 'shade.avif');
   try { await createImageBitmap(await (await fetch(reliefUrl)).blob()); } catch { reliefUrl = 'data/shade.webp'; }
 
+  if (id !== gen) throw Error('dropped');
   const box = document.createElement('div');
   box.className = 'kgl';
   host.prepend(box);
+  made = {box, map: null};
 
   const S = {theme: 'light', sel: null, fam: null, conc: false, hover: null, dop: {}, n: 0};
   let ctx = null, H = {}, labels = null, legend = null;
@@ -108,11 +117,16 @@ async function create(host) {
       ],
     },
   });
+  made.map = map;
   window.__kgl = map;      // for looking at the map from the browser console
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
   map.once('idle', () => box.classList.add('on'));
+  /* A map data file that did not arrive leaves a map with holes, and MapLibre still reports the map as loaded: the page is told, and goes back to the old map. */
+  let broken = null;
+  map.on('error', e => { if (broken || !['land', 'lines', 'areas'].includes(e.sourceId)) return; broken = e.error || e; if (H.fail) H.fail(broken); });
   await new Promise((ok, no) => { map.once('load', ok); map.once('error', e => no(e.error || e)); });
+  if (broken) throw broken;
 
   /* ---------------------------------------------------------------- what the page is told and asks */
   const fire = (n, e) => { try { H && H[n] && H[n](e); } catch (err) { console.warn(err); } };
@@ -363,7 +377,7 @@ async function create(host) {
     },
     /* the page's two drawings go inside the map, so a gesture that starts on a pin still moves the map */
     overlay(...svgs) { map.getCanvasContainer().append(...svgs); },
-    on(h) { H = h || {}; },
+    on(h) { H = h || {}; if (broken && H.fail) setTimeout(() => H.fail && H.fail(broken)); },
     /* the view: s = screen pixels per map unit, x / y = the map unit at the centre of the box */
     view() {
       const ct = map.getCenter();

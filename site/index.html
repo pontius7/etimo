@@ -17877,7 +17877,7 @@ ke[t]=n}
 let r=n.indexOf(e);
 return r<0||n.length<2?null:[n[(r-1+n.length)%n.length],n[(r+1)%n.length]]}
 function nearMap(e){let t=e.info||{},n=new Set(nearFam(e)||[]),r=e=>e.info&&e.info.dialectOf,a=kV(),i=null,s=e=>[a.applyX(e._xy[0]),a.applyY(e._xy[1])],o=s(e);
-try{let e=R.select("path.terr").node(),t=e&&e.getBoundingClientRect(),n=q.node().getBoundingClientRect();
+try{let e=R.select("path.terr").node(),t=e&&e.getBoundingClientRect(),n=Q2.node().getBoundingClientRect();
 t&&t.width&&(i=[t.left-n.left,t.top-n.top,t.right-n.left,t.bottom-n.top])}catch{}
 if(GL&&T(e)){let u=U(e);
 i=[a.applyX(u[0]),a.applyY(u[1]),a.applyX(u[2]),a.applyY(u[3])]}
@@ -18173,10 +18173,12 @@ return void(l&&(J(),nn(l),Ht(l,950)))}
 let n=le(Ue(o));
 if(!n)return X=!1,Le(null),J(),void(nt&&!p&&Pe());
 Ge(de(Ue(o)),n,o)}
-function gStart(){(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=1").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(!q.node().isConnected)return;
+function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),a.fail&&a.fail())},/* a start that takes longer than 20 seconds (a stalled download) also goes back to the old map */
+gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=1").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
-start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(err=>{console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,a.fail&&a.fail()})}
+start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
 /* GL: the pins are drawn by the engine (site/map-gl.js: a disc with the language's colour at its core), so zooming does not redraw 210 of them on every frame.
    The pin elements stay in the page, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin (style sheet and classes, unchanged).
    gPinStep reads what those rules say for every pin and hands it to the engine; it runs for a moment after anything about the pins changes.
