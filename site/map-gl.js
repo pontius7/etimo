@@ -2,8 +2,9 @@
 
    MapLibre GL (open-source map engine, in map-next/vendor/) draws the heavy part of the map on the graphics card:
    sea, land, coast, borders, region and district lines, relief, the language areas, the detailed area layers and
-   the census view. It also owns zoom, pan and pinch. The page (src/app/6-app-screens-and-startup.js) keeps what
-   it always drew on top: pins, names, city and district names, the selection outlines, search and the language card.
+   the census view. It also owns zoom, pan and pinch, and draws the pins and what the page writes on the map (names,
+   dots, outlines: labels() below), so nothing of the page is redrawn while the map moves. The page
+   (src/app/6-app-screens-and-startup.js) still decides what shows where, and keeps search and the language card.
 
    The data comes from scripts/map-next/build.py (map-next/data/). Colours of sea, land and lines: THEMES below.
    Which area is how strong when a language or a family is chosen: paint() below; the lists and the strengths of
@@ -23,6 +24,11 @@ const THEMES = {
    which has the same colour). PIN = radius of the disc in screen pixels. How visible and how large each pin is comes
    from the page, pin by pin: o = 0 to 1, s = 1, or larger for the chosen pin and the one under the pointer. */
 const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coalesce', ['feature-state', 's'], 1], PIN_BIG = ['>', PIN_S, 1.05];
+/* The page's names (layers lab-*): how visible each one is (o, from the page; a fade in progress comes as feature state), and its
+   weight. The engine draws the letters itself in the site's font (no font server): it takes the weight from the words in the
+   first name of the list and the letters from the first family the browser has, here Manrope (the page loads 300 to 600). */
+const LAB_O = ['coalesce', ['feature-state', 'o'], ['get', 'o']];
+const LAB_FONT = ['match', ['get', 'w'], 300, ['literal', ['Manrope Light', 'Manrope']], 500, ['literal', ['Manrope Medium', 'Manrope']], 600, ['literal', ['Manrope SemiBold', 'Manrope']], 700, ['literal', ['Manrope Bold', 'Manrope']], ['literal', ['Manrope']]];
 const ZONE = .6;      // a language area with nothing chosen (--zone-op on the site)
 const BASE = .34;     // a country tinted with its main language, under the areas
 
@@ -87,6 +93,7 @@ async function create(host, id) {
         relief: {type: 'image', coordinates: meta.relief},     // no url: the decoded picture is handed over (style.load below)
         pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
         names:  {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
+        labs:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
       },
       /* Bottom to top. Every paint value that depends on the theme or on what is chosen is set in look() and paint(). */
       layers: [
@@ -114,9 +121,17 @@ async function create(host, id) {
            without a glyphs address MapLibre draws the letters itself). Shown from the zoom where a region is 34 px wide (text-field in scale());
            the larger region wins where two collide. Same size on phone and desktop (10.5 px); a phone simply fits fewer. */
         {id: 'names', type: 'symbol', source: 'names', layout: {'text-field': '', 'text-font': ['Manrope'], 'text-size': 10.5, 'text-max-width': 8, 'text-padding': 3, 'symbol-sort-key': ['get', 'r']}, paint: {'text-color': T0.inner, 'text-halo-color': T0.land, 'text-halo-width': 1.6, 'text-opacity': .86}},
+        /* the outlines the page draws (the chosen language's home regions, the place with keyboard focus): under the pins and names, as on the page */
+        {id: 'lab-line', type: 'line', source: 'labs', filter: ['==', ['get', 'k'], 'l'], layout: round, paint: {'line-color': ['get', 'c'], 'line-width': ['get', 'lw'], 'line-opacity': LAB_O}},
         {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN + 3.4, PIN_S], 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': ['*', .34, PIN_O], 'circle-translate': [0, 1.6]}},
         {id: 'pin-disc', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN, PIN_S], 'circle-color': T0.pin, 'circle-opacity': PIN_O, 'circle-stroke-width': ['case', PIN_BIG, 2, 1], 'circle-stroke-color': ['case', PIN_BIG, T0.pinSel, T0.pinEdge], 'circle-stroke-opacity': PIN_O}},
         {id: 'pin-core', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN * .58, PIN_S], 'circle-color': ['get', 'color'], 'circle-opacity': PIN_O}},
+        /* What the page writes on the map (language, family, district and city names, city dots, the word view's circles), drawn
+           here so that nothing of the page is redrawn while the map moves. The page lays them out when the map comes to rest and
+           hands each one over as it stands, in screen pixels and in the look its style sheet gives it (labels() below): a name keeps
+           its size on screen and its distance from its point while the map zooms, as in the leading map products. */
+        {id: 'lab-dot', type: 'circle', source: 'labs', filter: ['==', ['get', 'k'], 'c'], paint: {'circle-radius': ['get', 'r'], 'circle-color': ['get', 'c'], 'circle-stroke-color': ['get', 'h'], 'circle-stroke-width': ['get', 'hw'], 'circle-opacity': LAB_O, 'circle-stroke-opacity': LAB_O}},
+        {id: 'lab-text', type: 'symbol', source: 'labs', filter: ['==', ['get', 'k'], 't'], layout: {'text-field': ['get', 't'], 'text-font': LAB_FONT, 'text-size': ['get', 's'], 'text-letter-spacing': ['get', 'ls'], 'text-anchor': 'center', 'text-max-width': 400, 'text-padding': 0, 'text-allow-overlap': true, 'text-ignore-placement': true, 'symbol-sort-key': ['get', 'i']}, paint: {'text-color': ['get', 'c'], 'text-halo-color': ['get', 'h'], 'text-halo-width': ['get', 'hw'], 'text-opacity': LAB_O}},
       ],
     },
   });
@@ -413,6 +428,28 @@ async function create(host, id) {
       const key = hide.join(',');
       if (key !== S.hide) { S.hide = key; map.setFilter('names', hide.length ? ['!', ['in', ['id'], ['literal', hide]]] : null); }
     },
+    /* The page's names, dots and outlines as they stand at rest (layers lab-*): [{k: 't', 'c' or 'l', x, y: the point they belong to,
+       in pixels of the window; text: t, s size, w weight, ls letter spacing (em), off offset from the point (em); dot: r radius;
+       outline: pts its lines, lw width; c colour, h halo or edge colour, hw its width, o how visible}]. Replaces what was there. */
+    labels(list) {
+      const R = map.getCanvas().getBoundingClientRect(), offs = [];
+      const ll = (x, y) => { const p = map.unproject([x - R.left, y - R.top]); return [p.lng, p.lat]; };
+      const features = list.map((p, i) => {
+        const {x, y, off, pts, ...props} = p;
+        if (off && (off[0] || off[1])) offs.push(i, ['literal', off]);
+        /* an outline: pts = its lines, each a flat list of x, y in pixels of the window */
+        const geometry = pts ? {type: 'MultiLineString', coordinates: pts.map(a => { const c = []; for (let j = 0; j < a.length; j += 2) c.push(ll(a[j], a[j + 1])); return c; })}
+          : {type: 'Point', coordinates: ll(x, y)};
+        return {type: 'Feature', id: i, properties: {...props, i}, geometry};
+      });
+      /* a feature's properties reach the engine's tiles as plain values only (a pair would arrive as text), so each name's
+         offset is set on the layer, by its number in this list */
+      map.setLayoutProperty('lab-text', 'text-offset', offs.length ? ['match', ['get', 'i'], ...offs, ['literal', [0, 0]]] : ['literal', [0, 0]]);
+      map.removeFeatureState({source: 'labs'});
+      map.getSource('labs').setData({type: 'FeatureCollection', features});
+    },
+    /* a fade in progress: [[number in the last list, how visible], ...] */
+    labelStates(list) { for (const [id, o] of list) map.setFeatureState({source: 'labs', id}, {o}); },
     /* the area under the pointer on the first view is outlined */
     hover(n) { if (n !== S.hover) { S.hover = n; map.setFilter('hover-edge', ['all', ['!', ['has', 'kind']], ['==', name, n || '']]); } },
     /* what lies at a point of the box: a detailed area that selects a language, a broad area, or nothing of ours */

@@ -6,7 +6,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 | Part | Where |
 |---|---|
 | The engine's side: layers, colours of sea / land / lines, how strong each area is when a language or family is chosen, census view, legend | `site/map-gl.js` |
-| The page's side: pins, names, city and district names, outlines, search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
+| The page's side: what pins and names show and where (the engine draws them, see below), search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
 | Lists and strengths shared by both maps (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace; how strong a detailed area or a census region is drawn: `restOp`, `dialOp`, `vlachOp`, `censusOp`, `hatchOp`) | top of `site/regional-layer.js` (the only copy) |
 | The map data | `scripts/map-next/build.py` writes `site/map-next/data/` |
 | The few style rules the engine's box needs | `src/styles/v64.css` |
@@ -28,6 +28,20 @@ language, the language areas (lighter tint for minority areas, faint dashed for 
 languages without a drawn area), family areas outside the home areas, the detailed layers (Albanian dialects, Vlach
 varieties, Serbia, Greece, Montenegro), relief, and the census view: with a language chosen, every municipality or
 region that has a census row for it is filled by its share there (stripes in Montenegro where it is a minority).
+
+Names, dots and outlines too (layers `lab-dot`, `lab-text`, `lab-line`): language, family, district and city names, city dots,
+the word circles, the chosen language's region outlines and the place with keyboard focus. The page still lays them out (which
+name shows, where, in what look: its code and style sheet are unchanged) and, each time the map comes to rest or anything about
+them changes, `gLabStep` in the page code reads every one as it stands (its point on the map, its offset in pixels, text, size,
+weight, colours, how visible) and hands the list to the engine (`labels()` in `site/map-gl.js`). While the map moves the engine
+draws them from that list: a name keeps its size on screen and its distance from its point, and the page redraws nothing on any
+frame, as in the leading map products. The page's own elements stay in place, hidden with `visibility` (so their own colours and
+opacities stay readable), for the keyboard, the pointer (the word circles take clicks) and the census names' collision check;
+while the map moves they are out of the drawing (`data-gmv`). The letters are Manrope, drawn by the engine without a font
+server: a font list like `["Manrope SemiBold", "Manrope"]` gives weight 600 (the engine takes the weight from the words of the
+first name and the letters from the first family the browser has). Measured on 2026-11-12 in Chrome on an M1 Pro (wheel zoom
+in and out at three places): late frames 383 of 914 before, 7 of 840 after; phone size with the processor slowed 4 times:
+a typical frame 50 ms before, 16 ms after.
 
 The pins too: each language pin is a disc with a soft shadow and the language's colour at its core, so it stands out
 from its own area (size and colours: `PIN` and `THEMES` at the top of `site/map-gl.js`). The page keeps its pin

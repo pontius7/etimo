@@ -2641,6 +2641,14 @@ body{font-weight:400;letter-spacing:.005em}
 .mapbox:has(> .card.kpanel:not([hidden])) .mcred{left:calc(min(400px,34%) + 10px)}   /* the panel's width (.mapbox .card.mcard.kpanel) */
 /* the word view keeps its card at the bottom on desktop too: the credits sit above it */
 .mapbox:has(> .card:not(.kpanel):not([hidden])) .mcred{bottom:calc(var(--ch,0px) + 4px)}}
+/* the engine draws the page's names, dots and outlines (gLab in the page code, layers lab-* in site/map-gl.js): the page's own stay in place,
+   unseen, for the keyboard, the pointer and the census names' collision check; while the map moves they are out of the drawing
+   altogether, so no frame redraws them. Same on phone and desktop. Pins have their own rules above.
+   Hidden with visibility (the page uses it nowhere else on the map), so the page's own colours and opacities stay readable;
+   a word circle still takes the pointer (painted: whatever the visibility). */
+.mapbox svg[data-glab] :is(text,circle):not(g.pin *),.mapbox svg[data-glab] path[data-gl]{visibility:hidden}
+.mapbox svg[data-glab][data-kl=top] .clu circle{pointer-events:painted}
+.mapbox svg[data-gmv] :is(text,circle):not(g.pin *),.mapbox svg[data-gmv] path[data-gl]{display:none}
 </style>
 <style id="etimo1">:root{--hd:#2e4369;--hd-line:#24385d;--hd-muted:#d6e0f2}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--hd:#273a5b;--hd-line:#33486e;--hd-muted:#c7d3e7}
@@ -17664,7 +17672,7 @@ if(i.current&&n)return o.current=function(e,t,n,r,a={}){let i,s,o,l,u,c,d,h=ja()
 if(void 0===window.__etimoSVG){let s=!1;
 try{s=/[?&]map=svg/.test(location.search)||"svg"===localStorage.getItem("etimo-map")}catch{}
 window.__etimoSVG=s}
-let GL=!window.__etimoSVG,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gMv=!1;
+let GL=!window.__etimoSVG,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gMv=!1,gLon=!1;
 e.querySelectorAll(":scope > svg").forEach(e=>e.remove());
 let p=null,m={};
 r&&(p=new Set,ha[r].forEach(e=>{p.add(e.L.id),(m[e.L.id]=m[e.L.id]||[]).push(e.e)}));
@@ -18150,7 +18158,10 @@ return Fh.translate(b/2-k*(v.x*M+C[0]),y/2-k*(v.y*M+C[1])).scale(k)}
 function kGo(T,ms){gT=T;
 GM?GM.jump({s:T.k*M,x:((b/2-T.x)/T.k-C[0])/M,y:((y/2-T.y)/T.k-C[1])/M},f?0:ms||0):(kTick(T),clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&bt()},0))}
 function kTick(T){let t=T.k,z=t>=11?2:t>=6?1:0;
-Rt&&Rt.classList.toggle("on",!Gt(T)||!!nt||!!te),GL?(E.attr("transform",T),z!==gZ&&(gZ=z,q.classed("zmid",z>0).classed("zdeep",z>1))):kMove(T),E2.attr("transform",T),ot(t),kFollow(T),$.selectAll("text").attr("transform",e=>{let n=j([e[1],e[2]]);
+Rt&&Rt.classList.toggle("on",!Gt(T)||!!nt||!!te),GL?(E.attr("transform",T),z!==gZ&&(gZ=z,q.classed("zmid",z>0).classed("zdeep",z>1))):kMove(T),E2.attr("transform",T);
+/* GL: while the engine moves the map it also draws the names and dots (gLab below), so none of them is touched here; they are put right once, at rest */
+if(GL&&gMv&&gLon)return void(Ot=T);
+ot(t),kFollow(T),$.selectAll("text").attr("transform",e=>{let n=j([e[1],e[2]]);
 return"translate("+n[0]+","+n[1]+") scale("+1/Math.max(t,gOne)+") translate("+-n[0]+","+-n[1]+")"}),$e.selectAll("circle").attr("r",11.76/Math.pow(t,.96)),Ot=T}
 function gHome(){let B=[1e9,1e9,-1e9,-1e9];
 x.forEach(e=>{if(!T(e))return;
@@ -18173,7 +18184,7 @@ B.push([X-10,Y-10,X+10,Y+10])}),GM.avoid({boxes:B,cities:[...n]})}
 function gSync(){if(!GM)return;
 gPo||gPinsOn();
 let th=document.documentElement.getAttribute("data-theme");
-GM.set({sel:nt,fam:nt?null:rt||null,conc:!!p,theme:"dark"===th||!th&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}),clearTimeout(gC),gC=setTimeout(gCity,500)}
+GM.set({sel:nt,fam:nt?null:rt||null,conc:!!p,theme:"dark"===th||!th&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}),clearTimeout(gC),gC=setTimeout(gCity,500),gLabSync()}
 /* on phones, general city names show only inside the chosen language's area */
 function gCity(){if(!q.node().isConnected)return;
 let ph=matchMedia("(max-width: 768px)").matches;
@@ -18258,10 +18269,10 @@ let TT=Fh.translate(b/2-T.k*P[0],top-T.k*P[1]).scale(T.k);
 GL?kGo(TT,f?0:380):q.transition().duration(f?0:380).ease(Po).call(Dt.transform,TT),setTimeout(show,f?40:440)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),a.fail&&a.fail())},/* a start that takes longer than 20 seconds (a stalled download) also goes back to the old map */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=4").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=5").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
-start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
+start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0),gLmv(!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),gLmv(!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
 /* GL: the pins are drawn by the engine (site/map-gl.js: a disc with the language's colour at its core), so zooming does not redraw 210 of them on every frame.
    The pin elements stay in the page, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin (style sheet and classes, unchanged).
    gPinStep reads what those rules say for every pin and hands it to the engine; it runs for a moment after anything about the pins changes.
@@ -18282,6 +18293,85 @@ if(!GM.pinStates)return;
 x.forEach((e,i)=>gPx.set(e,i)),gPc=[],Q2.attr("data-glpins",1),gPo.observe(Ve.node(),{attributes:!0,subtree:!0,childList:!0,attributeFilter:["class","style"]});
 [q.node(),Q2.node()].forEach(n=>gPo.observe(n,{attributes:!0,attributeFilter:["class","data-f"]}));
 Ve.selectAll("g.pin").on("pointerenter.gl",(e,d)=>{gPh=d,gPinSync(80)}).on("pointerleave.gl",()=>{gPh=null,gPinSync(80)}),gPinSync(3800)}
+/* GL: the names and dots the page lays out (language, family, district and city names, city dots, the word view's circles, the name of
+   the place with keyboard focus) are drawn by the engine (site/map-gl.js, layers lab-*), the way the leading map products draw theirs:
+   on the graphics card, the same size on screen while the map zooms, nothing of the page redrawn on any frame. When the map comes to
+   rest, or anything about them changes, gLabStep reads each one as the page and its style sheet left it (its point on the map, its
+   offset from it, text, size, weight, colours, how visible) and hands the list over. The page's own elements stay in place, unseen
+   (data-glab in v64.css: hidden with visibility, so their own colours and opacities can still be read), for the keyboard, the pointer and the census names' collision check (gNames); while the map moves they are
+   taken out of the drawing (data-gmv) and kTick leaves them alone. Pins are not in it: the engine has them already (gPinStep).
+   An engine file without labels() (an old copy in a browser's cache) leaves everything to the page, as before. */
+let gLt=0,gLr=0,gLo=null,gLkey="",gLops=[],gLwait=0;
+const gR2=v=>Math.round(100*v)/100;
+function gLmv(on){[q,Q2].forEach(s=>s.attr("data-gmv",on&&gLon?"":null))}
+function gLabSync(ms){if(!GL||!GM||!GM.labels||!q.node().isConnected)return;
+gLo||(gLon=!1,gLo=new MutationObserver(()=>{gMv||gLabSync()}),[q.node(),Q2.node()].forEach(n=>gLo.observe(n,{subtree:!0,childList:!0,characterData:!0,attributes:!0,attributeFilter:["class","style","transform","x","y","r","display","opacity","data-off"]})),
+/* a word circle's hover and focus look comes from the style sheet alone (no change in the page to observe) */
+["pointerover","pointerout","focusin","focusout"].forEach(t=>Q2.node().addEventListener(t,e=>{e.target.closest&&e.target.closest(".clu")&&gLabSync(200)})));
+gLt=Math.max(gLt,performance.now()+(ms||420)),gLr||(gLr=requestAnimationFrame(gLabStep))}
+function gLabStep(){gLr=0;
+if(!GM||!GM.labels||!q.node().isConnected||gMv)return;
+let now=performance.now();
+if(now<gLwait)return void(gLr=requestAnimationFrame(gLabStep));
+gLwait=now+90;
+let L=gLabRead(),key=JSON.stringify(L.map(({o,...p})=>p));
+if(key!==gLkey)gLkey=key,gLops=L.map(p=>p.o),GM.labels(L);
+else{let a=[];
+L.forEach((p,i)=>{p.o!==gLops[i]&&(gLops[i]=p.o,a.push([i,p.o]))}),a.length&&GM.labelStates(a)}
+gLon||(gLon=!0,[q,Q2].forEach(s=>s.attr("data-glab","")));
+now<gLt&&(gLr=requestAnimationFrame(gLabStep))}
+/* an outline's lines in pixels of the window (M, L and Z only, as the map's path drawing writes them; anything else: null) */
+function gLpath(d,M){if(!d||!M)return null;
+let tk=d.match(/[A-Za-z]|-?[\d.]+(?:e-?\d+)?/g)||[],rings=[],ring=null,cmd="";
+for(let j=0;j<tk.length;){let t=tk[j];
+if(/[A-Za-z]/.test(t)){if(cmd=t,j++,"Z"===t||"z"===t)ring&&ring.length>=4&&ring.push(ring[0],ring[1]),ring=null;
+else if("M"!==t&&"L"!==t)return null;
+continue}
+let x=+t,y=+tk[j+1];
+if(j+=2,"M"===cmd&&(ring=[],rings.push(ring),cmd="L"),!ring)return null;
+ring.push(Math.round(10*(M.a*x+M.c*y+M.e))/10,Math.round(10*(M.b*x+M.d*y+M.f))/10)}
+return rings.filter(r=>r.length>=4)}
+/* the point a name belongs to, in pixels of the window: a language name's pin; otherwise the translate of the nearest element that
+   carries one (a city, a district name, a family name, a word circle); without one, the middle of the name itself */
+function gLanchor(el,r,T2){let d=el.__data__;
+if(el.classList.contains("plabel")&&d&&d._xy&&T2)return[T2.a*d._xy[0]+T2.c*d._xy[1]+T2.e,T2.b*d._xy[0]+T2.d*d._xy[1]+T2.f];
+for(let p=el;p&&p!==r;p=p.parentNode){let m=/^\s*translate\(\s*([-\d.e]+)[ ,]+([-\d.e]+)/.exec(p.getAttribute("transform")||"");
+if(m){let M=p.parentNode.getScreenCTM();
+return M?[M.a*m[1]+M.c*m[2]+M.e,M.b*m[1]+M.d*m[2]+M.f]:null}}
+return null}
+function gLabRead(){let out=[],roots=[q.node(),Q2.node()],B=Q2.node().getBoundingClientRect(),T2=E2.node().getScreenCTM();
+/* a computed colour (rgb(), rgba() or color(srgb ...)) with an extra opacity, as rgba(); null when nothing would show */
+let col=(c,a)=>{if(!c||"none"===c||!(a>0))return null;
+let m=c.match(/-?[\d.]+(e-?\d+)?/g);
+if(!m||m.length<3)return null;
+let f=/^color\(/.test(c)?255:1,al=(m.length>3?+m[3]:1)*a;
+return al>.004?"rgba("+Math.round(m[0]*f)+","+Math.round(m[1]*f)+","+Math.round(m[2]*f)+","+gR2(al)+")":null};
+/* how visible a group is (its own opacity times its parents'), once per group */
+let gop=new Map,op=(p,r)=>{if(!p||p===r)return 1;
+let v=gop.get(p);
+if(null==v){let s=getComputedStyle(p);
+v="none"===s.display?0:+s.opacity*op(p.parentNode,r),gop.set(p,v)}return v};
+roots.forEach(r=>{let R=r.getScreenCTM(),k0=R?Math.hypot(R.a,R.b):1;
+r.querySelectorAll("text,circle,path").forEach(el=>{let pn=el.parentNode;
+if("none"===el.style.display||pn.style&&"none"===pn.style.display||el.closest("g.pin,defs,mask,clipPath"))return;
+let b=el.getBoundingClientRect();
+if(!(b.width||b.height)||b.right<B.left-40||b.left>B.right+40||b.bottom<B.top-30||b.top>B.bottom+30)return;
+let cs=getComputedStyle(el),o="none"===cs.display?0:+cs.opacity*op(pn,r);
+if(o<.01)return;
+let M=el.getScreenCTM(),k=M?Math.hypot(M.a,M.b)/k0:1,fill=col(cs.fill,+cs.fillOpacity),edge=col(cs.stroke,+cs.strokeOpacity),sw=edge?parseFloat(cs.strokeWidth)*k:0,cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2;
+/* an outline (stroke only, straight lines: the chosen language's home regions, the place with keyboard focus) goes over as its
+   lines in pixels of the window and is marked data-gl, so the style sheet hides it; a filled shape stays the page's own drawing */
+if("path"===el.tagName){let pts=!fill&&edge&&gLpath(el.getAttribute("d"),M);
+return void(pts&&pts.length?(el.setAttribute("data-gl",""),out.push({k:"l",x:0,y:0,pts,c:edge,lw:gR2(parseFloat(cs.strokeWidth)*("non-scaling-stroke"===cs.vectorEffect?1:k)),o:gR2(o)})):el.removeAttribute("data-gl"))}
+if("circle"===el.tagName){if(!fill&&!edge)return;
+let rr=b.width/2;
+return void out.push({k:"c",x:gR2(cx),y:gR2(cy),r:gR2(Math.max(.5,rr-sw/2)),c:fill||"rgba(0,0,0,0)",h:edge||"rgba(0,0,0,0)",hw:gR2(sw),o:gR2(o)})}
+let t=el.textContent.trim();
+if(!t||!fill)return;
+"uppercase"===cs.textTransform&&(t=t.toUpperCase());
+let fs=parseFloat(cs.fontSize),s=fs*k,a=gLanchor(el,r,T2)||[cx,cy];
+out.push({k:"t",x:gR2(a[0]),y:gR2(a[1]),t,s:gR2(s),w:100*Math.round((+cs.fontWeight||400)/100),ls:gR2((parseFloat(cs.letterSpacing)||0)/fs),off:[gR2((cx-a[0])/s),gR2((cy-a[1])/s)],c:fill,h:edge||"rgba(0,0,0,0)",hw:gR2(Math.min(s/4,sw/2)),o:gR2(o)})})});
+return out}
 let kT=Fh,kCss=!1,kTm=0,kAt=0,kMs=30,kHold=!1;
 function kShow(T){let s=T.k/kT.k,dx=T.x-s*kT.x,dy=T.y-s*kT.y,n=q.node().style;
 return 1e-5>Math.abs(s-1)&&.05>Math.abs(dx)&&.05>Math.abs(dy)?kCss&&(n.transform="",n.willChange="",kCss=!1):(n.transform="translate3d("+dx+"px,"+dy+"px,0) scale("+s+")",kHold||(n.willChange="transform"),kCss=!0),[s,dx,dy]}

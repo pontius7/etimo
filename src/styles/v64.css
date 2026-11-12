@@ -26,3 +26,11 @@
 .mapbox:has(> .card.kpanel:not([hidden])) .mcred{left:calc(min(400px,34%) + 10px)}   /* the panel's width (.mapbox .card.mcard.kpanel) */
 /* the word view keeps its card at the bottom on desktop too: the credits sit above it */
 .mapbox:has(> .card:not(.kpanel):not([hidden])) .mcred{bottom:calc(var(--ch,0px) + 4px)}}
+/* the engine draws the page's names, dots and outlines (gLab in the page code, layers lab-* in site/map-gl.js): the page's own stay in place,
+   unseen, for the keyboard, the pointer and the census names' collision check; while the map moves they are out of the drawing
+   altogether, so no frame redraws them. Same on phone and desktop. Pins have their own rules above.
+   Hidden with visibility (the page uses it nowhere else on the map), so the page's own colours and opacities stay readable;
+   a word circle still takes the pointer (painted: whatever the visibility). */
+.mapbox svg[data-glab] :is(text,circle):not(g.pin *),.mapbox svg[data-glab] path[data-gl]{visibility:hidden}
+.mapbox svg[data-glab][data-kl=top] .clu circle{pointer-events:painted}
+.mapbox svg[data-gmv] :is(text,circle):not(g.pin *),.mapbox svg[data-gmv] path[data-gl]{display:none}
