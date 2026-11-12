@@ -160,6 +160,23 @@ pair of family colours is (20 or more reads as clearly different). With nine fam
 room is small; the Baltic example (`#819808` light, `#879f18` dark) scores 19.3 and 20.7 against
 its nearest neighbour.
 
+## Phone and desktop: one breakpoint
+
+The layout has two sizes, split at one width. Every style that looks different on a phone says what it does at both
+sizes with these two queries, and is checked at phone size (390 x 844) and desktop size (1440 x 900), light and dark.
+
+| Size | Width | In the stylesheets | In the page code |
+|---|---|---|---|
+| Phone (and tablets held upright) | below 64rem (1024px) | `@media (width<64rem)` | `!me()` |
+| Desktop | 64rem and wider | `@media (width>=64rem)` | `me()`, which is `matchMedia("(min-width: 64rem)")` |
+
+At this width the language card changes from a sheet at the bottom (phone) to a panel down the left side (desktop).
+Older rules also use finer steps inside the phone size (36rem, 48rem). Three older checks in the code use widths of
+their own and do not follow this split yet: city names on phones (`max-width: 768px`, in the page code and
+`site/regional-layer.js`) and the smaller relief picture (`max-width:820px`, or a touch screen up to 1180px, in
+`site/map-gl.js` and the old map). They choose what is shown, not the layout, and are left as they are until it is
+decided that they should follow 64rem.
+
 ## How the page is built
 
 The page has ordinary source files in `src/`. `scripts/build-page.py` joins them into the one

@@ -11,7 +11,7 @@
 
    Going back to the old map: open the site with ?map=svg (or set localStorage "etimo-map" to "svg"). */
 import * as maplibregl from './map-next/vendor/maplibre-gl.mjs';
-import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js?v=40';
+import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js?v=41';
 
 const DATA = 'map-next/data/';
 /* Sea, land and line colours: the same values as the site's stylesheet (--sea, --land, --coast, --bord2, relief opacity). */
@@ -274,7 +274,7 @@ async function create(host, id) {
   function census() {
     const sel = S.sel, alb = albMode(), n = ++S.n, src = map.getSource('census');
     const again = p => p && p.then(() => { if (n === S.n) census(); }, () => {});
-    if (!meFeats) again(regFor('ME').then(r => { meFeats = r.feats; makeLabels(); makeKeys(); }));
+    if (!meFeats) again(regFor('ME').then(r => { meFeats = r.feats; makeLabels(); }));
     if (!sel) { src.setData({type: 'FeatureCollection', features: []}); map.setLayoutProperty('census-hatch', 'visibility', 'none'); return; }
     const key = ALBSET.has(sel.lang) ? 'Albanian' : sel.lang;
     const eff = ALBSET.has(sel.lang) ? ctx.languages.find(l => l.lang === 'Albanian') || sel : sel;
@@ -350,45 +350,6 @@ async function create(host, id) {
       const cities = new Set([...host.querySelectorAll('g.acities text,g.cities text')].filter(n => shown.has(n.textContent.trim()) && (n.checkVisibility ? n.checkVisibility() : true)).map(n => n.textContent.trim()));
       for (const t of labels.texts) if (cities.has(t.textContent)) t.setAttribute('display', 'none');
     });
-  }
-
-  /* ---------------------------------------------------------------- keyboard: Montenegro's municipalities
-     A canvas has nothing to focus, so each municipality is a button nobody sees (style: .kgl-keys in the site's stylesheet).
-     All of them are one Tab stop; the arrow keys, Home and End move between them (alphabetical), Enter or Space opens one.
-     The page is told which one has focus ({at, open}, or null when focus leaves) and shows it as under the pointer. */
-  let keys = null, keyN = 0;
-  function makeKeys() {
-    if (keys || !meFeats) return;
-    keys = document.createElement('div');
-    keys.className = 'kgl-keys';
-    keys.setAttribute('role', 'group');
-    keys.setAttribute('aria-label', 'Montenegro, municipalities · regional language data');
-    const list = meFeats.map(ft => ({ft, name: NAMES[ft.properties.id] || ft.properties.name})).sort((a, b) => a.name.localeCompare(b.name));
-    const btns = list.map(({ft, name}, i) => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.tabIndex = i ? -1 : 0; b.textContent = name;
-      b.setAttribute('aria-label', name + ' · regional language data');
-      b.addEventListener('focus', () => { for (const o of btns) o.tabIndex = o === b ? 0 : -1; focusKey(ft); });
-      b.addEventListener('click', () => fire('key', {at: ft.properties.at, open: true}));
-      return keys.appendChild(b);
-    });
-    keys.addEventListener('keydown', ev => {
-      const i = btns.indexOf(document.activeElement), n = btns.length;
-      const to = {ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: n - 1}[ev.key];
-      if (i < 0 || to == null) return;
-      ev.preventDefault();
-      btns[(to + n) % n].focus();
-    });
-    keys.addEventListener('focusout', ev => { if (!keys.contains(ev.relatedTarget)) { keyN++; fire('key', null); } });
-    box.appendChild(keys);
-  }
-  /* the focused municipality is brought into view if its label point is outside (or at the very edge of) the box, then shown */
-  function focusKey(ft) {
-    const n = ++keyN, ll = at(...ft.properties.at), p = map.project(ll), m = 40;
-    const tell = () => { if (n === keyN) fire('key', {at: ft.properties.at}); };
-    if (p.x > m && p.y > m && p.x < box.clientWidth - m && p.y < box.clientHeight - m) return tell();
-    map.once('moveend', tell);
-    map.easeTo({center: ll, duration: 400, easing: ease});
   }
 
   /* ---------------------------------------------------------------- the handle the page works with */

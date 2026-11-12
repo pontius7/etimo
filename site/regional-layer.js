@@ -130,7 +130,7 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   const cities=new Set([...host.querySelectorAll('g.acities text,g.cities text')].filter(n=>{if(!names.has(n.textContent.trim()))return false;const s=getComputedStyle(n);return (n.checkVisibility?n.checkVisibility():n.getBoundingClientRect().width>0)&&s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)>.05;}).map(n=>n.textContent.trim()));
   labelLayer.selectAll('text').each(function(){if(this.getAttribute('display')==='none')return;if(cities.has(this.textContent.trim()))this.setAttribute('display','none');});};
  const observer=new MutationObserver(updateLabels);observer.observe(parent.node(),{attributes:true,attributeFilter:['transform']});updateLabels();
- function open(event,row){hideTooltip();if(event.type==='keydown'){const b=event.currentTarget.getBoundingClientRect();event.currentTarget.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:b.x+b.width/2,clientY:b.y+b.height/2}));}}
+ // Keyboard: every place on the map, in every country, is reached through the page's own keyboard list (kKeys in the page code), not through these areas.
  let last;
  // Albanian dialect areas (Wikimedia Commons: Albaniandialects.png, CC BY-SA 4.0, Karadakli230; Albanian_dialects.svg for Arbëresh, CC BY-SA 3.0, ArnoldPlaton). Arvanitika (data/greece-areas.json) is traced from a reference map supplied by the site owner and fitted to the Greek coastline, 2026-11-10.
  // and Vlach areas (Wikimedia Commons: South-Balkan-Romance-languages.png, after Koryakov 2001, CC BY-SA 3.0), drawn on the real map in shades of each family colour.
@@ -279,8 +279,8 @@ export async function attachRegionalEvidence({host,parent,path,current,languages
   layer.selectAll('path').data(rows,r=>r.feature.properties.region_id).join(enter=>enter.append('path')
    .attr('d',r=>dOf(r.feature))
    .attr('stroke-opacity',0).attr('stroke-width',.3).attr('vector-effect','non-scaling-stroke')
-   .attr('data-region',r=>r.feature.properties.region_id).attr('role','button').attr('tabindex',r=>['ME','GR'].includes(r.feature.properties.country_code)?0:-1).attr('aria-label',r=>r.feature.properties.name+' · regional language data')
-   .on('click',open).on('keydown',(event,row)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event,row);}})
+   .attr('data-region',r=>r.feature.properties.region_id)
+   .on('click',hideTooltip)
    .on('pointermove',(event,row)=>{const selected=curSel;
     if(row.qualitative){tooltip(event,'<b>'+esc(row.feature.properties.name)+' · Greece</b><span>'+esc(row.presence.length?row.presence.map(p=>p.language).join(', '):'No matching regional evidence in this package')+'</span><span>Documented presence · no current regional speaker counts</span><span>Hatching is not a majority or population-share estimate.</span>');return;}
     const o=row.observation;

@@ -37,9 +37,19 @@ visible and how large each pin is (`gPinStep` in the page code). While the map m
 The relief picture is downloaded and decoded once and handed to the engine as it is (AVIF, or WebP where AVIF cannot be
 decoded). The map never waits for it: without it the map is drawn flat.
 
-Keyboard: a canvas has nothing to focus, so Montenegro's 25 municipalities are buttons nobody sees (`makeKeys` in
-`site/map-gl.js`). They are one Tab stop; arrow keys, Home and End move between them, and the page shows the focused one
-as under the pointer (name and outline). Enter opens its place card with the census rows, at any zoom (`gKey` in the page code).
+Keyboard (both maps, every country): a canvas has nothing to focus, so every place a click opens (each region of
+`data/today.json`, and each country without regions: about 1,800) is a button nobody sees (`kKeys` in the page code).
+They are one Tab stop: arrow keys go through them by country and name, Page Up / Page Down jump a country, typing a name
+jumps to it, Home / End. The place with focus is brought into view and shown as under the pointer (name and outline);
+Enter opens its card, at any zoom.
+
+What a click (or Enter) opens: the region at that spot, then the country (`kPl` in the page code). Exception: a country
+without regions of its own lying inside or over another country's region is itself (Vatican City in Rome, Macau in
+Guangdong, the UN buffer zone in Cyprus). The data holds Palestine and Åland twice (PSE with its regions West Bank and
+Gaza, and PSX without; ALA and ALD): the copy without regions changes nothing and is left out of the keyboard list.
+
+Credits: one small line in the bottom left corner of the map (`.mcred`): OpenStreetMap (Montenegro's municipalities),
+EuroGeographics (the other census boundaries, GISCO), and the relief's elevation sources (Terrain Tiles).
 
 One set of outlines: coast, borders, the edge of every language area and every census region come from the same
 country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.

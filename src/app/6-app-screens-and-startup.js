@@ -489,7 +489,7 @@ let p=null,m={};
 r&&(p=new Set,ha[r].forEach(e=>{p.add(e.L.id),(m[e.L.id]=m[e.L.id]||[]).push(e.e)}));
 let g=p?ua.filter(e=>p.has(e.id)&&e.info&&null!=e.info.lat).sort((e,t)=>e.info.lon-t.info.lon):[],v=e.querySelector("#wc");
 v&&(v.innerHTML=g.map((e,t)=>{let n=m[e.id],r=n[0];
-return'<button type="button" class="wcd '+e.family+'" data-i="'+t+'" role="option"><span class="wl"><span class="dot '+e.family+'"></span><span class="wn">'+ei(Na(e))+"</span></span><b>"+ei(r.word)+'</b><span class="wt pr">'+ei(ai(r))+(n.length>1?"<i>+"+(n.length-1)+"</i>":"")+'</span><span class="wi">'+(t+1)+" / "+g.length+"</span></button>"}).join("")),e.classList.toggle("hascar",!!g.length);
+return'<button type="button" class="wcd '+e.family+'" data-i="'+t+'" role="option"><span class="wl"><span class="dot '+e.family+'"></span><span class="wn">'+ei(Na(e))+"</span></span><b>"+ei(r.word)+'</b><span class="wt pr">'+ei(ai(r))+(n.length>1?"<i>+"+(n.length-1)+"</i>":"")+'</span><span class="wi">'+(t+1)+" / "+g.length+"</span></button>"}).join("")),e.classList.toggle("hascar",!!g.length),/* how much of the map's bottom the word strip takes (the credits line sits above it on phones) */e.style.setProperty("--wch",v&&g.length?Math.max(0,e.clientHeight-v.offsetTop)+"px":"0px");
 let b=e.clientWidth,y=e.clientHeight,k=v?Array.prototype.slice.call(v.children):[],w=()=>(v&&g.length?v.offsetHeight+16:0)+(!t||t.hidden||me()&&t.classList.contains("kpanel")?0:t.offsetHeight+14),x=ua.filter(e=>e.info&&null!=e.info.lat),j=kd().parallels([35,60]).rotate([-30,0]),S=Math.max(22,.06*b),_=Math.max(22,.07*y);
 j.fitExtent([[S,_],[b-S,y-_]],{type:"FeatureCollection",features:x.filter(e=>la.indexOf(e.family)<5).map(e=>({type:"Feature",geometry:{type:"Point",coordinates:[e.info.lon,e.info.lat]}}))});
 /* Two drawings, one on top of the other. q (base): areas, borders, relief. It is drawn a quarter larger than the box on every side (KP) and, while a gesture runs, moved as a picture instead of being redrawn. Q2 (top): pins, city names, labels; light enough to redraw on every frame, so it stays sharp. */
@@ -546,9 +546,9 @@ if(T(e)){let t=da[e.lang].b;
 return[t[0]*M+C[0],t[1]*M+C[1],t[2]*M+C[0],t[3]*M+C[1]]}
 return n=(t=F(e)).map(e=>e[0]),[Math.min(...n),Math.min(...r=t.map(e=>e[1])),Math.max(...n),Math.max(...r)]}
 let H=E.append("g").attr("class","adm");
-GL||import("./regional-layer.js?v=40").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
+GL||import("./regional-layer.js?v=41").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
 (!ff&&(ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json")).then(e=>e.json()).then(e=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
-return[...t,...n].forEach(e=>{e.bb=pu(e)}),hf={t:e,R:t,C:n,mesh:af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c)}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),bt())});
+return[...t,...n].forEach(e=>{e.bb=pu(e)}),hf={t:e,R:t,C:n,mesh:af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c)}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),bt(),kKeys())});
 try{new ResizeObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t),new MutationObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t,{attributes:!0,attributeFilter:["hidden"]})}catch{}
 GL||E.insert("g","g.adm").attr("class","shd").attr("pointer-events","none").attr("transform",L).append("image").attr("href",matchMedia("(max-width:820px),(pointer:coarse) and (max-width:1180px)").matches?__ETIMO_H_SHADE_S__:__ETIMO_H_SHADE__).attr("decoding","async").style("opacity",0).on("error",function(){let w=__ETIMO_H_SHADE_WEBP__;
 this.getAttribute("href")!==w&&this.setAttribute("href",w)}).on("load",function(){this.style.transition="opacity .6s";
@@ -597,9 +597,7 @@ s?(o=Math.max(8,Math.min(o,e.clientWidth-a-8)),l<58&&(l=r[1]+28)):(o+a>e.clientW
 function J(){clearTimeout(Pt),Z.hidden=!0,Z.classList.remove("pin"),Q.attr("d",null)}
 A.selectAll("path").on("pointermove",(e,t)=>{if(!vt())return e.pointerType&&"mouse"!==e.pointerType?J():(Q.attr("class","zhl "+t.family).attr("d",T(t)?da[t.lang].d+(da[t.lang].x||""):null),void Y(e,"<b>"+ei(Na(t))+"</b><span>"+ei(Ca(t.family))+" · "+ei(Ma(t))+"</span>"))}).on("pointerleave",()=>{vt()||J()}),q.on("pointerleave",()=>{X||J(),De(null)});
 let X=!1,ee={},te=null,ne={},re={},ae=null,ie=null,se=[],oe=new Set;
-function le(e){let t,n,r,a=function(e){if(!hf)return null;
-let t=hf.R.find(t=>pf(t,e)&&Wu(t,e)),n=hf.C.find(t=>pf(t,e)&&Wu(t,e));
-return t||n?{r:t,c:n}:null}(e);
+function le(e){let t,n,r,a=kPl(e);
 if(!a)return null;
 let i="de"===ya(),s=a.r?i?a.r.properties.nd:a.r.properties.n:"",o=a.c?i?a.c.properties.nd:a.c.properties.n:"",l=a.r&&(t=a.r)&&("Crimea"===t.properties.n||"Sevastopol"===t.properties.n)?h.crimea:"";
 (r=[((n=j(e))[0]-C[0])/M,(n[1]-C[1])/M],x.filter(e=>{let t=0;
@@ -628,7 +626,14 @@ function ce(e,t,n){let r=da[e.lang]&&da[e.lang][t];
 if(!r)return!1;
 let a=e.lang+t,i=re[a]||(re[a]=ue(r)),s=0;
 return i.forEach(e=>{Id(e,n)&&s++}),s%2==1}
-function de(e){return hf&&(hf.R.find(t=>pf(t,e)&&Wu(t,e))||hf.C.find(t=>pf(t,e)&&Wu(t,e)))||null}
+/* The place at a point (lon/lat): {r: region, c: country}, or null, as a click finds it. One exception to "region first":
+   a country without regions of its own that lies inside or over a region of another country (Vatican City in Rome,
+   Macau in Guangdong, the UN buffer zone in Cyprus) is that place, not the region. A second copy of a country that does
+   have regions (the data has Palestine as PSE with West Bank and Gaza, and again as PSX) leaves the region as it was. */
+function kPl(e){if(!hf)return null;
+let In=t=>pf(t,e)&&Wu(t,e),rc=hf.rc||(hf.rc=new Set(hf.R.map(t=>t.properties.c))),cn=hf.cn||(hf.cn=Object.fromEntries(hf.C.map(t=>[t.properties.c,t.properties.n]))),cs=hf.C.filter(In),r=hf.R.find(In),o=cs.find(t=>!rc.has(t.properties.c));
+return o&&r&&cn[r.properties.c]!==o.properties.n?{r:null,c:o}:r||cs[0]?{r:r,c:cs[0]}:null}
+function de(e){let a=kPl(e);return a&&(a.r||a.c)||null}
 function he(){Et&&(wt&&wt.attr("d",jt),xt&&xt.attr("d",St),_t&&qt&&_t.attr("d",qt)),Et=null}
 function fe(e){let t=e.k,n=-e.x/t,r=-e.y/t;
 return t<2||n<Et[0]||r<Et[1]||n+b/t>Et[2]||r+y/t>Et[3]||t<.5*Et[4]}
@@ -731,7 +736,7 @@ let i=t.querySelector(".pdyn");
 if(!i)return;
 let s="",o=r&&r.M[e.lang];
 o&&o.p&&o.p.length&&(s+='<section class="psec"><p class="ph">'+ei(ye("pl"))+'<span class="phh">'+ei(ye("hint"))+'</span></p><div class="pplaces">'+_e(o.p.slice(0,18),e)+"</div></section>");
-let l=[n.lon,n.lat],u=hf&&hf.R.find(e=>pf(e,l)&&Wu(e,l)),c=hf&&hf.C.find(e=>pf(e,l)&&Wu(e,l)),d=a&&(u&&a.r[u.properties.c+"|"+u.properties.n]||c&&a.r[c.properties.c]);
+let l=[n.lon,n.lat],kA=kPl(l)||{},u=kA.r,c=kA.c,d=a&&(u&&a.r[u.properties.c+"|"+u.properties.n]||c&&a.r[c.properties.c]);
 d&&(s+=qe({y:(u?u.properties.n:c.properties.n)+" · "+d.y,g:d.g})),i.innerHTML=s})}
 function ze(e){return null}
 function Ne(e){let t=yt;
@@ -1007,22 +1012,66 @@ return void(l&&(J(),nn(l),Ht(l,950)))}
 let n=le(Ue(o));
 if(!n)return X=!1,Le(null),J(),void(nt&&!p&&Pe());
 Ge(de(Ue(o)),n,o)}
-/* keyboard on the map: the engine keeps Montenegro's municipalities as buttons (site/map-gl.js) and says which one has focus.
-   It is shown as under the pointer (name and outline); Enter opens its place card at any zoom, as a click does further in. */
-function gKey(k){if(!k)return J(),De(null);
-let p=[k.at[0]*M+C[0],k.at[1]*M+C[1]],t=j.invert(p);
-(ff||Promise.resolve()).then(()=>{if(!GM||!q.node().isConnected)return;
-let n=le(t);
-if(!n)return;
-if(k.open)return Ge(de(t),n,{clientX:0,clientY:0,target:q.node()});
-let T=kV(),b=Q2.node().getBoundingClientRect();
-Y({clientX:b.left+T.applyX(p[0]),clientY:b.top+T.applyY(p[1])},n),De(de(t))})}
+/* Keyboard on the map, every country (both maps): each place a click opens (every region of data/today.json, and every
+   country without regions) is a button nobody sees (.kkeys in the stylesheet). All of them are one Tab stop. Arrow keys
+   go through them (by country, then name), Page Up / Page Down jump to the previous / next country, typing a name jumps
+   to it, Home / End. The place with focus is brought into view and shown as under the pointer; Enter opens its card. */
+let kKn=0;
+/* a point inside a place (lon/lat) where a click opens that same place: tried along lines across its parts, largest part first.
+   Not inside the South Ossetia area of the ethnic data, which has a card of its own. null for a place a click can never open. */
+function kIn(F){if(void 0!==F.__in)return F.__in;
+let g=F.geometry,P=(g?"Polygon"===g.type?[g.coordinates]:"MultiPolygon"===g.type?g.coordinates:[]:[]).map(p=>{let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+p[0].forEach(c=>{x0=Math.min(x0,c[0]),x1=Math.max(x1,c[0]),y0=Math.min(y0,c[1]),y1=Math.max(y1,c[1])});
+return[p,(x1-x0)*(y1-y0),y0,y1]}).sort((a,c)=>c[1]-a[1]),o=null,so=Kf&&Kf.E&&Kf.E.so;
+e:for(let[p,,y0,y1]of P)for(let s of[.5,.37,.63,.24,.76,.12,.88]){let Y0=y0+(y1-y0)*s,X=[],I=[];
+p.forEach(r=>{for(let i=0,k=r.length-1;i<r.length;k=i++){let a=r[i],c=r[k];a[1]>Y0!=c[1]>Y0&&X.push(a[0]+(Y0-a[1])*(c[0]-a[0])/(c[1]-a[1]))}}),X.sort((a,c)=>a-c);
+for(let i=0;i+1<X.length;i+=2)I.push([X[i],X[i+1]]);
+I.sort((a,c)=>c[1]-c[0]-(a[1]-a[0]));
+for(let[a,c]of I)for(let u of[.5,.25,.75,.1,.9]){let t=[a+(c-a)*u,Y0];if(de(t)===F&&!(so&&pf(so.f,t)&&Wu(so.f,t))){o=t;break e}}}
+return Kf&&Kf.E?F.__in=o:o}
+function kKeys(){e.querySelectorAll(".kkeys").forEach(n=>n.remove());
+if(!hf)return;
+let D="de"===ya(),nm=F=>(D?F.properties.nd:F.properties.n)||F.properties.n||"",cn={},has=new Set(hf.R.map(r=>r.properties.c)),named=new Set(hf.C.filter(c=>has.has(c.properties.c)).map(c=>c.properties.n));
+hf.C.forEach(c=>{cn[c.properties.c]=nm(c)});
+let L=hf.R.filter(nm).map(r=>({F:r,c:cn[r.properties.c]||r.properties.c||"",n:nm(r)})).concat(hf.C.filter(c=>!has.has(c.properties.c)&&!named.has(c.properties.n)&&nm(c)).map(c=>({F:c,c:nm(c),n:""})));
+L.sort((a,c)=>a.c.localeCompare(c.c)||a.n.localeCompare(c.n)),L.forEach(it=>it.l=it.n?it.n+", "+it.c:it.c);
+let G=document.createElement("div"),fr=document.createDocumentFragment(),cur=0,ta="",taT=0;
+G.className="kkeys",G.setAttribute("role","group"),G.setAttribute("aria-label",{en:"Places on the map",sq:"Vende në hartë",de:"Orte auf der Karte",sr:"Mesta na mapi",sc:"Места на мапи"}[ya()]||"Places on the map");
+L.forEach((it,i)=>{let B=document.createElement("button");
+B.type="button",B.tabIndex=i?-1:0,B.textContent=it.l,B.dataset.i=i,fr.appendChild(B)}),G.appendChild(fr);
+/* a place is checked when the keyboard is about to land on it (kIn); one a click can never open is skipped and hidden */
+let ok=i=>!!kIn(L[i].F)||(G.children[i].hidden=!0,!1),go=(i,d)=>{for(;i>=0&&i<L.length&&!ok(i);)i+=d;let B=G.children[i];B&&(G.children[cur]&&(G.children[cur].tabIndex=-1),cur=i,B.tabIndex=0,B.focus({preventScroll:!0}))};
+G.addEventListener("focusin",ev=>{let i=+(ev.target.dataset||{}).i;
+if(!isFinite(i))return;
+if(!ok(i))return go(i+1,1);
+G.children[cur]&&G.children[cur]!==ev.target&&(G.children[cur].tabIndex=-1),cur=i,ev.target.tabIndex=0,kFocus(L[i])}),G.addEventListener("focusout",ev=>{G.contains(ev.relatedTarget)||(kKn++,J(),De(null))}),G.addEventListener("click",ev=>{let i=+(ev.target.dataset||{}).i,t=isFinite(i)&&kIn(L[i].F),n=t&&le(t);
+n&&Ge(de(t),n,{clientX:0,clientY:0,target:q.node()})}),G.addEventListener("keydown",ev=>{let n=L.length,k=ev.key,to=null,d=1;
+if("ArrowDown"===k||"ArrowRight"===k)to=Math.min(n-1,cur+1);
+else if("ArrowUp"===k||"ArrowLeft"===k)to=Math.max(0,cur-1),d=-1;
+else if("Home"===k)to=0;
+else if("End"===k)to=n-1,d=-1;
+else if("PageDown"===k){to=cur;for(;to<n-1&&L[to].c===L[cur].c;)to++}
+else if("PageUp"===k){let c=cur>0&&L[cur-1].c!==L[cur].c?cur-1:cur;to=c;for(;to>0&&L[to-1].c===L[c].c;)to--;d=-1}
+else if(1===k.length&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&" "!==k){clearTimeout(taT),taT=setTimeout(()=>{ta=""},700);
+let s=1===(ta+=k.toLowerCase()).length?1:0;
+for(let m=0;m<n;m++){let i=(cur+s+m)%n;if(L[i].l.toLowerCase().startsWith(ta)&&ok(i)){to=i;break}}
+if(null==to)return}
+else return;
+ev.preventDefault(),go(to,d)}),e.appendChild(G)}
+function kFocus(it){let n=++kKn,t=kIn(it.F);
+if(!t)return J(),De(null);
+let P=j(t),T=kV(),X=T.applyX(P[0]),Yp=T.applyY(P[1]),top=52+(y-52-w())/2,show=()=>{if(n!==kKn||!q.node().isConnected)return;
+let T=kV(),r=Q2.node().getBoundingClientRect(),h=le(t);
+h?(Y({clientX:r.left+T.applyX(P[0]),clientY:r.top+T.applyY(P[1])},h),De(de(t))):(J(),De(null))};
+if(X>40&&X<b-40&&Yp>64&&Yp<y-40-w())return show();
+let TT=Fh.translate(b/2-T.k*P[0],top-T.k*P[1]).scale(T.k);
+GL?kGo(TT,f?0:380):q.transition().duration(f?0:380).ease(Po).call(Dt.transform,TT),setTimeout(show,f?40:440)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),a.fail&&a.fail())},/* a start that takes longer than 20 seconds (a stalled download) also goes back to the old map */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=2").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=3").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
-start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,key:gKey,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
+start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),bt())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
 /* GL: the pins are drawn by the engine (site/map-gl.js: a disc with the language's colour at its core), so zooming does not redraw 210 of them on every frame.
    The pin elements stay in the page, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin (style sheet and classes, unchanged).
    gPinStep reads what those rules say for every pin and hands it to the engine; it runs for a moment after anything about the pins changes.
@@ -1057,6 +1106,8 @@ kShow(T),clearTimeout(kTm),kTm=setTimeout(()=>{kTm=0,kCss&&q.node().isConnected&
 function kFollow(T){Q2.selectAll("text.plabel").each(function(d){let o=this.__o;
 o&&d&&d._xy&&"0"!==this.style.opacity&&(this.setAttribute("x",(T.applyX(d._xy[0])+o[0]).toFixed(1)),this.setAttribute("y",(T.applyY(d._xy[1])+o[1]).toFixed(1)))})}
 function kEnd(){kPaint(kV()),q.classed("zooming",!1),bt()}
+/* credits for the map's data (both maps): one small line in the bottom left corner; only the link takes the pointer */
+e.querySelector(".mcred")||e.insertAdjacentHTML("beforeend",'<p class="mcred"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · © EuroGeographics for the administrative boundaries · Relief: Terrain Tiles (USGS, NOAA, Copernicus)</p>');
 let Rt=e.querySelector(".mreset")||(()=>{let t=e,n=document.createElement("button");
 n.type="button",n.className="mreset kreset";
 let r={en:"Reset",sq:"Rifillo",de:"Neustart",sr:"Ispočetka",sc:"Испочетка"}[ya()]||"Reset";
@@ -1190,7 +1241,9 @@ let n,r;
 n=j([(t=sn[e])[0],t[3]]),r=j([t[2],t[1]]),Wt(Math.min(n[0],r[0]),Math.min(n[1],r[1]),Math.max(n[0],r[0]),Math.max(n[1],r[1]),560)}},select(e){let t=x.find(t=>t.id===e);
 if(t){if(p){let e=g.indexOf(t);
 return void(e>=0&&(e===Vt?Qt(t,520):Jt(e,!0)))}
-J(),Le(null),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),nn(t),Ht(t,1e3)}},home(){Te()},view(){let e=kV(),t=y-52-w(),n=e.k>1.01?52+t/2:y/2;
+J(),Le(null),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),nn(t),Ht(t,1e3)}},home(){Te()},view(){/* an engine map whose engine never started has no view worth keeping: the old map then opens at its own first view */
+if(GL&&!GM)return null;
+let e=kV(),t=y-52-w(),n=e.k>1.01?52+t/2:y/2;
 return{c:j.invert([e.invertX(b/2),e.invertY(n)]),zs:e.k*j.scale(),sel:nt&&!p?nt.id.replace(/^l-/,""):null}},family(e){if(e&&Ie(),rt=e,q.classed("fsel",!!e).attr("data-f",e||null),pt=null,!e)return bt(),Ut(800),void Ae();
 let t=1e9,n=1e9,r=-1e9,a=-1e9;
 x.filter(t=>t.family===e).forEach(e=>{let i=T(e)?U(e):[e._xy[0]-4,e._xy[1]-4,e._xy[0]+4,e._xy[1]+4];

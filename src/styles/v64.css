@@ -11,5 +11,18 @@
 /* the engine draws the pins; the page's pin elements stay for pointer and keyboard, unseen except for the ring that shows keyboard focus */
 .mapbox svg[data-glpins] g.pin .mk{visibility:hidden}
 .mapbox svg[data-glpins] g.pin:focus-visible .mk{visibility:visible;fill:none!important;stroke:var(--ink);stroke-width:2.2px;transform:scale(1.6)}
-/* keyboard: Montenegro's municipalities are buttons nobody sees (site/map-gl.js); the focused one is shown on the map itself, outlined and named as under the pointer */
-.kgl-keys button{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;pointer-events:none}
+/* keyboard: every place on the map is a button nobody sees (kKeys in the page code); the focused one is shown on the map itself, outlined and named as under the pointer */
+.mapbox .kkeys button{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;pointer-events:none}
+/* credits for the map's data: small, in the bottom left corner, never in the way (only the link takes the pointer).
+   Phone and desktop differ (the site's one breakpoint, 64rem: see "Phone and desktop" in README.md). */
+.mapbox .mcred{position:absolute;z-index:2;margin:0;letter-spacing:.01em;color:color-mix(in srgb,var(--ink,#06110e) 64%,transparent);text-shadow:0 0 2px var(--bg,#fff),0 0 2px var(--bg,#fff);pointer-events:none}
+.mapbox .mcred a{color:inherit;text-decoration:none;pointer-events:auto}
+.mapbox .mcred a:hover,.mapbox .mcred a:focus-visible{text-decoration:underline}
+/* phone: may wrap to three lines, clear of the reset button on the right; rides above the card sheet (--ch) and the word strip (--wch), both set by the page */
+@media (width<64rem){.mapbox .mcred{left:6px;bottom:calc(var(--ch,0px) + 3px);max-width:calc(100% - 140px);font:500 8.5px/1.3 var(--sans,system-ui)}
+.mapbox.hascar .mcred{bottom:calc(max(var(--ch,0px),var(--wch,0px)) + 3px)}}
+/* desktop: one line; moves beside the language panel when that is open down the left side */
+@media (width>=64rem){.mapbox .mcred{left:10px;bottom:4px;white-space:nowrap;font:500 9px/1.3 var(--sans,system-ui)}
+.mapbox:has(> .card.kpanel:not([hidden])) .mcred{left:calc(min(380px,34%) + 10px)}
+/* the word view keeps its card at the bottom on desktop too: the credits sit above it */
+.mapbox:has(> .card:not(.kpanel):not([hidden])) .mcred{bottom:calc(var(--ch,0px) + 4px)}}
