@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 python3 scripts/merge/fetch-sheets.py
 node scripts/merge/test-search-key.js | tail -1
 .venv/bin/python scripts/merge/merge-data.py
-.venv/bin/python scripts/merge/current-regions.py   # out-of-date regions -> the EU's current ones (NUTS / LAU 2024)
+.venv/bin/python scripts/merge/current-regions.py   # out-of-date regions -> current official ones (NUTS / LAU 2024; OSM snapshot outside the EU)
 python3 scripts/build-page.py
 .venv/bin/python scripts/merge/check-overlaps.py | tail -1
 python3 scripts/merge/words-report.py

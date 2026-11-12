@@ -160,7 +160,7 @@ pair of family colours is (20 or more reads as clearly different). With nine fam
 room is small; the Baltic example (`#819808` light, `#879f18` dark) scores 19.3 and 20.7 against
 its nearest neighbour.
 
-## Regions: current official boundaries (Europe)
+## Regions: current official boundaries
 
 `site/data/today.json` holds the regions behind the place cards, the keyboard list and the region lines. It is built by
 `scripts/merge/merge-data.py` from the two reference artifacts, whose regions were partly out of date. On 2026-11-12
@@ -183,8 +183,58 @@ Matched the official regions and unchanged: Albania, Austria, Belgium, Bulgaria,
 Finland, France, Germany, Lithuania, the Netherlands, Poland, Romania, Serbia, Slovakia, Spain, Sweden, Turkey. Real
 current divisions that the EU groups differently, also unchanged: Estonia's counties, Cyprus's districts, Portugal's
 districts, Montenegro's municipalities, Greece's regions with Mount Athos, Hungary's counties and cities with county
-rights. Not covered by NUTS, still to be checked against other sources: Bosnia and Herzegovina, Ukraine, Moldova,
-Belarus and the rest of the map outside Europe.
+rights.
+
+### Outside the EU's data (checked 2026-11-12)
+
+Scope: Europe's remaining countries and the countries the map's languages cover (their language areas cover most of
+the country: Russia, the Caucasus, Central Asia, Mongolia, Iran, Afghanistan, Pakistan). Each was checked the same way
+against a dated source: geoBoundaries (2018 to 2022 files) where no reform came after it, otherwise OpenStreetMap.
+Where the regions were out of date, they were replaced from OpenStreetMap, frozen in `scripts/merge/osm-regions.json`
+by `scripts/merge/osm-snapshot.py` (the build never downloads from OSM; © OpenStreetMap contributors, ODbL 1.0, credited
+on the map). Each new region is cut to the map's own outline of its country (OSM's regions reach into the sea), and
+slivers between OSM's border and the map's are given to the neighbouring region, so regions end where the map's
+borders and coast are drawn. A region that is the same place as before keeps its old names.
+
+| Country | Now | Before |
+|---|---|---|
+| Kazakhstan | its 17 regions and 3 cities of 2022 (Abai, Jetisu, Ulytau new; Shymkent a city since 2018; Astana) | 14 and 2, "Nur-Sultan" |
+| Iran | its 31 provinces with Tabas county in South Khorasan (moved from Yazd in 2013) | Tabas in Yazd |
+| Azerbaijan | its 67 districts and 11 cities, official names (Aghdara again a district since 2023; Xankəndi) | cities inside the wrong districts, three "Lankaran", Lachin missing, "Stepanakert" |
+| Kyrgyzstan | its 7 regions and 2 cities (Osh city added) | Osh city missing |
+| Turkmenistan | its 5 provinces and Ashgabat | Ashgabat inside Ahal |
+| Mongolia | its 21 provinces and Ulaanbaatar | Govisümber's name on the Ulaanbaatar area, Govisümber inside Dornogovi |
+| Pakistan | the Tribal Areas merged into Khyber Pakhtunkhwa (2018, 25th Amendment) | still separate |
+
+Names and kinds corrected where the places were right: Russia: Altai Krai (was called "Altai Republic" and showed the
+Republic's census figures), Jewish Autonomous Oblast (was "Jewish"), an unnamed sliver joined to Yamalo-Nenets, the
+kinds of Sakha, Kamchatka and Zabaykalsky; Afghanistan: Panjshir and Daykundi (provinces since 2004, still called Parwan
+and Urozgan); Tajikistan: Sughd (was "Khujand", its seat); Ukraine: Odesa (Ukraine's romanization, as Kyiv and Kharkiv
+already were); Belarus: Mogilev (the only one in Łacinka); Uzbekistan: Karakalpakstan's kind; Moldova: Gagauzia (was
+"Comrat", its seat). A city and the region around it with one name now differ: Moscow Oblast, Kyiv Oblast, Minsk
+Region, Tashkent Region, Sofia Province (and Sofia City), Zagreb County, Veszprém County.
+
+Checked and unchanged: Ukraine's oblasts, Belarus, Uzbekistan, Tajikistan's units, Georgia, Armenia, Afghanistan's
+units, Russia's 83 subjects (unchanged since 2008). Bosnia and Herzegovina: unchanged; its Republika Srpska "regions"
+are not a confirmed legal level (sources disagree), but no confirmed replacement either.
+
+Not in this step: countries without any of the map's languages (the Arabic-speaking countries, Israel, India; their
+regions are kept as they were), the parts of Iraq, Syria and China outside the Kurdish and Uyghur areas, and countries
+whose regions only ever covered part of them (India, Oman, Mauritania). Known later reforms there: Algeria 69 wilayas
+(2026), Iraq's Halabja governorate (2025), Lebanon's Keserwan-Jbeil (2017/2020), Morocco's 12 regions (2015).
+
+### Disputed areas
+
+Decided 2026-11-12: disputed areas keep exactly what they show; this step changes no region inside one. The map's
+country outlines are Natural Earth's default view (who runs an area today). Today: Crimea and Sevastopol are regions
+filed under Russia whose cards say "disputed" instead of a country; Abkhazia is a region of Georgia; South Ossetia is
+named on cards from `ethno.json`, inside Georgia's regions; Transnistria is covered by old units of Moldova with partly
+wrong names (a second "Rezina", "Transnistria" as a district); Northern Cyprus and Siachen are their own outlines; the Golan is part of Israel's
+Northern District; East Jerusalem is in Israel's Jerusalem District; Jammu and Kashmir, Ladakh, Gilgit-Baltistan and Azad
+Kashmir are plain regions of India and Pakistan (Azad Kashmir's border with Khyber Pakhtunkhwa is drawn wrongly:
+Muzaffarabad falls in Khyber Pakhtunkhwa); Aksai Chin is part of Xinjiang; the part of Western Sahara Morocco runs has
+no region. A rule for showing these (for example labelling them from Natural Earth's disputed-areas list) is a
+separate decision.
 
 ## Phone and desktop: one breakpoint
 
