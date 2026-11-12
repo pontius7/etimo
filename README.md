@@ -160,6 +160,32 @@ pair of family colours is (20 or more reads as clearly different). With nine fam
 room is small; the Baltic example (`#819808` light, `#879f18` dark) scores 19.3 and 20.7 against
 its nearest neighbour.
 
+## Regions: current official boundaries (Europe)
+
+`site/data/today.json` holds the regions behind the place cards, the keyboard list and the region lines. It is built by
+`scripts/merge/merge-data.py` from the two reference artifacts, whose regions were partly out of date. On 2026-11-12
+every European country was checked against the EU's official boundaries (GISCO, NUTS 2024 and LAU 2024).
+`scripts/merge/current-regions.py`, run right after merge-data.py in `scripts/add-words.sh`, replaces the regions that
+were out of date or incomplete; every other country is left as it was:
+
+| Country | Now | Before |
+|---|---|---|
+| Norway | the 15 counties of 2024, Svalbard, Jan Mayen (NUTS 3 2024) | the 19 of before 2018 |
+| Italy, Sardinia | its 5 provinces (NUTS 3 2024) | 4 provinces abolished in 2016 |
+| Switzerland | all 26 cantons (NUTS 3 2024) | Basel-Stadt missing |
+| Kosovo | its 7 districts, names in Albanian and Serbian (NUTS 3 2024) | 28 of its 38 municipalities |
+| Latvia | the 43 municipalities of the 2021 reform (LAU 2024) | the 119 of before it |
+| Luxembourg | its 100 communes (LAU 2024) | the 3 districts abolished in 2015 |
+| Slovenia | its 212 municipalities (LAU 2024) | 70 units of no current division |
+| North Macedonia | its 80 municipalities (2021 census, the statistics office's Latin names) | 69 |
+
+Matched the official regions and unchanged: Albania, Austria, Belgium, Bulgaria, Croatia, the Czech Republic, Denmark,
+Finland, France, Germany, Lithuania, the Netherlands, Poland, Romania, Serbia, Slovakia, Spain, Sweden, Turkey. Real
+current divisions that the EU groups differently, also unchanged: Estonia's counties, Cyprus's districts, Portugal's
+districts, Montenegro's municipalities, Greece's regions with Mount Athos, Hungary's counties and cities with county
+rights. Not covered by NUTS, still to be checked against other sources: Bosnia and Herzegovina, Ukraine, Moldova,
+Belarus and the rest of the map outside Europe.
+
 ## Phone and desktop: one breakpoint
 
 The layout has two sizes, split at one width. Every style that looks different on a phone says what it does at both

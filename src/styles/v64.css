@@ -23,6 +23,6 @@
 .mapbox.hascar .mcred{bottom:calc(max(var(--ch,0px),var(--wch,0px)) + 3px)}}
 /* desktop: one line; moves beside the language panel when that is open down the left side */
 @media (width>=64rem){.mapbox .mcred{left:10px;bottom:4px;white-space:nowrap;font:500 9px/1.3 var(--sans,system-ui)}
-.mapbox:has(> .card.kpanel:not([hidden])) .mcred{left:calc(min(380px,34%) + 10px)}
+.mapbox:has(> .card.kpanel:not([hidden])) .mcred{left:calc(min(400px,34%) + 10px)}   /* the panel's width (.mapbox .card.mcard.kpanel) */
 /* the word view keeps its card at the bottom on desktop too: the credits sit above it */
 .mapbox:has(> .card:not(.kpanel):not([hidden])) .mcred{bottom:calc(var(--ch,0px) + 4px)}}
