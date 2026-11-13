@@ -472,6 +472,42 @@ def write(name, obj):
     return os.path.getsize(path)
 
 
+TILES = os.path.join(ROOT, 'site', 'map-next', 'tiles')
+TILE_Z = 8      # the last zoom that is cut; closer in, the map enlarges these tiles (they keep every point of the data)
+
+
+def tiles():
+    """Cuts land.json, areas.json and lines.json into vector tiles (site/map-next/tiles/{z}/{x}/{y}.pbf), the way web maps
+    ship their shapes: the phone downloads only the tiles it shows, at the detail of its zoom, instead of all the shapes.
+    Tool: tippecanoe (brew install tippecanoe). Nothing is dropped or merged (--no-feature-limit, --no-tile-size-limit);
+    neighbouring areas are simplified alike so no gap opens between two colours (--no-simplification-of-shared-nodes);
+    at TILE_Z the tiles keep the data's full precision (-d14). Tiles are written uncompressed; Cloudflare compresses them.
+    Returns what the page needs: the version (a hash of the three files, so a new build is never mixed with an old
+    cached one), the last zoom and the box with data."""
+    import hashlib
+    import shutil
+    import subprocess
+    tool = shutil.which('tippecanoe')
+    if not tool:
+        sys.exit('map-next: tippecanoe is needed for the map tiles:  brew install tippecanoe')
+    h = hashlib.sha1(f'z{TILE_Z}d14'.encode())
+    for n in ('land.json', 'areas.json', 'lines.json'):
+        with open(os.path.join(OUT, n), 'rb') as f:
+            h.update(f.read())
+    tmp = TILES + '.new'
+    shutil.rmtree(tmp, ignore_errors=True)
+    subprocess.run([tool, '-q', '-e', tmp, '-Z0', f'-z{TILE_Z}', '-d14', '--no-feature-limit', '--no-tile-size-limit',
+                    '--no-tile-compression', '--no-simplification-of-shared-nodes', '--no-tiny-polygon-reduction', '--force',
+                    *[x for n in ('land', 'areas', 'lines') for x in ('-L', f'{n}:{os.path.join(OUT, n + ".json")}')]], check=True)
+    with open(os.path.join(tmp, 'metadata.json'), encoding='utf-8') as f:
+        bounds = [float(v) for v in json.load(f)['bounds'].split(',')]
+    os.remove(os.path.join(tmp, 'metadata.json'))
+    shutil.rmtree(TILES, ignore_errors=True)
+    os.rename(tmp, TILES)
+    n = sum(len(fs) for _, _, fs in os.walk(TILES))
+    return {'v': h.hexdigest()[:10], 'maxzoom': TILE_Z, 'bounds': bounds, 'count': n}
+
+
 # Census region names the sources give wrongly: Romania's counties in capitals without diacritics, six Montenegrin
 # municipalities without them. Every other name is used exactly as the source gives it.
 NAME_FIX = {
@@ -602,7 +638,10 @@ def main():
         # the detailed areas, for the rules the page applies when a language or a family is chosen: [kind, language, family]
         'detail': sorted([k, n, props(n)['fam']] for k, n in detail),
     }
-    sizes = {n: write(n, o) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)), ('meta.json', meta))}
+    sizes = {n: write(n, o) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
+    meta['tiles'] = tiles()      # what the map loads: the tiles cut from the three files above (they stay for the checks)
+    sizes['meta.json'] = write('meta.json', meta)
+    print(f'map-next: {meta["tiles"]["count"]} tiles (zoom 0 to {TILE_Z}, version {meta["tiles"]["v"]})')
     for old in ('pins.json', 'families.json'):       # the page draws pins and names itself
         if os.path.exists(os.path.join(OUT, old)):
             os.remove(os.path.join(OUT, old))

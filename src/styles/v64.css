@@ -23,9 +23,9 @@
 .mapbox.hascar .mcred{bottom:calc(max(var(--ch,0px),var(--wch,0px)) + 3px)}}
 /* desktop: one line; moves beside the language panel when that is open down the left side */
 @media (width>=64rem){.mapbox .mcred{left:10px;bottom:4px;white-space:nowrap;font:500 9px/1.3 var(--sans,system-ui)}
-.mapbox:has(> .card.kpanel:not([hidden])) .mcred{left:calc(min(400px,34%) + 10px)}   /* the panel's width (.mapbox .card.mcard.kpanel) */
+.mapbox>.card.kpanel:not([hidden])~.mcred{left:calc(min(400px,34%) + 10px)}   /* the panel's width (.mapbox .card.mcard.kpanel) */
 /* the word view keeps its card at the bottom on desktop too: the credits sit above it */
-.mapbox:has(> .card:not(.kpanel):not([hidden])) .mcred{bottom:calc(var(--ch,0px) + 4px)}}
+.mapbox>.card:not(.kpanel):not([hidden])~.mcred{bottom:calc(var(--ch,0px) + 4px)}}
 /* the engine draws the page's names, dots and outlines (gLab in the page code, layers lab-* in site/map-gl.js): the page's own stay in place,
    unseen, for the keyboard, the pointer and the census names' collision check; while the map moves they are out of the drawing
    altogether, so no frame redraws them. Same on phone and desktop. Pins have their own rules above.
@@ -33,4 +33,10 @@
    a word circle still takes the pointer (painted: whatever the visibility). */
 .mapbox svg[data-glab] :is(text,circle):not(g.pin *),.mapbox svg[data-glab] path[data-gl]{visibility:hidden}
 .mapbox svg[data-glab][data-kl=top] .clu circle{pointer-events:painted}
-.mapbox svg[data-gmv] :is(text,circle):not(g.pin *),.mapbox svg[data-gmv] path[data-gl]{display:none}
+
+/* The card's height (--ch) and the word strip's (--wch) are set on .mapbox by the page and read only by the zoom buttons, the
+   reset button and the credit line. Registered as not inherited and taken over by those three alone, so a change restyles them,
+   not the whole map (about 6,000 elements). A browser without @property inherits them as before. */
+@property --ch{syntax:"<length>";inherits:false;initial-value:0px}
+@property --wch{syntax:"<length>";inherits:false;initial-value:0px}
+.mapbox>:is(.zoom,.mcred,.mreset){--ch:inherit;--wch:inherit}

@@ -222,6 +222,29 @@ def search_version():
     return vs[0]
 
 
+def preloads(H):
+    """What the browser fetches from the first moment, before the page script runs. Every screen needs the three small
+    startup files. A map screen (#map, #map-..., #mm-...) then needs the map engine, its settings and the relief, and not
+    the lexicon (8 MB of words, fetched once the map has drawn: kLexWhen in the page code); every other screen needs the
+    lexicon, and there the map engine is fetched quietly once the page has loaded, so opening the map is quick.
+    The engine addresses are read from the import lines themselves, so a new ?v= there is never missed here."""
+    app = open(os.path.join(SRC, 'app', '6-app-screens-and-startup.js'), encoding='utf-8').read()
+    eng = open(os.path.join(ROOT, 'site', 'map-gl.js'), encoding='utf-8').read()
+    mapjs = re.search(r'import\("\./(map-gl\.js\?v=\d+)"\)', app).group(1)
+    mlib, mver = re.search(r"from '\./(map-next/vendor/maplibre-gl\.mjs\?v=([\d.]+))'", eng).groups()
+    worker = f'map-next/vendor/maplibre-gl-worker.mjs?v={mver}'     # MapLibre adds ?v=<its version> to its worker itself
+    small = '(max-width:820px),(pointer:coarse) and (max-width:1180px)'     # the same test as the engine's (create() in map-gl.js)
+    js = ('(function(){var h=location.hash,d=document,a=function(r,u,f){var l=d.createElement("link");l.rel=r;l.href=u;'
+          'if(f){l.as="fetch";l.crossOrigin="anonymous"}d.head.appendChild(l)},map=/^#(map|mm-)/.test(h);'
+          f'if(map){{a("modulepreload","{mapjs}");a("modulepreload","{mlib}");a("preload","map-next/data/meta.json",1);'
+          f'a("preload","data/"+(matchMedia("{small}").matches?"shade-s.avif":"shade.avif"),1)}}'
+          f'if(!/^#(map|map-.+|languages|tree)$/.test(h))a("preload","{H["lexicon.json"]}",1);'
+          f'if(!map)addEventListener("load",function(){{setTimeout(function(){{["{mapjs}","{mlib}","{worker}"].forEach(function(u){{a("prefetch",u)}})}},1500)}})'
+          '})()')
+    return (''.join(f'<link rel="preload" href="{H[n]}" as="fetch" crossorigin>' for n in ('languages.json', 'world-50s.json', 'terr.json'))
+            + '<script>' + js + '</script>')
+
+
 # ---------------------------------------------------------------- 2. placeholders
 def placeholders():
     """name -> (text, how many times it must occur in the sources)"""
@@ -232,8 +255,7 @@ def placeholders():
     sq = ['sllave', 'iraniane', 'shqipe', 'greke', 'romane', 'kaukaziane', 'turkike', 'uraliane', 'mongole']
     P = {
         # startup files (the name carries a hash of the content)
-        'PRELOADS': (''.join(f'<link rel="preload" href="{H[n]}" as="fetch" crossorigin>'
-                             for n in ('languages.json', 'world-50s.json', 'terr.json', 'lexicon.json')), 1),
+        'PRELOADS': (preloads(H), 1),
         'SEARCH_VERSION': (jsdump(search_version()), 1),
         # families: the four merged ones and any from content/families.json follow Etimo's five
         'FAMILIES': (jsdump(OLD + NEW), 2),

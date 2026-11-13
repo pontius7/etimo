@@ -70,7 +70,7 @@ button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
   .mapbox .card.mcard.kpanel:has(>.rgh) .psec+.psec{margin-top:.85rem}
   .card.kpanel .rgwh{max-width:min(10rem,46vw)}
   /* the zoom buttons step aside while the region card is open (pinch zooms), as they do for the language card's details */
-  .mapbox:has(>.card.kpanel:not([hidden])>.rgh) :is(.zoom,.mreset){opacity:0!important;pointer-events:none!important}
+  .mapbox>.zoom:has(~.card.kpanel:not([hidden])>.rgh),.mapbox>.card.kpanel:not([hidden]):has(>.rgh)~.mreset{opacity:0!important;pointer-events:none!important}
   /* no sources on the phone: the region card's source button, the census list's document buttons and the regions table */
   .mapbox .card.kpanel :is(.country-panel-source,.country-regions-launch,.rg-cen),.card .country-source-icon{display:none!important}
   .card .country-name-link{pointer-events:none;text-decoration:none!important;border-bottom:0!important;box-shadow:none!important}
@@ -99,8 +99,8 @@ button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
   .mapbox .mcred.open{background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 1px 4px color-mix(in srgb,var(--ink) 10%,transparent)}
   .mapbox .mcred.open .mct{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .2s}
   /* folded while a card is open: only the (i) stays, in the corner of the map above the card */
-  .mapbox:has(>.card:not([hidden])) .mcred.open:not(.on){background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
-  .mapbox:has(>.card:not([hidden])) .mcred.open:not(.on) .mct{opacity:0;visibility:hidden}
+  .mapbox>.card:not([hidden])~.mcred.open:not(.on){background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .mapbox>.card:not([hidden])~.mcred.open:not(.on) .mct{opacity:0;visibility:hidden}
 }
 
 /* v71  Settings sheet (kSheet in the page code). Phone (<64rem): comes down from the top under the language button, rounded

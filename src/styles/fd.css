@@ -101,7 +101,7 @@
 /* phones: language pill at the far right of the header, short code (EN/SR/СР/SQ/DE) */
 @media (width<64rem){
   .tabbar .in>button:nth-child(5){left:auto!important;right:max(12px,calc(env(safe-area-inset-right,0px) + 12px));padding:0 10px 0 7px}
-  body:has(.bar .br>*) .tabbar .in>button:nth-child(5){right:max(58px,calc(env(safe-area-inset-right,0px) + 58px))}
+  div:where(.barw):has(.bar .br>*)~.tabbar .in>button:nth-child(5){right:max(58px,calc(env(safe-area-inset-right,0px) + 58px))}
   .tabbar .in>button:nth-child(5) span:not(.icn){font-size:0!important;max-width:none}
   .tabbar .in>button:nth-child(5) span:not(.icn)::after{font-size:.75rem;font-weight:600;letter-spacing:.04em;content:"EN"}
   html[lang=sr-Latn] .tabbar .in>button:nth-child(5) span:not(.icn)::after{content:"SR"}
@@ -164,9 +164,9 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 /* phones: light/dark button on every page; the home-only original is hidden */
 .fdtheme{display:none}
 @media (width<64rem){
-  body:has(.tabbar .in>button:nth-child(3)[aria-current=page]) .bar .bl>button{display:none!important}
+  div:where(.barw):has(~.tabbar .in>button:nth-child(3)[aria-current=page]) .bar .bl>button{display:none!important}
   .fdtheme{display:block;position:fixed;z-index:27;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(12px,calc(env(safe-area-inset-left,0px) + 12px));width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--ink);padding:0;cursor:pointer}
-  body:has(.tabbar .in>button:nth-child(3):not([aria-current=page])):has(.bar .bl>button) .fdtheme{left:max(56px,calc(env(safe-area-inset-left,0px) + 56px))}
+  body.kbk .fdtheme{left:max(56px,calc(env(safe-area-inset-left,0px) + 56px))}
   .fdtheme::after{content:"";position:absolute;inset:0;margin:auto;width:17px;height:17px;background:currentColor;-webkit-mask:var(--tm) center/contain no-repeat;mask:var(--tm) center/contain no-repeat}
   .fdtheme{--tm:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%2014.5A8%208%200%200%201%209.5%204a8%208%200%201%200%2010.5%2010.5z%22/%3E%3C/svg%3E")}
   :root[data-theme=dark] .fdtheme{--tm:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22/%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M4.9%204.9l1.4%201.4M17.7%2017.7l1.4%201.4M2%2012h2M20%2012h2M4.9%2019.1l1.4-1.4M17.7%206.3l1.4-1.4%22/%3E%3C/svg%3E")}
@@ -178,7 +178,7 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 
 /* header copy-list button removed; each word row has its own copy control (hover on desktop, faint on touch) */
 .bar .br .cpb{display:none!important}
-@media (width<64rem){body:has(.bar .br .cpb):not(:has(.bar .br>:not(.cpb))) .tabbar .in>button:nth-child(5){right:max(12px,calc(env(safe-area-inset-right,0px) + 12px))!important}
+@media (width<64rem){div:where(.barw):has(.bar .br .cpb):not(:has(.bar .br>:not(.cpb)))~.tabbar .in>button:nth-child(5){right:max(12px,calc(env(safe-area-inset-right,0px) + 12px))!important}
 }
 .wr{position:relative;padding-right:44px!important}
 .fdcp{position:absolute;right:2px;top:50%;width:36px;height:36px;margin-top:-18px;border-radius:50%;color:var(--mut);opacity:0;transition:opacity .2s,background-color .2s,color .2s;cursor:pointer}
@@ -220,4 +220,4 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 @keyframes mxin{from{opacity:0;transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.card.mcard .mx{animation:none!important}.card.mcard .mmore svg{transition:none!important}}
 .mapbox :is(.zoom,.mreset){transition:opacity .2s}
-.mapbox:has(>.card.msheet.mopen:not([hidden])) :is(.zoom,.mreset){opacity:0!important;pointer-events:none!important}
+.mapbox>.zoom:has(~.card.msheet.mopen:not([hidden])),.mapbox>.card.msheet.mopen:not([hidden])~.mreset{opacity:0!important;pointer-events:none!important}

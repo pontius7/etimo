@@ -37,7 +37,7 @@ const vars = await ev(`(()=>{const c=getComputedStyle(document.documentElement);
 // dialect / minority areas drawn over the zones (Serbia, Vlach): must be the same colour as the language itself
 let areas = {};
 for (let i = 0; i < 15; i++) {
-  areas = await ev(`(()=>{const m=window.__kgl;if(!m){const o={};document.querySelectorAll('g.serbia-areas path, g.vlach-areas path').forEach(p=>{const d=p.__data__;if(d&&d.name)o[d.name]=p.getAttribute('fill')||getComputedStyle(p).fill});return o}let e=m.getPaintProperty('detail-b','fill-color');e=e&&e[0]==='to-color'?e[1]:e;const t={};if(e&&e[0]==='match')for(let i=2;i<e.length-1;i+=2)t[e[i]]=e[i+1];const o={};m.querySourceFeatures('areas').forEach(f=>{const p=f.properties;if(['vlach','meg','area','me','dial'].includes(p.kind)&&p.name)o[p.name]=t[p.name]||p.color});return o})()`) || {};
+  areas = await ev(`(()=>{const m=window.__kgl;if(!m){const o={};document.querySelectorAll('g.serbia-areas path, g.vlach-areas path').forEach(p=>{const d=p.__data__;if(d&&d.name)o[d.name]=p.getAttribute('fill')||getComputedStyle(p).fill});return o}let e=m.getPaintProperty('detail-b','fill-color');e=e&&e[0]==='to-color'?e[1]:e;const t={};if(e&&e[0]==='match')for(let i=2;i<e.length-1;i+=2)t[e[i]]=e[i+1];const o={};m.querySourceFeatures('base',{sourceLayer:'areas'}).forEach(f=>{const p=f.properties;if(['vlach','meg','area','me','dial'].includes(p.kind)&&p.name)o[p.name]=t[p.name]||p.color});return o})()`) || {};
   if (Object.keys(areas).length) break;
   await sleep(1000);
 }

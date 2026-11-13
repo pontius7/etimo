@@ -12,10 +12,40 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
 - Rebuild after any content or colour change: `python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py`
+  (needs tippecanoe for the tiles: `brew install tippecanoe`)
   (about 45 seconds; the census regions are only cut again when their source changed. Delete
   `site/map-next/data/regions/` to cut them all again).
 - What feeds the data: the same files as the site. The list is at the top of `build.py`.
 - How precise the outlines are, and what counts as a drawing error at a border: the constants at the top of `build.py`.
+
+## Tiles and loading order (speed on phones, 2026-11-13)
+- **Tiles.** Land, language areas and lines reach the engine as vector tiles, the way web maps ship their shapes:
+  `build.py` (`tiles()`) cuts `land.json`, `areas.json` and `lines.json` with tippecanoe into
+  `site/map-next/tiles/{z}/{x}/{y}.pbf` (zoom 0 to 8, about 2,450 files, 3 seconds). Closer in than zoom 8 the engine
+  enlarges those tiles; they keep the data's full precision (`-d14`). Nothing is dropped or merged, and neighbouring areas
+  are simplified alike, so no gap opens between two colours. Sea has no tiles (MapLibre takes a missing tile as empty).
+  The three JSON files stay: they are the tiles' source and the checks read them. One engine source, `base`, with the
+  layers `land`, `areas`, `lines` (`'source-layer'` in `map-gl.js`); a check that reads features asks for
+  `querySourceFeatures('base', {sourceLayer: 'areas'})`. The tile address carries `?v=` (a hash of the three files, in
+  `meta.json`), so tiles are cached for a year (`site/_headers`); MapLibre too (`?v=6.18.0` on its import: a new MapLibre
+  needs a new `?v=` there). Cloudflare serves whole files only (no byte ranges), so a one-file tile archive (PMTiles) would
+  need extra storage; the folder of tiles needs none. Measured on a phone-sized Chrome, processor slowed 4 times, 4G:
+  the first view loads 4 tiles (230 KB) instead of 3.1 MB of shapes.
+- **What loads first.** `scripts/build-page.py` (`preloads()`) writes a few lines at the top of the page: on a map screen the
+  engine, its settings and the relief are fetched from the first moment and the lexicon (8 MB of words) only after the map has
+  drawn ("etimo:mapready", sent by `map-gl.js` at the first quiet moment after a tile came; `kLexWhen` / `kAfterMap` in the
+  page code); the region shapes (`today.json`) and districts also wait for it. Other screens fetch the lexicon at once and
+  the engine quietly 1.5 s after the page has loaded. The lexicon's lists are built in slices of 8 ms (`kLexBuild`).
+- **A tap on the map** finds its region with a flat test on the shapes' points (`kHitIn`, `kHitBox`), not d3's test on the sphere.
+- **Style rules and the map.** The map holds about 6,000 page elements (the unseen copies of names and dots, the keyboard
+  list). A `:has()` rule on an element that contains them (`body`, `#root`, `.wrap`, `.mapbox`) whose styled element lies
+  inside it makes the browser restyle all of them after any change on the page: write such a rule on a small neighbour
+  instead (`.mapbox>.card:not([hidden])~.mcred`, `.mapbox>.zoom:has(~.card…)`), or with a class the page sets. The same
+  goes for a CSS variable set on `.mapbox`: `--ch` and `--wch` are registered as not inherited (`@property` in `v64.css`).
+  While the map moves, the page leaves its unseen copies alone (`kTick`), and it puts its language names back in order
+  only when the order has changed (`kOrd`).
+- Result (same conditions): map on screen 8.6 s -> 2.6 s, main thread blocked during loading 3.0 s -> 1.1 s, tap on a region
+  1.2 s -> 0.37 s, longest stall at the end of a pinch 230 ms -> 70 ms. Measured with headless Chrome only, not on a real iPhone.
 
 ## No old map any more
 The old SVG map was retired on 2026-11-13 (main README, "Old map retired"). When the engine cannot start, the map box shows
@@ -36,7 +66,9 @@ weight, colours, how visible) and hands the list to the engine (`labels()` in `s
 draws them from that list: a name keeps its size on screen and its distance from its point, and the page redraws nothing on any
 frame, as in the leading map products. The page's own elements stay in place, hidden with `visibility` (so their own colours and
 opacities stay readable), for the keyboard, the pointer (the word circles take clicks) and the census names' collision check;
-while the map moves they are out of the drawing (`data-gmv`). The letters are Manrope, drawn by the engine without a font
+while the map moves the page leaves them exactly as they are (not moved, not hidden) and puts them right once, at rest. Moving
+them on every frame made the browser lay out all of them (about 2,600) each frame; taking them out of the drawing instead made it
+rebuild them all whenever the map stopped (a 160 to 230 ms pause at the end of every pinch on a slowed phone, 2026-11-13). The letters are Manrope, drawn by the engine without a font
 server: a font list like `["Manrope SemiBold", "Manrope"]` gives weight 600 (the engine takes the weight from the words of the
 first name and the letters from the first family the browser has). Measured on 2026-11-12 in Chrome on an M1 Pro (wheel zoom
 in and out at three places): late frames 383 of 914 before, 7 of 840 after; phone size with the processor slowed 4 times:

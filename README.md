@@ -268,6 +268,13 @@ their own and do not follow this split yet: city names on phones (`max-width: 76
 picture (`max-width:820px`, or a touch screen up to 1180px, in `site/map-gl.js`). They choose what is shown, not the layout, and are left as they are until it is
 decided that they should follow 64rem.
 
+## Speed: rules that keep the phone fast
+Measured and fixed on 2026-11-13 (details: `scripts/map-next/README.md`, "Tiles and loading order").
+- Map shapes go to the engine as tiles (`site/map-next/tiles/`, cut by `scripts/map-next/build.py`; needs `brew install tippecanoe`).
+- A map screen loads the map first and the lexicon after it; other screens the other way round (`preloads()` in `scripts/build-page.py`).
+- No `:has()` rule on `body`, `#root`, `.wrap` or `.mapbox` that styles something inside it: such a rule makes the browser
+  restyle the whole map (about 6,000 elements) after every change. Use a small neighbour or a class the page sets.
+
 ## How the page is built
 
 The page has ordinary source files in `src/`. `scripts/build-page.py` joins them into the one

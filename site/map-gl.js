@@ -9,7 +9,9 @@
    The data comes from scripts/map-next/build.py (map-next/data/). Colours of sea, land and lines: src/styles/tokens.css (themeOf below).
    Which area is how strong when a language or a family is chosen: paint() below; the lists and the strengths of
    the detailed layers are the ones in regional-layer.js, which the data build reads too, so both follow one rule. */
-import * as maplibregl from './map-next/vendor/maplibre-gl.mjs';
+/* ?v= is MapLibre's version: the vendor folder is cached for a year (site/_headers), so a new MapLibre needs a new ?v= here
+   (its worker file gets the version from MapLibre itself; the page's first-moment fetches read this line: scripts/build-page.py) */
+import * as maplibregl from './map-next/vendor/maplibre-gl.mjs?v=6.18.0';
 import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js?v=42';
 
 const DATA = 'map-next/data/';
@@ -57,9 +59,11 @@ const json = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 let engine = null, made = null, gen = 0;
+const mapReady = () => { if (!window.__kMapReady) { window.__kMapReady = true; window.dispatchEvent(new Event('etimo:mapready')); } };
 /* Takes the engine out of the page again: its box, its map and the kept copy. The page calls it when the engine fails (it then shows a note instead of the map). */
 export function drop() {
   gen++;
+  mapReady();
   if (made) { try { made.map && made.map.remove(); } catch {} made.box.remove(); made = null; }
   if (window.__kgl) delete window.__kgl;
   engine = null;
@@ -107,9 +111,11 @@ async function create(host, id) {
     style: {
       version: 8,
       sources: {
-        land:   {type: 'geojson', data: DATA + 'land.json',  maxzoom: 12, tolerance: .25},
-        lines:  {type: 'geojson', data: DATA + 'lines.json', maxzoom: 12, tolerance: .25},
-        areas:  {type: 'geojson', data: DATA + 'areas.json', maxzoom: 12, tolerance: .25},
+        /* land, language areas and lines: vector tiles cut by scripts/map-next/build.py (tiles()), so the map loads only
+           what it shows, at the detail of its zoom; past meta.tiles.maxzoom it enlarges those tiles (full detail kept).
+           Sea has no tiles: MapLibre takes a missing tile (404) as empty. ?v= changes with every new build. */
+        base:   {type: 'vector', tiles: [new URL('map-next/tiles/', location.href).href + '{z}/{x}/{y}.pbf?v=' + meta.tiles.v],
+                 minzoom: 0, maxzoom: meta.tiles.maxzoom, bounds: meta.tiles.bounds},
         census: {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 12, tolerance: .25},
         relief: {type: 'image', coordinates: meta.relief},     // no url: the decoded picture is handed over (style.load below)
         pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
@@ -119,25 +125,25 @@ async function create(host, id) {
       /* Bottom to top. Every paint value that depends on the theme or on what is chosen is set in look() and paint(). */
       layers: [
         {id: 'sea', type: 'background', paint: {'background-color': T0.sea}},
-        {id: 'land', type: 'fill', source: 'land', paint: {'fill-color': T0.land}},
-        {id: 'base', type: 'fill', source: 'land', filter: ['has', 'base'], paint: {'fill-color': ['get', 'base'], 'fill-opacity': BASE}},
-        {id: 'dia', type: 'fill', source: 'areas', filter: ['==', kind, 'dia'], paint: {'fill-color': ['get', 'light'], 'fill-opacity': ZONE * .5}},
-        {id: 'areas', type: 'fill', source: 'areas', filter: ['all', ['!', ['has', 'kind']], ['!', ['has', 'round']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ZONE}},
+        {id: 'land', type: 'fill', source: 'base', 'source-layer': 'land', paint: {'fill-color': T0.land}},
+        {id: 'base', type: 'fill', source: 'base', 'source-layer': 'land', filter: ['has', 'base'], paint: {'fill-color': ['get', 'base'], 'fill-opacity': BASE}},
+        {id: 'dia', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['==', kind, 'dia'], paint: {'fill-color': ['get', 'light'], 'fill-opacity': ZONE * .5}},
+        {id: 'areas', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['all', ['!', ['has', 'kind']], ['!', ['has', 'round']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ZONE}},
         /* languages without a drawn area: a circle around the pin. A layer of their own, so a circle lies over the area under it instead of replacing it */
-        {id: 'rounds', type: 'fill', source: 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ZONE}},
-        {id: 'detail-a', type: 'fill', source: 'areas', filter: ['in', kind, ['literal', ['me', 'dial']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': OP.rest}},
+        {id: 'rounds', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ZONE}},
+        {id: 'detail-a', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['me', 'dial']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': OP.rest}},
         {id: 'census', type: 'fill', source: 'census', paint: {'fill-color': ['get', 'c'], 'fill-opacity': ['get', 'o']}},
         {id: 'census-hatch', type: 'fill', source: 'census', filter: ['>', ['get', 'h'], 0], layout: {visibility: 'none'}, paint: {'fill-opacity': ['get', 'h']}},
-        {id: 'detail-b', type: 'fill', source: 'areas', filter: ['in', kind, ['literal', ['vlach', 'meg', 'area']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': OP.rest}},
-        {id: 'areas-hist', type: 'line', source: 'areas', filter: ['has', 'hist'], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': .6, 'line-dasharray': [2.5, 2.1]}},
+        {id: 'detail-b', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['vlach', 'meg', 'area']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': OP.rest}},
+        {id: 'areas-hist', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['has', 'hist'], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': .6, 'line-dasharray': [2.5, 2.1]}},
         {id: 'relief', type: 'raster', source: 'relief', paint: {'raster-fade-duration': 0, 'raster-resampling': 'linear', 'raster-opacity': reliefOp(T0)}},
         /* One set of outlines: the coast is the edge of the land shapes; borders, region and district lines are cut to the same shapes. */
-        {id: 'coast', type: 'line', source: 'land', layout: round, paint: {'line-color': T0.coast, 'line-width': .9}},
-        {id: 'district', type: 'line', source: 'lines', filter: ['==', kind, 'district'], layout: round, paint: {'line-color': T0.inner, 'line-width': .6, 'line-opacity': 0}},
-        {id: 'region', type: 'line', source: 'lines', filter: ['==', kind, 'region'], layout: round, paint: {'line-color': T0.inner, 'line-width': .7, 'line-opacity': 0}},
-        {id: 'border', type: 'line', source: 'lines', filter: ['==', kind, 'border'], layout: round, paint: {'line-color': T0.border, 'line-opacity': .9, 'line-width': 1.2}},
-        {id: 'hover-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .9}},
-        {id: 'sel-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2.2}},
+        {id: 'coast', type: 'line', source: 'base', 'source-layer': 'land', layout: round, paint: {'line-color': T0.coast, 'line-width': .9}},
+        {id: 'district', type: 'line', source: 'base', 'source-layer': 'lines', filter: ['==', kind, 'district'], layout: round, paint: {'line-color': T0.inner, 'line-width': .6, 'line-opacity': 0}},
+        {id: 'region', type: 'line', source: 'base', 'source-layer': 'lines', filter: ['==', kind, 'region'], layout: round, paint: {'line-color': T0.inner, 'line-width': .7, 'line-opacity': 0}},
+        {id: 'border', type: 'line', source: 'base', 'source-layer': 'lines', filter: ['==', kind, 'border'], layout: round, paint: {'line-color': T0.border, 'line-opacity': .9, 'line-width': 1.2}},
+        {id: 'hover-edge', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .9}},
+        {id: 'sel-edge', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2.2}},
         /* names of the census regions (every country with a census table), drawn here in the site's font (Manrope, no font server:
            without a glyphs address MapLibre draws the letters itself). Shown from the zoom where a region is 34 px wide (text-field in scale());
            the larger region wins where two collide. Same size on phone and desktop (10.5 px); phones show fewer (NAME_PX, NAME_PAD). */
@@ -168,6 +174,12 @@ async function create(host, id) {
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
   map.once('idle', () => box.classList.add('on'));
+  /* the first picture with the map's shapes in it: the first quiet moment after a tile of land and areas has come.
+     The page waits for this before it loads what the map does not need yet (lexicon, region shapes). */
+  let tiled = false;
+  const drawn = () => { if (tiled) { map.off('idle', drawn); mapReady(); } };
+  map.on('data', function first(e) { if (e.sourceId === 'base' && e.tile) { tiled = true; map.off('data', first); } });
+  map.on('idle', drawn);
   let nameFeats = [];
   /* the census region names (census-names.json), once the map has drawn and the site's font is ready, so the letters are drawn in it */
   map.once('idle', () => {
@@ -182,7 +194,7 @@ async function create(host, id) {
   });
   /* A map data file that did not arrive leaves a map with holes, and MapLibre still reports the map as loaded: the page is told, and shows its note instead of the map. */
   let broken = null;
-  map.on('error', e => { if (broken || !['land', 'lines', 'areas'].includes(e.sourceId)) return; broken = e.error || e; if (H.fail) H.fail(broken); });
+  map.on('error', e => { if (broken || e.sourceId !== 'base') return; broken = e.error || e; if (H.fail) H.fail(broken); });
   await new Promise((ok, no) => { map.once('load', ok); map.once('error', e => no(e.error || e)); });
   if (broken) throw broken;
 

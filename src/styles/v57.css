@@ -46,7 +46,7 @@
 .mapbox .card.mcard.kpanel .meta{flex-wrap:wrap}
 .mapbox .card.mcard.kpanel .rgc{flex-wrap:wrap;overflow:visible}
 .mapbox .card.mcard.kpanel .acts{margin-top:auto;position:sticky;bottom:0;padding-top:.75rem;background:linear-gradient(transparent,var(--bg) 30%)}
-.mapbox:has(.card.mcard.kpanel:not([hidden])) .kfb{transform:translateX(min(190px,17%))}
+.mapbox>:where(.kfil):has(~.card.mcard.kpanel:not([hidden])) .kfb{transform:translateX(min(190px,17%))}
 }
 @keyframes kslide{from{transform:translateX(-104%)}
 to{transform:none}
