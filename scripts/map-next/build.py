@@ -12,7 +12,7 @@ Nothing here is typed in by hand. Everything the map shows comes from the files 
   family names       site/index.html (where each name sits) and scripts/merge/palette.py (its colour, light and dark)
   lighter tint       content/minority-areas.csv  (min / plu rows)
   detailed areas     site/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
-                     montenegro-areas.json; which generic pins and zones they replace: the lists in site/regional-layer.js
+                     montenegro-areas.json, and the census countries of CENSUS_AREAS (croatia-, bosnia-areas.json); which generic pins and zones they replace: the lists in site/regional-layer.js
   region lines       site/data/today.json        (regions inside a country)
   district lines     site/data/adm2.json
   relief             site/data/shade*.avif       (placed by RELIEF below, same numbers as scripts/relief/relief.py)
@@ -268,6 +268,12 @@ def site_lists():
     return {'hide_pin': hide_pin, 'hide_zone': hide_pin | {'Arvanitika', 'Aromanian'} | set(par), 'dname': obj('DNAME'), 'aro': set(aro), 'meg': set(arr('MEG'))}
 
 
+# Countries drawn from their census by municipality (scripts/areas/census-areas.py writes the file): (file, country as on the map).
+# In each, these areas replace the broad areas of the languages they draw and cover the whole country; the areas of other
+# languages there (minorities, dialects) stay. Add a country here once its file exists.
+CENSUS_AREAS = (('croatia-areas.json', 'Croatia'), ('bosnia-areas.json', 'Bosnia and Herzegovina'))
+
+
 def detailed_areas(lists):
     """The detailed layers: {(kind, language): shape}. The kind tells the page which rule the area follows
     (dial = Albanian dialects, vlach = Aromanian varieties, meg = Megleno-Romanian parts, shown only when chosen,
@@ -286,7 +292,28 @@ def detailed_areas(lists):
     add('serbia-areas.json', 'area')
     add('greece-areas.json', 'area')
     add('montenegro-areas.json', 'me')
+    for name, _ in CENSUS_AREAS:
+        add(name, 'area')
     return out
+
+
+def census_countries(fitted, detail, countries):
+    """The CENSUS_AREAS rule: the broad areas of the drawn languages stop at the country's border, and a gap the census
+    areas leave inside it (a municipality without an outline) goes to the census area sharing most of its edge."""
+    for name, cname in CENSUS_AREAS:
+        c = next((c for c in countries if c['name'] == cname), None)
+        if c is None:
+            sys.exit(f'map-next: {name}: no country called {cname} on the map')
+        cs, drawn = c['shape'], set(load(name))
+        fitted = {n: g for n, g in ((n, solid(g.difference(cs)) if n in drawn else g) for n, g in fitted.items()) if not g.is_empty}
+        mine = [k for k, g in detail.items() if k[0] == 'area' and k[1] in drawn and g.intersects(cs)]
+        for piece in polys(solid(cs.difference(unary_union([detail[k] for k in mine])))):
+            if piece.area < 1e-6 or not mine:
+                continue
+            edge = piece.buffer(THIN)
+            k = max(mine, key=lambda k: detail[k].intersection(edge).area)
+            detail[k] = solid(detail[k].union(piece))
+    return fitted, detail
 
 
 def fit_regions(regs, cshape):
@@ -536,6 +563,7 @@ def main():
     round_areas = circles(langs, fitted, lists, countries, ctree)
     fitted.update(round_areas)
     detail, removed2, filled2 = fit_areas(detailed_areas(lists), countries)
+    fitted, detail = census_countries(fitted, detail, countries)
     # Montenegro and Greece are drawn from their own detailed layers; the broad areas stop at their borders (the site's rule)
     own = unary_union([c['shape'] for c in countries if c['name'] in ('Montenegro', 'Greece')])
     fitted = {n: g for n, g in ((n, solid(g.difference(own))) for n, g in fitted.items()) if not g.is_empty}
@@ -555,7 +583,8 @@ def main():
     areas = [feat(zone(n), 'MultiPolygon', gj_polygons(g)) for n, g in sorted(fitted.items(), key=lambda kv: -kv[1].area)]
     areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
     areas += [feat({'kind': 'dia', 'fam': fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
-    land = [feat({'name': c['name'], **({'base': colours.get(c['lang'], '#8a93a3'), 'lang': c['lang'], 'bfam': props(c['lang'])['fam']} if c['lang'] else {})},
+    drawn_whole = {cname for _, cname in CENSUS_AREAS}     # covered by their census areas: no country tint under them
+    land = [feat({'name': c['name'], **({'base': colours.get(c['lang'], '#8a93a3'), 'lang': c['lang'], 'bfam': props(c['lang'])['fam']} if c['lang'] and c['name'] not in drawn_whole else {})},
                  'MultiPolygon', gj_polygons(c['shape'])) for c in countries]
     ml = lambda kind, arcs: feat({'kind': kind}, 'MultiLineString', [[fake(x, y) for x, y in a] for a in arcs])
     line_feats = [

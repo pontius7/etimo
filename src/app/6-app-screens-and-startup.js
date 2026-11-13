@@ -934,7 +934,7 @@ return yh(vf[t=e.family]||hh,5.6*Math.PI*5.6*(bf[t]||1))()}).style("fill",e=>Vf(
 let ct={},dt=[],ht=[],ft=new Set,pt=null,kn=null;
 p&&(g.forEach(e=>{let t=m[e.id][0];
 ct[e.id]=Fa(t.lat||t.word)}),dt=g.map(e=>g.map(t=>e!==t&&Ka(ct[e.id],ct[t.id]))));
-let mt=e=>2===e.cl?8.5+2.1*Math.sqrt(e.m.length-1):9+2.4*Math.sqrt(e.m.length-1);
+let mt=e=>(2===e.cl?8.5+2.1*Math.sqrt(e.m.length-1):9+2.4*Math.sqrt(e.m.length-1))*(me()?1:.74);   /* phones: smaller group bubbles (v73) */
 function gt(e,n){var r;
 n&&(t.innerHTML='<button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><div class="mhd"><h3>'+ei((r=n).word)+'</h3></div><div class="meta"><span>'+ei(Ra(r.m.length))+'</span></div><div class="chipsc">'+r.m.map(e=>'<button type="button" class="lchip" data-ci="'+g.indexOf(e)+'"><span class="dot '+e.family+'"></span>'+ei(Na(e))+"</button>").join("")+"</div>",t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0});
 let a=e.map(e=>e._xy[0]),i=e.map(e=>e._xy[1]),s=Math.min(...a)-3,o=Math.max(...a)+3,l=Math.min(...i)-3,u=Math.max(...i)+3,c=n&&n.word?b/16:b/7,d=n&&n.word?(y-52-w())/14:y/7;

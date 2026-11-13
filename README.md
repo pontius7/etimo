@@ -440,5 +440,33 @@ every country of the map (each card named its place; no errors).
 | **Light mode for everyone** | a visitor starts in light mode whatever the phone or computer is set to; night mode stays a choice and is remembered | same | the first script in `src/page.html` |
 | **Languages page** | slim Wheel / Tree switch, the wheel centred in the free room, the tree as one grouped list with quieter type and indented levels | unchanged | block `v72` |
 | **Pins** | size follows the zoom: where many languages show, a small dot of the language's colour with a thin light edge, no outline or shadow; it grows smoothly into the full pin (disc, outline, soft shadow) only close in; 14% smaller on phones. The chosen pin keeps its outline and larger size | same zoom curve, full size | `PIN_R`, `CORE_R`, `PIN_W`, `SHADOW_O` in `site/map-gl.js` |
+| **Groups of nearby pins** | a small light bubble with the number in ink and a faint ring, about a quarter smaller | dark bubble, as before | `mt` in the page code; block `v73` |
 | **Czech region name** | "Plzeň-" was cut off in the source data; now "Plzeň" | same | `RENAME` in `scripts/merge/current-regions.py` |
+
+## A language map from an image: the process
+
+When a map image of a country's languages is handed over (a census map by municipality, a dialect map), it is adapted
+to the map that is already there, in this order. The image is the reference for what the result should show; its
+colours are never copied: every area takes its language's own colour from the palette.
+
+1. **Read the image**: which country, which census or source and year, what each colour stands for (and the lighter
+   shades, usually "largest group but under half"), what white or grey means.
+2. **Numbers first.** If the census tables (`site/data/tables/<CC>.json`) have that country by municipality, and the
+   municipality outlines exist, the areas are made from the numbers, not traced:
+   `.venv/bin/python scripts/areas/census-areas.py <CC>` writes `site/data/<country>-areas.json` (each municipality takes
+   its largest language; same-language municipalities are joined). A newer census than the image's wins. Outlines: the
+   census view's own (`site/data/regional/geo/`), or a frozen open file in `scripts/areas/geo/` with a few name pairs
+   in `NAMES`; add the country to `SOURCES` in the script.
+3. **Only without numbers: trace** the image (`scripts/areas/`, as for Montenegro and Arvanitika), fitted to the real
+   outline.
+4. **Plug it in**: add the file and the country to `CENSUS_AREAS` in `scripts/map-next/build.py`. There, the broad
+   areas of the languages it draws stop at the border, any gap goes to the neighbouring census area, the country gets
+   no extra tint, and the areas of other languages there (minorities, dialects) stay. Run
+   `.venv/bin/python scripts/map-next/build.py`, then `./scripts/add-words.sh`.
+5. **Check** against the image at phone and desktop size, and that no language lost its area (the build lists any).
+
+Done this way so far: **Croatia** (2021 census, 549 towns and municipalities: Croatian 540, Serbian 9; newer than the
+2011 reference image, so Istria is Croatian: no municipality there has an Italian majority in 2021) and **Bosnia and
+Herzegovina** (2013 census, the latest: 141 municipalities and Brčko District: Serbian 64, Bosnian 54, Croatian 24;
+outlines from geoBoundaries BIH ADM3, public domain, `scripts/areas/geo/BIH-ADM3.geojson`).
 
