@@ -330,11 +330,11 @@ def preloads(H):
     m = re.search(r"/\* latin \*/\s*@font-face \{\s*font-family: 'Manrope';[^}]*?url\((fonts/[^)]+\.woff2)\)", fcss)
     mx = re.search(r"/\* latin-ext \*/\s*@font-face \{\s*font-family: 'Manrope';[^}]*?url\((fonts/[^)]+\.woff2)\)", fcss)
     first = [H[n] for n in ('languages.json', 'world-50s.json', 'terr.json')]
-    # on a map screen these (with the page's code, split_app()) come after the engine's own files: fetchpriority low, so the
-    # engine, its worker and the first tiles arrive first and the engine starts while the page's code is still on its way.
-    # The fonts (Manrope latin and latin-ext, 39 KB) stay at full priority: the cards measure their names with them as they are drawn.
-    boot = ('<script>(function(){var low=/^#(map|mm-)/.test(location.hash),d=document,a=function(r,u,as,t){var l=d.createElement("link");'
-            'l.rel=r;l.href=u;if(as)l.as=as;if(t)l.type=t;if(r==="preload")l.crossOrigin="anonymous";if(low&&as!=="font")l.fetchPriority="low";d.head.appendChild(l)};'
+    # All at normal priority: a map screen shows its map only once the page's code has put it in place, so lowering the code
+    # or its start-up data only delays the map (measured on Cloudflare 2026-11-13). Manrope latin and latin-ext (39 KB): the
+    # cards measure their names with them as they are drawn.
+    boot = ('<script>(function(){var d=document,a=function(r,u,as,t){var l=d.createElement("link");'
+            'l.rel=r;l.href=u;if(as)l.as=as;if(t)l.type=t;if(r==="preload")l.crossOrigin="anonymous";d.head.appendChild(l)};'
             + (f'a("preload",{json.dumps(m.group(1))},"font","font/woff2");' if m else '')
             + (f'a("preload",{json.dumps(mx.group(1))},"font","font/woff2");' if mx else '')
             # both Manrope parts (latin, latin-ext) in use from the start, in the weights the wheels and cards measure with:
@@ -475,9 +475,9 @@ def split_app(text):
     with open(os.path.join(ROOT, 'site', name), 'wb') as f:
         f.write(code)
     text = text[:m.start()] + f'<script type="module" src="{name}"></script>' + text[m.end():]
-    i = text.index('<script>(function(){var low=')
+    i = text.index('<script>(function(){var d=document,a=function(r,u,as,t)')
     text = (text[:i] + '<script>(function(){var l=document.createElement("link");l.rel="modulepreload";l.href=' + json.dumps(name)
-            + ';if(/^#(map|mm-)/.test(location.hash))l.fetchPriority="low";document.head.appendChild(l)})()</script>' + text[i:])
+            + ';document.head.appendChild(l)})()</script>' + text[i:])
     return text, name
 
 
