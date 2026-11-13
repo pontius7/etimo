@@ -295,6 +295,10 @@ z.type="button";
 z.className="wmap";
 a.after(z);
 return z})(),
+wb=a.parentNode.querySelector(".wbar")||(()=>{let z=document.createElement("div");
+z.className="wbar";
+mb.after(z);
+return z})(),
 OM={en:"On map",
 sq:"Në hartë",
 de:"Auf der Karte",
@@ -302,7 +306,7 @@ sr:"Na karti",
 sc:"На карти"}[ya()]||"On map",
 mbu=q=>{let L=q&&q.d.data.L,
 g=!L&&root.depth?root:null;
-mb.hidden=!L&&!g;
+mb.hidden=wb.hidden=!L&&!g;
 if(mb.hidden)return;
 mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em>"+ei(L?q.d.data.name:root.data.name)+"</em>";
 mb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||"");
@@ -311,7 +315,14 @@ return}
 Uf={fam:root.fam,
 sub:root.depth>1,
 ids:root.leaves().map(z=>z.data.L.id)},
-Ja("map")}},
+Ja("map")};
+/* phones (<64rem): the bar above the tab bar (v74 in src/styles/v66.css) names what is chosen; its name opens the language, its
+   map button shows it (or the whole family) on the map. Desktop keeps the single button (.wmap). */
+let sub=L&&q.d.parent&&q.d.parent.depth?q.d.parent.data.name:"";
+wb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||""),
+wb.innerHTML=(L?'<button type="button" class="wbo">':'<div class="wbo">')+"<i></i><span>"+(sub?"<small>"+ei(sub)+"</small>":"")+"<b>"+ei(L?q.d.data.name:root.data.name)+"</b></span>"+(L?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>':"</div>")+'<button type="button" class="wbm">'+ii.map+"<span>"+ei(OM)+"</span></button>",
+wb.querySelector(".wbm").onclick=mb.onclick,
+L&&(wb.querySelector(".wbo").onclick=()=>Ja(L.id))},
 paint=()=>{P.classed("sel",q=>"leaf"===q.kind&&q.d.data.L.id===SL);
 P.filter(".sel").raise();
 let q=SL&&arcs.find(x=>"leaf"===x.kind&&x.d.data.L.id===SL);
@@ -330,7 +341,8 @@ return}
 if("leaf"!==q.kind){r(q.d);
 return}
 let id=q.d.data.L.id;
-if(q.lab||SL===id)Ja(id);
+/* phones (<64rem): the first tap on a language chooses it (the bar shows it), a second opens it; desktop: a named slice opens at once */
+if(SL===id||q.lab&&!(!window.matchMedia||!matchMedia("(min-width: 64rem)").matches))Ja(id);
 else{SL=id;
 paint()}};
 P.on("click",(ev,q)=>act(q)).on("keydown",(ev,q)=>{("Enter"===ev.key||" "===ev.key)&&(ev.preventDefault(),act(q))}).on("pointerenter",(ev,q)=>{"mouse"===ev.pointerType&&(a.hidden=!1,a.textContent=q.d.data.name+(q.d.data.L?"":" · "+q.d.value))}).on("pointerleave",ev=>{"mouse"===ev.pointerType&&paint()});
@@ -338,7 +350,7 @@ Ep&&arcs.some(x=>"leaf"===x.kind&&x.d.data.L.id===Ep)&&(SL=Ep,Ep=null),
 paint(),
 TOP&&!rm&&P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>1100+260*j+"ms");
 },
-destroy(){y.remove()}}}
+destroy(){y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
 var Ep=null;
 function zp(e){if(!Ep)return e;
 let t=e.leaves().find(e=>e.data.L&&e.data.L.id===Ep);
@@ -483,7 +495,7 @@ if(i.current&&n)return o.current=function(e,t,n,r,a={}){let i,s,o,l,u,c,d,h=ja()
 if(void 0===window.__etimoSVG){let s=!1;
 try{s=/[?&]map=svg/.test(location.search)||"svg"===localStorage.getItem("etimo-map")}catch{}
 window.__etimoSVG=s}
-let GL=!window.__etimoSVG,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gMv=!1,gLon=!1;
+let GL=!window.__etimoSVG,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gFit=0,gMv=!1,gLon=!1;
 e.querySelectorAll(":scope > svg").forEach(e=>e.remove());
 let p=null,m={};
 r&&(p=new Set,ha[r].forEach(e=>{p.add(e.L.id),(m[e.L.id]=m[e.L.id]||[]).push(e.e)}));
@@ -802,11 +814,11 @@ n&&(n.dia.slice(0,40).forEach((t,n)=>We.append("path").attr("class","kr kdia "+e
    the map without a figure follow by name. No numbers for a region: the languages on the map, as before. */
 let kRgP=null,kRgV=null,kRgK=0,kRgO=[],kRgL=null;
 function kRgD(){return kRgP||(kRgP=fetch("data/region-langs.json").then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(D=>kRgV=D).catch(()=>(kRgP=null,null)))}
-function kRgT(k){let T={en:{rs:"Regions",langs:"languages",lang1:"language",more:"more",ppl:"people",none:"No census figures for this area yet",also:"Also on the map",cen:"Census",multi:"more than one answer possible"},
-sq:{rs:"Rajonet",langs:"gjuhë",lang1:"gjuhë",more:"të tjera",ppl:"veta",none:"Ende pa shifra regjistrimi për këtë zonë",also:"Edhe në hartë",cen:"Regjistrimi",multi:"lejohej më shumë se një përgjigje","mother tongue":"gjuha amtare","home language":"gjuha në shtëpi","everyday language":"gjuha e përditshme","main language at home":"gjuha kryesore në shtëpi",language:"gjuha"},
-de:{rs:"Regionen",langs:"Sprachen",lang1:"Sprache",more:"weitere",ppl:"Personen",none:"Für dieses Gebiet noch keine Zensuszahlen",also:"Auch auf der Karte",cen:"Zensus",multi:"Mehrfachantworten möglich","mother tongue":"Muttersprache","home language":"Sprache zu Hause","everyday language":"Umgangssprache","main language at home":"Hauptsprache zu Hause",language:"Sprache"},
-sr:{rs:"Oblasti",langs:"jezika",lang1:"jezik",more:"još",ppl:"osoba",none:"Za ovu oblast još nema podataka popisa",also:"Takođe na mapi",cen:"Popis",multi:"moguće više odgovora","mother tongue":"maternji jezik","home language":"jezik u kući","everyday language":"svakodnevni jezik","main language at home":"glavni jezik u kući",language:"jezik"},
-sc:{rs:"Области",langs:"језика",lang1:"језик",more:"још",ppl:"особа",none:"За ову област још нема података пописа",also:"Такође на мапи",cen:"Попис",multi:"могуће више одговора","mother tongue":"матерњи језик","home language":"језик у кући","everyday language":"свакодневни језик","main language at home":"главни језик у кући",language:"језик"}};
+function kRgT(k){let T={en:{find:"Find a region",rs:"Regions",langs:"languages",lang1:"language",more:"more",ppl:"people",none:"No census figures for this area yet",also:"Also on the map",cen:"Census",multi:"more than one answer possible"},
+sq:{find:"Gjej një rajon",rs:"Rajonet",langs:"gjuhë",lang1:"gjuhë",more:"të tjera",ppl:"veta",none:"Ende pa shifra regjistrimi për këtë zonë",also:"Edhe në hartë",cen:"Regjistrimi",multi:"lejohej më shumë se një përgjigje","mother tongue":"gjuha amtare","home language":"gjuha në shtëpi","everyday language":"gjuha e përditshme","main language at home":"gjuha kryesore në shtëpi",language:"gjuha"},
+de:{find:"Region suchen",rs:"Regionen",langs:"Sprachen",lang1:"Sprache",more:"weitere",ppl:"Personen",none:"Für dieses Gebiet noch keine Zensuszahlen",also:"Auch auf der Karte",cen:"Zensus",multi:"Mehrfachantworten möglich","mother tongue":"Muttersprache","home language":"Sprache zu Hause","everyday language":"Umgangssprache","main language at home":"Hauptsprache zu Hause",language:"Sprache"},
+sr:{find:"Pronađi oblast",rs:"Oblasti",langs:"jezika",lang1:"jezik",more:"još",ppl:"osoba",none:"Za ovu oblast još nema podataka popisa",also:"Takođe na mapi",cen:"Popis",multi:"moguće više odgovora","mother tongue":"maternji jezik","home language":"jezik u kući","everyday language":"svakodnevni jezik","main language at home":"glavni jezik u kući",language:"jezik"},
+sc:{find:"Пронађи област",rs:"Области",langs:"језика",lang1:"језик",more:"још",ppl:"особа",none:"За ову област још нема података пописа",also:"Такође на мапи",cen:"Попис",multi:"могуће више одговора","mother tongue":"матерњи језик","home language":"језик у кући","everyday language":"свакодневни језик","main language at home":"главни језик у кући",language:"језик"}};
 return(T[ya()]||T.en)[k]||T.en[k]||k}
 function kRgF(v,d){try{return new Intl.NumberFormat({sq:"sq",de:"de",sr:"sr-Latn",sc:"sr-Cyrl"}[ya()]||"en",{maximumFractionDigits:d}).format(v)}catch{return String(v)}}
 function kRgS(p){return null==p?"":p<.05?"<"+kRgF(.1,1)+"%":kRgF(p,p>=10?0:1)+"%"}
@@ -821,12 +833,34 @@ let fam={};it.forEach(o=>fam[o.L.family]=(fam[o.L.family]||0)+o.v);
 it.sort((A,C)=>fam[C.L.family]-fam[A.L.family]||(A.L.family<C.L.family?-1:A.L.family>C.L.family?1:0)||C.v-A.v);
 let tot=it.reduce((m,o)=>m+o.v,0)+gr,a0=0,P="",Q="",A=lh().padAngle(it.length+(gr>0)>1?.025:0).padRadius(70).cornerRadius(2.5),k=0,
 arc=(r0,r1,a,b)=>A({innerRadius:r0,outerRadius:r1,startAngle:a,endAngle:b}),fs=[];
-it.forEach(o=>{let b=a0+o.v/tot*2*Math.PI,f=fs[fs.length-1];
-f&&f.f===o.L.family?f.b=b:fs.push({f:o.L.family,a:a0,b:b,L:o.L}),P+='<path d="'+arc(num?63:76,92,a0,b)+'" fill="'+(Vf(o.L)||"#888")+'" data-sel="'+o.L.id+'" style="--i:'+k++ +'"><title>'+ei(Na(o.L))+(num?" "+kRgS(o.v):"")+"</title></path>",a0=b});
+it.forEach(o=>{let b=a0+o.v/tot*2*Math.PI,f=fs[fs.length-1];o.a=a0,o.b=b;
+f&&f.f===o.L.family?f.b=b:fs.push({f:o.L.family,a:a0,b:b,L:o.L}),P+='<path d="'+arc(num?63:76,92,a0,b)+'" fill="'+(Vf(o.L)||"#888")+'" data-sel="'+o.L.id+'" data-n="'+ei(Na(o.L))+'"'+(num?' data-s="'+ei(kRgS(o.v))+'"':"")+' style="--i:'+k++ +'"><title>'+ei(Na(o.L))+(num?" "+kRgS(o.v):"")+"</title></path>",a0=b});
 gr>0&&(P+='<path class="rgo" d="'+arc(63,92,a0,2*Math.PI)+'" style="--i:'+k+'"/>',Q+='<path class="rgo" d="'+arc(46,58,a0,2*Math.PI)+'"/>');
 fs.forEach(f=>{Q+='<path d="'+arc(46,58,f.a,f.b)+'" fill="'+(If(f.f)||Vf(f.L)||"#888")+'" opacity=".55"><title>'+ei(Ca(f.f))+"</title></path>"});
-let t0=it.slice().sort((A,C)=>C.v-A.v)[0],mid=num?'<text class="rgc1" y="4">'+ei(kRgS(t0.v))+'</text><text class="rgc2" y="22">'+ei(Na(t0.L))+"</text>":'<text class="rgc1" y="4">'+it.length+'</text><text class="rgc2" y="22">'+ei(kRgT(1===it.length?"lang1":"langs"))+"</text>";
-return'<section class="psec pwh rgw"><svg class="rgwh" viewBox="-100 -100 200 200" role="img" aria-label="'+ei(it.map(o=>Na(o.L)+(num?" "+kRgS(o.v):"")).join(", "))+'">'+Q+P+mid+"</svg></section>"}
+/* The three largest languages are named outside the wheel, each at the end of a short line out from the middle of its slice,
+   turning left or right by the side the slice is on; names on one side are kept 15 apart. The middle stays empty: the list
+   below has the numbers. */
+let LB=it.slice().sort((A,C)=>C.v-A.v).slice(0,3).map((o,n)=>{let m=(o.a+o.b)/2,sx=Math.sin(m),sy=-Math.cos(m),nm=Na(o.L);
+return{o:o,n:n,sx:sx,sy:sy,r:sx>=0?1:-1,y:sy*106,nm:nm.length>20?nm.slice(0,19)+"…":nm}}),X=100;
+[1,-1].forEach(r=>{let S=LB.filter(l=>l.r===r).sort((A,C)=>A.y-C.y);
+for(let i=1;i<S.length;i++)S[i].y=Math.max(S[i].y,S[i-1].y+15);
+let lo=S.length?S[S.length-1].y-106:0;lo>0&&S.forEach(l=>l.y-=lo);
+S.forEach(l=>{l.y=Math.max(-106,l.y),l.h=l.sx*104+8*l.r,X=Math.max(X,Math.abs(l.h)+8+6.4*l.nm.length)})});
+let lab=LB.map(l=>'<g class="rgwl" data-sel="'+l.o.L.id+'" style="--n:'+l.n+'"><path d="M'+(l.sx*95).toFixed(1)+","+(l.sy*95).toFixed(1)+"L"+(l.sx*104).toFixed(1)+","+l.y.toFixed(1)+"H"+l.h.toFixed(1)+'"/><text class="'+(l.r>0?"s":"e")+'" x="'+(l.h+4*l.r).toFixed(1)+'" y="'+l.y.toFixed(1)+'" dy=".35em">'+ei(l.nm)+"</text></g>").join("");
+X=Math.ceil(X);
+return'<section class="psec pwh rgw"><svg class="rgwh" viewBox="'+-X+" -116 "+2*X+' 232" style="width:min(100%,'+2*X+'px)" role="img" aria-label="'+ei(it.map(o=>Na(o.L)+(num?" "+kRgS(o.v):"")).join(", "))+'">'+Q+P+lab+"</svg></section>"}
+/* A tap on the region card's wheel names the language on a small label above the tap (its share too when the region has
+   figures) for 2.4 s, and the other slices step back meanwhile (v74 in src/styles/v66.css). */
+let kRgTt=0;
+function kRgTip(el,ev){let W=el.closest(".rgw"),svg=el.closest("svg"),id=el.dataset.sel,P=svg&&svg.querySelector('path[data-sel="'+id+'"]');
+if(!W||!P)return;
+let d=W.querySelector(".rgtip")||W.appendChild(Object.assign(document.createElement("div"),{className:"rgtip"})),R=W.getBoundingClientRect(),
+x=ev&&ev.clientX?ev.clientX-R.left:R.width/2,y=ev&&ev.clientY?ev.clientY-R.top:R.height/2;
+d.innerHTML="<b>"+ei(P.dataset.n||"")+"</b>"+(P.dataset.s?"<span>"+ei(P.dataset.s)+"</span>":""),
+d.style.left=Math.round(Math.max(70,Math.min(R.width-70,x)))+"px",d.style.top=Math.round(y)+"px",
+svg.querySelectorAll("[data-sel]").forEach(n=>n.classList.toggle("on",n.dataset.sel===id)),svg.classList.add("tip"),
+d.classList.remove("show"),void d.offsetWidth,d.classList.add("show"),
+clearTimeout(kRgTt),kRgTt=setTimeout(()=>{d.classList.remove("show"),svg.classList.remove("tip")},2400)}
 function kRgShow(e){let k=++kRgK;
 kRgCard(e,kRgV),t.scrollTop=0,kRgV||kRgD().then(D=>{if(!D||k!==kRgK||t.hidden||!t.querySelector(".rgh"))return;
 let h0=t.offsetHeight;kRgCard(e,D),te&&!me()&&t.offsetHeight!==h0&&Ke(te,f?0:600)})}
@@ -859,11 +893,25 @@ return o.L?'<button type="button" class="rgr" data-sel="'+o.L.id+'" style="'+s+'
 b=kRgW(rows,R,n),shown=rows.filter((o,i)=>i<3||i<7&&null!=o.p&&o.p>=.1),hid=rows.slice(shown.length),
 mo=(R&&R.o?R.o[0]:0)+hid.length,mp=(R&&R.o&&R.o[1]||0)+hid.reduce((m,o)=>m+(o.c||0),0);
 if(xe=a,je=null,rows.length)b+='<section class="psec rgl"><div class="rgrows">'+shown.map(row).join("")+"</div>"+(mo?'<p class="rgmore">+'+kRgF(mo,0)+" "+ei(kRgT("more"))+(mp?" · "+kRgF(mp,0)+" "+ei(kRgT("ppl")):"")+"</p>":"")+'<p class="rgsrc">'+ei((/^R:/.test(R.s)?"":kRgT("cen")+" ")+(S?S.y:"")+(S&&S.m?" · "+kRgT(S.m):"")+(R.x?" · "+kRgT("multi"):""))+"</p></section>"+(rest.length?'<section class="psec rgalso"><p class="ph">'+ei(kRgT("also"))+'</p><div class="rgchips">'+rest.map(l=>'<button type="button" class="rgchip" data-sel="'+l.id+'"><i style="background:'+(Vf(l)||"")+'"></i>'+ei(Na(l))+"</button>").join("")+"</div></section>":"");
-else n.length&&(b+='<section class="psec rgl"><div class="rgrows">'+n.map(l=>row({L:l,nm:"",c:null,p:null}).replace('class="rgr"','class="rgr nn"')).join("")+"</div>"+(D?'<p class="rgsrc">'+ei(kRgT("none"))+"</p>":"")+"</section>");
+else n.length&&(b+='<section class="psec rgl"><div class="rgrows rgleg">'+n.map(l=>row({L:l,nm:"",c:null,p:null}).replace('class="rgr"','class="rgr nn"')).join("")+"</div></section>");
 let f0=document.activeElement&&document.activeElement.classList.contains("rgsel");
-t.innerHTML=h+b,kRgO=O,t.dataset.sourceCountry=e.countryName||e.country||"",t.dataset.regionId="",t.classList.add("kpanel"),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Le(null)};
+t.innerHTML=h+b,kRgO=O,t.dataset.sourceCountry=e.countryName||e.country||"",t.dataset.regionId="",t.classList.add("kpanel"),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Le(null),Ut(800)};
 let s=t.querySelector(".rgsel");
-s&&(s.onchange=()=>{let G=kRgO[+s.value],p=G&&kIn(G),m=p&&le(p);m&&Ge(de(p),m,{clientX:0,clientY:0,target:q.node()})},f0&&s.focus({preventScroll:!0}))}
+let go=i=>{let G=kRgO[i],p=G&&kIn(G),m=p&&le(p);m&&Ge(de(p),m,{clientX:0,clientY:0,target:q.node()})};
+s&&(s.onchange=()=>go(+s.value),f0&&s.focus({preventScroll:!0}),
+/* phones (<64rem): the list opens inside the card (kRgList); desktop keeps the system menu */
+s.parentNode.addEventListener("click",ev=>{me()||(ev.preventDefault(),kRgList(s,go,e.cd||""))}))}
+/* The region list on phones: a layer over the card (v74 in src/styles/v66.css) with every region of the country, the current one
+   marked, and a search field once there are more than 12. Choosing one flies there and opens its card; x or Escape closes it. */
+function kRgList(s,go,cn){if(t.querySelector(".rgls"))return;
+let O=[...s.options],cur=s.selectedIndex,w=document.createElement("div"),F=kRgT("find");
+w.className="rgls",w.setAttribute("role","dialog"),w.setAttribute("aria-label",s.getAttribute("aria-label")||kRgT("rs"));
+w.innerHTML='<div class="rglh"><p class="rgk">'+ei(cn||kRgT("rs"))+'</p><button type="button" class="ib close rglx" aria-label="×">'+tn+"</button></div>"+(O.length>12?'<input class="rglq" type="search" autocomplete="off" enterkeyhint="search" placeholder="'+ei(F)+'" aria-label="'+ei(F)+'">':"")+'<div class="rglu">'+O.map((o,i)=>'<button type="button" class="rglo" data-i="'+i+'"'+(i===cur?' aria-current="true"':"")+"><span>"+ei(o.text)+"</span></button>").join("")+"</div>";
+let u=w.querySelector(".rglu"),shut=()=>{w.remove(),s.focus({preventScroll:!0})},c=null;
+t.scrollTop=0,t.appendChild(w),c=u.querySelector("[aria-current]"),c&&(u.scrollTop=c.offsetTop-u.clientHeight/2+c.offsetHeight/2);
+w.querySelector(".rglx").onclick=shut,w.onkeydown=ev=>{"Escape"===ev.key&&(ev.stopPropagation(),shut())};
+u.onclick=ev=>{let B=ev.target.closest(".rglo");B&&(+B.dataset.i===cur?shut():go(+B.dataset.i))};
+let qf=w.querySelector(".rglq");qf&&(qf.oninput=()=>{let v=Da(qf.value.trim());u.querySelectorAll(".rglo").forEach(B=>B.hidden=!!v&&-1===Da(B.textContent).indexOf(v))})}
 var Be=0;
 function Ke(e,t){let n=z.bounds(e),r=(n[0][0]+n[1][0])/2,a=(n[0][1]+n[1][1])/2,i=Math.max((n[1][0]-n[0][0])/2*2.6,b/90),s=Math.max((n[1][1]-n[0][1])/2*2.6,y/90);
 return Wt(r-i,a-s,r+i,a+s,t,60),[r,a]}
@@ -946,12 +994,12 @@ Wt(s,l,o,u,520)}
 function vt(e){return null==e&&(e=kV().k),!!p||!!nt||!!rt||e>=1.7}
 function bt(t){Ne(t=t||kV()),GL&&ot(t.k),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(kV())},90);
 let n,r=t.k,a=[],i=vt(r);
-q.classed("ov",!i).classed("zin",r>=2.2),A.classed("dim",!!nt||i&&!p).classed("faint",!!p),p&&(a.push([0,0,b,52]),a.push([0,y-w(),b,y])),function(e){if(!p)return function(e){let t=x.length,n=x.map((e,t)=>t),r=e=>{for(;n[e]!==e;)n[e]=n[n[e]],e=n[e];
+q.classed("ov",!i).classed("zin",r>=2.2).classed("kpho",!me()&&!p),A.classed("dim",!!nt||i&&!p).classed("faint",!!p),p&&(a.push([0,0,b,52]),a.push([0,y-w(),b,y])),function(e){if(!p)return function(e){let t=x.length,n=x.map((e,t)=>t),r=e=>{for(;n[e]!==e;)n[e]=n[n[e]],e=n[e];
 return e},a=10/e;
-if(e<24&&!nt&&!rt)for(let e=0;e<t;e++)for(let i=e+1;i<t;i++){if(x[e]===nt||x[i]===nt)continue;
+if(e<24&&!nt&&!rt&&me())for(let e=0;e<t;e++)for(let i=e+1;i<t;i++){if(x[e]===nt||x[i]===nt)continue;
 let t=x[e]._xy,s=x[i]._xy;
 Math.abs(t[0]-s[0])<a&&Math.abs(t[1]-s[1])<a&&Math.hypot(t[0]-s[0],t[1]-s[1])<a&&(n[r(e)]=r(i))}
-if(e<10&&!nt&&!rt&&(void 0===x._dgs&&(x._dgs=function(e){let t=e.filter(ep);
+if(e<10&&!nt&&!rt&&me()&&(void 0===x._dgs&&(x._dgs=function(e){let t=e.filter(ep);
 if(t.length<4)return 0;
 let n=t.map(e=>e._xy[0]),r=t.map(e=>e._xy[1]);
 return Math.max(Math.max(...n)-Math.min(...n),Math.max(...r)-Math.min(...r))}(x)),x._dgs&&x._dgs*e<(b<600?150:230))){let e=-1;
@@ -988,7 +1036,7 @@ return t.append("circle"),t.append("text").attr("class","cnum"),t});
 o.attr("class",e=>"clu "+e.family).attr("aria-label",e=>e.word+": "+e.m.map(Na).join(", ")),o.select("circle").attr("r",mt),o.select("text").text(e=>e.m.length),et.selectAll("text.cl").data(ht,e=>e.key).join("text").attr("class","plabel cl").text(e=>e.word).style("opacity",0),et.selectAll("text.ln").classed("inC",e=>ft.has(e.id))}(r),n=Math.pow(r,.85),Ze.selectAll("g.clu").attr("transform",e=>"translate("+e._xy[0]+","+e._xy[1]+") scale("+1/n+")");
 let s=5.6*Math.pow(r,.04),o=Math.pow(r,.15);
 ht.forEach(e=>{let n=t.applyX(e._xy[0]),r=t.applyY(e._xy[1]),i=mt(e)*o;
-a.push([n-i,r-i,n+i,r+i])}),Ve.selectAll("g.pin").each(e=>{if(p&&!p.has(e.id)||ft.has(e.id)||rt&&e.family!==rt)return;
+a.push([n-i,r-i,n+i,r+i])}),Ve.selectAll("g.pin").each(e=>{if(p&&!p.has(e.id)||ft.has(e.id)||rt&&e.family!==rt||e!==nt&&q.node().classList.contains("kpho"))return;
 let n=t.applyX(e._xy[0]),r=t.applyY(e._xy[1]);
 if(n>-20&&n<b+20&&r>-20&&r<y+20){let e=.82*s;
 a.push([n-e,r-e,n+e,r+e])}});
@@ -1001,6 +1049,9 @@ let c=e=>a.some(t=>e[0]+1<t[2]&&e[2]-1>t[0]&&e[1]+1<t[3]&&e[3]-1>t[1]),d=e=>e[0]
 if(l.forEach(e=>{let n=e.__data__;
 if((n===nt?tt:et).node().appendChild(e),!i||!n.cl&&ft.has(n.id)||rt&&!n.cl&&n.family!==rt&&n!==nt||!Xe&&!rt&&!n.cl&&n!==nt&&t.k<3.4||kn&&!n.cl&&n!==nt&&!kn.has(n))return void(e.style.opacity=0);
 let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
+/* phones without pins (kpho): the name is the marker, centred on its language's point, with room around it; a name that would
+   touch one already placed (larger languages are placed first) waits for a closer zoom. The chosen language keeps its pin. */
+if(n!==nt&&!n.cl&&q.node().classList.contains("kpho")){let g=f/2+8,v=u+.36*r;p=[["middle",l,v,[l-g,v-r-4,l+g,v+6]]]}
 for(let e=0;e<p.length;e++)if(d(p[e][3])&&!c(p[e][3])){m=p[e];
 break}
 m||n!==nt||(m=p[0]),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),e.__o=[m[1]-l,m[2]-u],a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=Q2.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
@@ -1045,8 +1096,17 @@ x.forEach(e=>{if(!T(e))return;
 let u=U(e);
 B=[Math.min(B[0],u[0]),Math.min(B[1],u[1]),Math.max(B[2],u[2]),Math.max(B[3],u[3])]});
 if(!(B[2]>B[0]))return Fh;
-let pad=b<640?10:36,top=b<640?58:30,k=Math.min((b-2*pad)/(B[2]-B[0]),(y-top-pad)/(B[3]-B[1]));
-return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-(B[0]+B[2])/2,-(B[1]+B[3])/2)}
+let pad=b<640?10:36,top=b<640?58:30,k=Math.min((b-2*pad)/(B[2]-B[0]),(y-top-pad)/(B[3]-B[1])),cx=(B[0]+B[2])/2,cy=(B[1]+B[3])/2;
+gFit=k;
+/* phones (<64rem): the first view is 1.7 times closer than "every language fits". It starts at the languages' west edge, so all
+   of Europe shows (most languages are there) and the far east is a pan away; up and down it centres on the languages in that
+   width (the far east reaches much further north, which would leave the Arctic on screen).
+   Zooming out still reaches all of them (gOne uses gFit). */
+if(!me()){k*=1.7;let hw=(b-2*pad)/2/k,hh=(y-top-pad)/2/k,W=[1e9,-1e9];
+cx=B[2]-B[0]>2*hw?B[0]+hw:cx;
+x.forEach(e=>{if(!T(e)||Math.abs(e._xy[0]-cx)>hw)return;let u=U(e);W=[Math.min(W[0],u[1]),Math.max(W[1],u[3])]});
+W[1]>W[0]&&(cy=(W[0]+W[1])/2)}
+return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-cx,-cy)}
 function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k;
 kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
 /* what is chosen goes to the engine, which sets how strong every area is drawn */
@@ -1055,7 +1115,7 @@ kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
 function gNames(){if(!GM||!GM.avoid)return;
 let n=new Set,B=[],T=kV(),R=Q2.node().getBoundingClientRect(),add=el=>{let r=el.getBoundingClientRect();
 r.width&&B.push([r.left-R.left-2,r.top-R.top-2,r.right-R.left+2,r.bottom-R.top+2])};
-Q2.selectAll("text.plabel").each(function(){"0"!==this.style.opacity&&"none"!==this.style.display&&add(this)}),"0"!==$.style("opacity")&&$.selectAll("text").each(function(){add(this)}),Qe.selectAll("g.city").each(function(d){d&&!this.classList.contains("kh")&&!this.classList.contains("kx")&&(n.add(d.n),add(this))}),Ye.selectAll("g.ac").each(function(d){d&&this.__u&&!this.hasAttribute("data-off")&&(n.add(d.n),add(this))}),Ve.selectAll("g.pin").each(function(d){if(!d||!d._xy||"none"===this.style.display)return;
+Q2.selectAll("text.plabel").each(function(){"0"!==this.style.opacity&&"none"!==this.style.display&&add(this)}),"0"!==$.style("opacity")&&$.selectAll("text").each(function(){add(this)}),Qe.selectAll("g.city").each(function(d){d&&!this.classList.contains("kh")&&!this.classList.contains("kx")&&(n.add(d.n),add(this))}),Ye.selectAll("g.ac").each(function(d){d&&this.__u&&!this.hasAttribute("data-off")&&(n.add(d.n),add(this))}),Ve.selectAll("g.pin").each(function(d){if(!d||!d._xy||"none"===this.style.display||"none"===getComputedStyle(this).display)return;
 let X=T.applyX(d._xy[0]),Y=T.applyY(d._xy[1]);
 B.push([X-10,Y-10,X+10,Y+10])}),GM.avoid({boxes:B,cities:[...n]})}
 function gSync(){if(!GM)return;
@@ -1146,7 +1206,7 @@ let TT=Fh.translate(b/2-T.k*P[0],top-T.k*P[1]).scale(T.k);
 GL?kGo(TT,f?0:380):q.transition().duration(f?0:380).ease(Po).call(Dt.transform,TT),setTimeout(show,f?40:440)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),a.fail&&a.fail())},/* a start that takes longer than 20 seconds (a stalled download) also goes back to the old map */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=7").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=8").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0),gLmv(!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),gLmv(!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
@@ -1313,7 +1373,7 @@ let Ft=e.querySelector("#zi"),Bt=e.querySelector("#zo");
 Ft&&(Ft.onclick=()=>GL?gZoom(1.8):q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1.8)),Bt&&(Bt.onclick=()=>GL?gZoom(1/1.8):q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1/1.8));
 let Kt=(i=x.map(e=>e._xy[0]),s=x.map(e=>e._xy[1]),o=Math.min(...i),l=Math.max(...i),u=Math.min(...s),(d=Math.max(1,Math.min(1.6,.62*y/Math.max(1,(c=Math.max(...s))-u))))<9?(b<640?phoneHome():Fh):Fh.translate(b/2,y/2+10).scale(d).translate(-(o+l)/2-.06*(l-o),-(u+c)/2)),Gt=e=>.04>Math.abs(e.k-Kt.k)&&30>Math.abs(e.x-Kt.x)&&30>Math.abs(e.y-Kt.y);
 /* GL: the first view shows every language area, on every screen; what appears at which scale is unchanged */
-GL&&(Kt=gHome(),gOne=Math.min(1,Kt.k));
+GL&&(Kt=gHome(),gOne=Math.min(1,gFit||Kt.k));
 function phoneHome(){let ys=x.filter(e=>e._xy[0]>0&&e._xy[0]<b).map(e=>e._xy[1]),u=Math.min(...ys),c=Math.max(...ys),top=64,free=y-top-12,k=Math.max(1,Math.min(1.15,.8*free/Math.max(1,c-u)));
 return Fh.translate(b/2,top+free/2).scale(k).translate(-b/2,-(u+c)/2)}
 function Ut(e){GL?kGo(Kt,e||620):q.transition().duration(f?0:e||620).ease(Po).call(Dt.transform,Kt)}
@@ -1366,7 +1426,9 @@ a&&xe&&(a.innerHTML=Se(xe,je,r));
 let i=j([n[1],n[2]]);
 if(i){let e=b/34;
 Wt(i[0]-e,i[1]-e,i[0]+e,i[1]+e,800,60)}}(+a.dataset.pl);
-if(r)return void(kt&&kt.select(r.dataset.sel));
+/* region card: a tap on its wheel (a slice or a name beside it) names the language there (kRgTip); a language in its list opens
+   the Languages wheel with that language chosen. Other cards: the language's card, as before. */
+if(r)return void(r.closest(".rgwh")?kRgTip(r,e):t.querySelector(".rgh")?(Ep=r.dataset.sel,Ja("languages")):kt&&kt.select(r.dataset.sel));
 let i=n.closest("[data-ci]"),s=n.closest("[data-rg]");
 if(s)return void function(e){let t=nt&&ne[nt.lang];
 if(!t)return;

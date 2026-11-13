@@ -277,7 +277,7 @@ the preview.
 | in `src/` | what it is |
 |---|---|
 | `page.html` | the page itself: the head, and the order in which the styles and scripts are joined |
-| `styles/` | the style sheets, one file per block, one rule per line. `tokens.css` holds every colour of the interface and the map and comes first; `main.css` is the base; `v41.css` to `v65.css` and the `etimo-*.css` files are later layers (a later file wins). `v65.css` comes last and holds the newest numbered blocks (`v69` to `v72`: region card, map credits, settings sheet, languages page on phones); new rules go at its end as a numbered block; `fd.css` styles the full dictionary and the language page |
+| `styles/` | the style sheets, one file per block, one rule per line. `tokens.css` holds every colour of the interface and the map and comes first; `main.css` is the base; `v41.css` to `v65.css` and the `etimo-*.css` files are later layers (a later file wins). `v65.css` holds the numbered blocks `v69` to `v73` (region card, map credits, settings sheet, languages page on phones); `v66.css` comes last (block `v74`, the calmer phone map and cards of 2026-11-13); new rules go at the end of the last file as a numbered block; `fd.css` styles the full dictionary and the language page |
 | `app/1-libraries-ui.js`, `app/3-libraries-map.js` | other people's libraries (React and the interface kit; d3 for the map). Not meant to be edited |
 | `app/2-app-text-and-tables.js` | every interface text in each language (`Zr`), the word categories, language and place names, region tabs |
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
@@ -442,6 +442,22 @@ every country of the map (each card named its place; no errors).
 | **Pins** | size follows the zoom: where many languages show, a small dot of the language's colour with a thin light edge, no outline or shadow; it grows smoothly into the full pin (disc, outline, soft shadow) only close in; 14% smaller on phones. The chosen pin keeps its outline and larger size | same zoom curve, full size | `PIN_R`, `CORE_R`, `PIN_W`, `SHADOW_O` in `site/map-gl.js` |
 | **Groups of nearby pins** | a small light bubble with the number in ink and a faint ring, about a quarter smaller | dark bubble, as before | `mt` in the page code; block `v73` |
 | **Czech region name** | "Plzeň-" was cut off in the source data; now "Plzeň" | same | `RENAME` in `scripts/merge/current-regions.py` |
+
+## Calmer phone map and cards, 2026-11-13
+
+Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js` (`?v=8`).
+
+| What | Phone | Desktop | Where |
+|---|---|---|---|
+| **Language pins and groups** | none outside the word view; a language's name sits on its point and is the marker, with room around it (a smaller language's name waits for a closer zoom); the chosen language keeps its pin | pins and groups as before | `kpho` class set in `bt`, label layout in `bt`, clustering skipped with `me()` |
+| **Region names (census)** | from where a region is 96 px wide, 9 px of room, a little lighter | 34 px, 3 px, as before | `NAME_PX`, `NAME_PAD` in `map-gl.js` |
+| **First view** | 1.7 times closer than "every language fits", from the languages' west edge (all of Europe), centred up and down on the languages in that width; zooming out still reaches all | unchanged | `gHome`, `gFit` |
+| **Zoom buttons** | one solid pill bottom right (thumb reach); "back to the start" above it | top right, glass | `v74` |
+| **Region card wheel** | no number in the middle; the three largest languages named outside on a short line; a tap names the language (and its share) on a small label | same | `kRgW`, `kRgTip` |
+| **Region card list** | a language opens the Languages wheel with it chosen; without figures the languages are a centred legend in larger type (no "no census figures" line) | same | card click handler, `rgleg` |
+| **Region list** | opens inside the card, with a search field above 12 regions | the system menu | `kRgList` |
+| **Closing a region card** | flies back to the first view | same | `#cx` in `kRgCard` |
+| **Languages page** | first tap chooses a language, second opens it; a bar above the tab bar names the choice (name opens it, "On map" shows it); no line under the wheel, so nothing jumps | unchanged | `.wbar` in the wheel code (`mbu`) |
 
 ## A language map from an image: the process
 

@@ -1,0 +1,101 @@
+/* v74  A calmer phone map and cards (2026-11-13). Phone = (width<64rem), desktop = (width>=64rem): README "Phone and desktop".
+   1. Language map. Phone: outside the word view there are no pins and no groups of pins (svg.kpho, set in bt). A language's
+      name sits on its point and is the marker; names keep room around them, so a smaller language's name waits for a closer
+      zoom (label layout in bt). The chosen language keeps its pin. Desktop: pins and groups as before.
+   2. Zoom buttons. Phone: one solid pill at the bottom right, in thumb reach; the "back to the start" button sits above it,
+      so the pill never moves. Desktop: unchanged (top right, glass).
+   3. Region wheel (kRgW). Both: no number in the middle; the three largest languages are named outside on a thin line.
+   4. Region list (kRgList). Phone: a layer inside the card instead of the system menu. Desktop: the system menu.
+   5. Languages page. Phone: a bar floats above the tab bar (.wbar, built with the "On map" button in the wheel code) and names
+      what is chosen: its name opens the language, its map button shows it on the map. The first tap on a language chooses it,
+      a second opens it. The line under the wheel that named it (and made the page jump) is gone. Desktop: unchanged (.wbar
+      hidden, the single .wmap button and its line as before). */
+
+@media (width<64rem){
+  /* 1 */
+  .mapbox svg.kpho g.pin:not(.sel){display:none}
+
+  /* 2 */
+  .mapbox .zoom,.mapbox.hascar .zoom,.exv2 .zoom,.exv2.isfs .zoom{top:auto!important;bottom:calc(var(--ch,0px) + .9rem)!important;right:max(.75rem,env(safe-area-inset-right,0px))!important;border:0!important;border-radius:16px!important;background:var(--bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:0 0 0 .5px color-mix(in srgb,var(--ink) 16%,transparent),0 1px 2px #06110e1f,0 10px 24px -10px #06110e66!important}
+  .mapbox .zoom button,.exv2 .zoom button{position:relative;width:46px;height:46px;color:var(--ink);-webkit-tap-highlight-color:transparent}
+  .mapbox .zoom button+button{border-top:0!important}
+  .mapbox .zoom button+button::before{content:"";position:absolute;top:0;left:12px;right:12px;height:1px;background:color-mix(in srgb,var(--ink) 13%,transparent)}
+  .mapbox .zoom button svg{width:19px;height:19px;stroke-width:2.2;transition:transform .16s cubic-bezier(.2,.8,.2,1)}
+  .mapbox .zoom button:hover{background:transparent!important}
+  .mapbox .zoom button:active{background:color-mix(in srgb,var(--ink) 7%,transparent)!important}
+  .mapbox .zoom button:active svg{transform:scale(.8)}
+  .mapbox .mreset.kreset,.exv2.isfs .mreset.kreset{right:max(.75rem,env(safe-area-inset-right,0px));bottom:calc(var(--ch,0px) + .9rem + 102px)!important;width:46px!important;min-width:46px;height:46px;border:0!important;background:var(--bg)!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 0 0 .5px color-mix(in srgb,var(--ink) 16%,transparent),0 1px 2px #06110e1f,0 10px 24px -10px #06110e66!important;-webkit-tap-highlight-color:transparent}
+  .mapbox .mreset.kreset:hover{background:var(--bg)!important}
+  .mapbox .mreset.kreset svg{width:19px;height:19px;transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+  .mapbox .mreset.kreset:active svg{transform:scale(.8)}
+
+  /* 4 */
+  .card.kpanel .rgsel{pointer-events:none}
+  .mapbox .card.kpanel:has(>.rgls){overflow:hidden!important;min-height:min(72dvh,36rem)}
+  .card.kpanel>.rgls{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;background:var(--bg);border-radius:inherit;animation:rgls .22s cubic-bezier(.2,.8,.2,1) both}
+  .rgls .rglh{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem var(--rgx,1.15rem) .35rem}
+  .rgls .rglh .rgk{margin:0;font:600 .6875rem/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+  .mapbox .card .rgls .rglx{position:static!important;flex:none;display:grid;place-items:center;width:36px!important;height:36px!important;padding:0!important;border:0!important;border-radius:50%!important;background:color-mix(in srgb,var(--ink) 7%,transparent)!important;color:var(--ink)!important;opacity:1!important}
+  .mapbox .card .rgls .rglx svg{width:16px;height:16px;stroke:currentColor}
+  .rgls .rglq{flex:none;margin:.35rem var(--rgx,1.15rem) .4rem;height:42px;padding:0 .9rem;border:0;border-radius:12px;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink);font:400 16px/1 var(--sans);outline:0;-webkit-appearance:none;appearance:none}
+  .rgls .rglq::placeholder{color:var(--mut)}
+  .rgls .rglq:focus{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--hd) 55%,transparent)}
+  .rgls .rglu{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:.15rem 0 calc(.75rem + env(safe-area-inset-bottom,0px))}
+  .rgls .rglo{display:flex;align-items:center;justify-content:space-between;gap:.75rem;width:100%;min-height:46px;padding:0 var(--rgx,1.15rem);border:0;background:none;color:var(--ink);font:400 1rem/1.25 var(--sans);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .12s}
+  .rgls .rglo[hidden]{display:none}
+  .rgls .rglo:active{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+  .rgls .rglo:focus-visible{outline:2px solid var(--hd);outline-offset:-2px}
+  .rgls .rglo[aria-current]{font-weight:600}
+  .rgls .rglo[aria-current]::after{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--hd)}
+
+  /* 5 */
+  #langs .sbh,#langs .wmap{display:none!important}
+  #langs .wbar{position:fixed;z-index:30;left:50%;bottom:calc(var(--tbh,4.5rem) + .75rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;gap:.35rem;width:min(calc(100% - 2rem),24rem);padding:.35rem;border-radius:20px;background:var(--hd);color:var(--hd-ink);box-shadow:0 2px 6px #06110e26,0 14px 30px -12px #06110e8c;animation:wbin .3s cubic-bezier(.2,.9,.25,1.1) both}
+  #langs .wbar[hidden]{display:none}
+  #langs .wbo{flex:1;min-width:0;display:flex;align-items:center;gap:.7rem;min-height:50px;padding:0 .45rem 0 .8rem;border:0;border-radius:15px;background:none;color:inherit;font:inherit;text-align:left;-webkit-tap-highlight-color:transparent;transition:background .12s}
+  #langs button.wbo{cursor:pointer}
+  #langs button.wbo:active{background:color-mix(in srgb,currentColor 10%,transparent)}
+  #langs .wbo i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--wf,currentColor);box-shadow:0 0 0 3px color-mix(in srgb,var(--wf,currentColor) 28%,transparent)}
+  #langs .wbo span{flex:1;min-width:0;display:flex;flex-direction:column;gap:.12rem}
+  #langs .wbo small{font:600 .6875rem/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;opacity:.62;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #langs .wbo b{font:600 1.0625rem/1.2 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:wnm .25s cubic-bezier(.2,.8,.2,1) both}
+  #langs .wbo svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+  #langs .wbm{flex:none;display:flex;align-items:center;gap:.45rem;min-height:50px;padding:0 1rem 0 .85rem;border:0;border-radius:15px;background:color-mix(in srgb,currentColor 14%,transparent);color:inherit;font:600 .875rem/1 var(--sans);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .12s}
+  #langs .wbm:active{transform:scale(.96);background:color-mix(in srgb,currentColor 20%,transparent)}
+  #langs .wbm svg{width:18px;height:18px;flex:none}
+  #langs :is(.wbo,.wbm):focus-visible{outline:2px solid var(--hd-ink);outline-offset:-2px}
+  #langs:has(.wbar:not([hidden])){padding-bottom:6rem}
+  @keyframes wbin{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translateX(-50%)}}
+  @keyframes wnm{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+}
+
+/* 3 (both sizes) */
+.card.kpanel .rgwh{max-width:none}
+.card.kpanel .rgwh .rgwl{cursor:pointer;animation:rgwl .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(.3s + var(--n,0) * 70ms)}
+.card.kpanel .rgwh .rgwl path{fill:none;stroke:color-mix(in srgb,var(--ink) 40%,transparent);stroke-width:.9;stroke-linecap:round;stroke-linejoin:round;animation:none}
+.card.kpanel .rgwh .rgwl text{font:500 11.5px/1 var(--sans);fill:var(--ink)}
+.card.kpanel .rgwh .rgwl text.s{text-anchor:start}
+.card.kpanel .rgwh .rgwl text.e{text-anchor:end}
+@media (hover:hover){.card.kpanel .rgwh .rgwl:hover text{fill:var(--hd)}}
+@keyframes rgwl{from{opacity:0}to{opacity:1}}
+@keyframes rgls{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.card.kpanel .rgwh .rgwl,.card.kpanel>.rgls,#langs .wbar,#langs .wbo b{animation:none}}
+[data-motion=off] :is(.card.kpanel .rgwh .rgwl,.card.kpanel>.rgls,#langs .wbar,#langs .wbo b){animation:none}
+@media (width>=64rem){#langs .wbar{display:none!important}}
+
+/* 6 (both sizes)  Region card. A tap on the wheel names the language on a small dark label above the tap (kRgTip) while the
+   other slices step back. A region without figures lists its languages as a centred legend under the wheel, in larger type
+   (the line "no census figures" is gone); a region with figures keeps its rows. A language in the list opens the Languages
+   wheel with it chosen. */
+.mapbox .card.kpanel .psec.pwh.rgw{position:relative}
+.card.kpanel .rgtip{position:absolute;z-index:2;display:flex;align-items:baseline;gap:.45rem;padding:.45rem .7rem;border-radius:10px;background:var(--hd);color:var(--hd-ink);font:500 .8125rem/1.2 var(--sans);white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 8px));transition:opacity .15s,transform .2s cubic-bezier(.2,.8,.2,1);box-shadow:0 6px 16px -6px #06110e66}
+.card.kpanel .rgtip b{font-weight:600}
+.card.kpanel .rgtip span{opacity:.72;font-variant-numeric:tabular-nums}
+.card.kpanel .rgtip.show{opacity:1;transform:translate(-50%,calc(-100% - 14px))}
+.card.kpanel .rgwh.tip [data-sel]:not(.on){opacity:.38}
+.card.kpanel .rgwh [data-sel]{transition:opacity .18s}
+.card.kpanel .rgrows.rgleg{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:.25rem 1.1rem;padding:.35rem 0 .6rem}
+.card.kpanel .rgleg .rgr.nn{display:inline-flex;align-items:center;gap:.55rem;width:auto;min-height:2.75rem;padding:0 .55rem;border-radius:12px}
+.card.kpanel .rgleg .rgr.nn i{flex:none;width:.7rem;height:.7rem}
+.card.kpanel .rgleg .rgr.nn b{font:500 1.0625rem/1.2 var(--sans)}
+@media (prefers-reduced-motion:reduce){.card.kpanel .rgtip{transition:none}}

@@ -38,7 +38,11 @@ const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coal
    of its colour with a thin light edge, no outline and no shadow; it grows smoothly into the full pin (disc, outline, soft
    shadow) only close in (zoom 8). Phones (below the site's one breakpoint, 64rem) draw them a little smaller. The chosen pin
    and the one under the pointer keep their outline and their larger size (s from the page). */
-const PF = typeof matchMedia === 'function' && !matchMedia('(min-width: 64rem)').matches ? .86 : 1;
+const PHONE = typeof matchMedia === 'function' && !matchMedia('(min-width: 64rem)').matches;
+const PF = PHONE ? .86 : 1;
+/* Census region names: on phones a name waits until its region is 96 px wide (desktop: 34 px), keeps 9 px of room around it
+   (desktop: 3 px) and is a little lighter, so language names, the map's subject, are not crowded out on a small screen. */
+const NAME_PX = PHONE ? 96 : 34, NAME_PAD = PHONE ? 9 : 3;
 const PZ = (a, b, c) => ['interpolate', ['linear'], ['zoom'], 4.2, ['*', a * PF, PIN_S], 6, ['*', b * PF, PIN_S], 8, ['*', c * PF, PIN_S]];
 const PIN_R = PZ(3.4, 4.9, PIN), CORE_R = PZ(2.35, 3, PIN * .58), SHADOW_R = PZ(4, 6.5, PIN + 3.4);
 const PIN_W = ['interpolate', ['linear'], ['zoom'], 4.2, ['case', PIN_BIG, 2, 0], 6, ['case', PIN_BIG, 2, .6], 8, ['case', PIN_BIG, 2, 1]];
@@ -138,8 +142,8 @@ async function create(host, id) {
         {id: 'sel-edge', type: 'line', source: 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2.2}},
         /* names of the census regions (every country with a census table), drawn here in the site's font (Manrope, no font server:
            without a glyphs address MapLibre draws the letters itself). Shown from the zoom where a region is 34 px wide (text-field in scale());
-           the larger region wins where two collide. Same size on phone and desktop (10.5 px); a phone simply fits fewer. */
-        {id: 'names', type: 'symbol', source: 'names', layout: {'text-field': '', 'text-font': ['Manrope'], 'text-size': 10.5, 'text-max-width': 8, 'text-padding': 3, 'symbol-sort-key': ['get', 'r']}, paint: {'text-color': T0.inner, 'text-halo-color': T0.land, 'text-halo-width': 1.6, 'text-opacity': .86}},
+           the larger region wins where two collide. Same size on phone and desktop (10.5 px); phones show fewer (NAME_PX, NAME_PAD). */
+        {id: 'names', type: 'symbol', source: 'names', layout: {'text-field': '', 'text-font': ['Manrope'], 'text-size': 10.5, 'text-max-width': 8, 'text-padding': NAME_PAD, 'symbol-sort-key': ['get', 'r']}, paint: {'text-color': T0.inner, 'text-halo-color': T0.land, 'text-halo-width': 1.6, 'text-opacity': PHONE ? .7 : .86}},
         /* the outlines the page draws (the chosen language's home regions, the place with keyboard focus): under the pins and names, as on the page */
         {id: 'lab-line', type: 'line', source: 'labs', filter: ['==', ['get', 'k'], 'l'], layout: round, paint: {'line-color': ['get', 'c'], 'line-width': ['get', 'lw'], 'line-opacity': LAB_O}},
         {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': SHADOW_R, 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': SHADOW_O, 'circle-translate': [0, 1.6]}},
@@ -173,7 +177,7 @@ async function create(host, id) {
       if (id !== gen) return;
       const features = [];
       for (const rows of Object.values(d)) for (const [name, x, y, w, h] of rows)
-        features.push({type: 'Feature', id: features.length, properties: {name, z: Math.ceil(Math.log2(34 / (Math.max(w, .01) * 512 * c))), r: -w * h}, geometry: {type: 'Point', coordinates: at(x, y)}});
+        features.push({type: 'Feature', id: features.length, properties: {name, z: Math.ceil(Math.log2(NAME_PX / (Math.max(w, .01) * 512 * c))), r: -w * h}, geometry: {type: 'Point', coordinates: at(x, y)}});
       nameFeats = features;
       map.getSource('names').setData({type: 'FeatureCollection', features});
     }).catch(e => console.warn('Etimo: the census names could not be loaded', e));
@@ -441,7 +445,7 @@ async function create(host, id) {
         const p = map.project(f.geometry.coordinates);
         if (p.x < -90 || p.y < -40 || p.x > W + 90 || p.y > Hh + 40) continue;
         if (city.has(nm)) { hide.push(f.id); continue; }
-        const tw = textWidth(nm), lines = Math.max(1, Math.ceil(tw / 84)), bw = Math.min(tw, 84) / 2 + 3, bh = lines * 6.6 + 3;
+        const tw = textWidth(nm), lines = Math.max(1, Math.ceil(tw / 84)), bw = Math.min(tw, 84) / 2 + NAME_PAD, bh = lines * 6.6 + NAME_PAD;
         for (const b of boxes) if (p.x + bw > b[0] && p.x - bw < b[2] && p.y + bh > b[1] && p.y - bh < b[3]) { hide.push(f.id); break; }
       }
       const key = hide.join(',');
