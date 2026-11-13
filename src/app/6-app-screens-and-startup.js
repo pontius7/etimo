@@ -103,6 +103,7 @@ let A=a&&"l"===a.k&&!(window.matchMedia&&matchMedia("(min-width: 64rem)").matche
 return(0,f.jsxs)("div",{className:"kfil",ref:c,children:[(0,f.jsxs)("div",{className:"kfb",children:[A&&!s?(0,f.jsx)("i",{className:"dot "+A.f}):(0,f.jsx)(si,{n:"search"}),(0,f.jsx)("input",{ref:d,type:"text",role:"combobox",inputMode:"search",enterKeyHint:"search",autoComplete:"off",autoCorrect:"off",spellCheck:!1,"aria-expanded":s,"aria-controls":"kdd","aria-autocomplete":"list","aria-label":Xf("find"),placeholder:Xf("find"),value:s?n:A?A.n:n,onChange:e=>{r(e.target.value),u(0),o(!0)},onFocus:()=>{o(!0),u(0)},onBlur:()=>setTimeout(()=>o(!1),160),onKeyDown:e=>{"ArrowDown"===e.key?(e.preventDefault(),u(Math.min(v.length-1,l+1))):"ArrowUp"===e.key?(e.preventDefault(),u(Math.max(0,l-1))):"Enter"===e.key?v[l]&&(e.preventDefault(),b(v[l])):"Escape"===e.key&&(s?(o(!1),d.current&&d.current.blur()):y())}}),A||n?(0,f.jsx)("button",{type:"button",className:"kfx","aria-label":Xf("clear"),onMouseDown:e=>e.preventDefault(),onClick:a&&!A?()=>r(""):y,children:(0,f.jsx)("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",strokeLinecap:"round","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M6 6l12 12M18 6 6 18"})})}):null]}),s?(0,f.jsxs)("div",{className:"kdd",id:"kdd",role:"listbox",onMouseDown:e=>e.preventDefault(),children:[p.length?(0,f.jsx)("p",{className:"kh",children:Xf("fams")}):null,p.map((e,t)=>k(e,t)),g.length?(0,f.jsx)("p",{className:"kh",children:Xf("langs")}):null,g.map((e,t)=>k(e,p.length+t)),v.length?null:(0,f.jsx)("p",{className:"kh",children:Xf("none")})]}):null]})}
 function qp(e,t,n,r,a,i,l){
 let TWO=2*Math.PI,
+ACT=0,D0=null,
 SL=null,
 PD=null,
 rm=Ya();
@@ -138,6 +139,8 @@ PT=(q,w)=>[q*Math.sin(w),-q*Math.cos(w)],
 FX=w=>w[0].toFixed(1)+","+w[1].toFixed(1),
 UID="w"+Math.random().toString(36).slice(2,6);
 return{draw(root){
+/* the phone bar (wb) shows only once something has been chosen: a tap on a slice, or a move to another group */
+null===D0?D0=root:root!==D0&&(ACT=1);
 SL=null;
 a.textContent="";
 a.hidden=!0;
@@ -306,7 +309,8 @@ sr:"Na karti",
 sc:"На карти"}[ya()]||"On map",
 mbu=q=>{let L=q&&q.d.data.L,
 g=!L&&root.depth?root:null;
-mb.hidden=wb.hidden=!L&&!g;
+mb.hidden=!L&&!g;
+wb.hidden=mb.hidden||!ACT;
 if(mb.hidden)return;
 mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em>"+ei(L?q.d.data.name:root.data.name)+"</em>";
 mb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||"");
@@ -344,7 +348,8 @@ return}
 a.classList.remove("whint");
 a.hidden=!1;
 a.textContent=q.d.data.name+" · "+(l.sbOpen||"tap again to open")},
-act=q=>{if("tick"===q.kind){r(q.d.ancestors().find(x=>1===x.depth));
+act=q=>{ACT=1;
+if("tick"===q.kind){r(q.d.ancestors().find(x=>1===x.depth));
 return}
 if("leaf"!==q.kind){r(q.d);
 return}

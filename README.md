@@ -522,6 +522,8 @@ Same for every language, region and family:
   stays pinned while it scrolls. Desktop keeps the drawn tree (`Cp`).
 - First map view (`gHome`): 1.7 times closer than "all languages fit" on phones, 1.3 times on desktop, where it centres on the
   middle 80% of the languages in view (`kMid`). Phone Languages page: the wheel sits higher (v66.css).
+- Phone Languages page, choice bar (`wb` in `qp`): shown only once a language or group has been chosen (a tap, or a move to
+  another group; not on load or on coming back), as a slim see-through pill: family dot, name, a round map button.
 
 ## A language map from an image: the process
 

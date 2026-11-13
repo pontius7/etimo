@@ -3430,6 +3430,27 @@ button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
 /* ---- Phone Languages page: the wheel sits higher (was centred in the free height, leaving a band of empty space above it).
    Desktop: unchanged. */
 @media (width<64rem){#langs .sbwrap{justify-content:flex-start;padding-top:clamp(.75rem,5dvh,2.25rem)}}
+
+/* ---- Phone Languages page: the choice bar, quieter. It shows only once a language or group has been chosen (ACT in qp), as a
+   slim see-through pill in the page's own colours: the family dot, the name, a round map button (its label kept for screen
+   readers). Desktop: no bar (the single map button, as before). */
+@media (width<64rem){
+  #langs .wbar{width:min(calc(100% - 2rem),22rem);gap:.25rem;padding:.25rem;border-radius:999px;color:var(--ink);
+    background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:saturate(1.3) blur(14px);backdrop-filter:saturate(1.3) blur(14px);
+    border:1px solid color-mix(in srgb,var(--ink) 9%,transparent);box-shadow:0 10px 28px -16px rgb(0 0 0 / .5);animation:wbup .26s cubic-bezier(.2,.8,.2,1) both}
+  #langs .wbo{min-height:44px;gap:.6rem;padding:0 .4rem 0 .95rem;border-radius:999px}
+  #langs .wbo i{width:8px;height:8px;box-shadow:none}
+  #langs .wbo small{font-size:.625rem;opacity:.55}
+  #langs .wbo b{font-size:1rem}
+  #langs .wbo svg{width:16px;height:16px;opacity:.4}
+  #langs .wbm{position:relative;min-height:40px;width:40px;padding:0;justify-content:center;border-radius:50%;background:color-mix(in srgb,var(--wf,var(--ink)) 18%,transparent)}
+  #langs .wbm span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  #langs .wbm svg{width:17px;height:17px}
+  #langs :is(.wbo,.wbm):focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+}
+@keyframes wbup{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){#langs .wbar{animation:none}}
+[data-motion=off] #langs .wbar{animation:none}
 </style>
 <script type="module">let e,
 t,
@@ -16957,6 +16978,7 @@ let A=a&&"l"===a.k&&!(window.matchMedia&&matchMedia("(min-width: 64rem)").matche
 return(0,f.jsxs)("div",{className:"kfil",ref:c,children:[(0,f.jsxs)("div",{className:"kfb",children:[A&&!s?(0,f.jsx)("i",{className:"dot "+A.f}):(0,f.jsx)(si,{n:"search"}),(0,f.jsx)("input",{ref:d,type:"text",role:"combobox",inputMode:"search",enterKeyHint:"search",autoComplete:"off",autoCorrect:"off",spellCheck:!1,"aria-expanded":s,"aria-controls":"kdd","aria-autocomplete":"list","aria-label":Xf("find"),placeholder:Xf("find"),value:s?n:A?A.n:n,onChange:e=>{r(e.target.value),u(0),o(!0)},onFocus:()=>{o(!0),u(0)},onBlur:()=>setTimeout(()=>o(!1),160),onKeyDown:e=>{"ArrowDown"===e.key?(e.preventDefault(),u(Math.min(v.length-1,l+1))):"ArrowUp"===e.key?(e.preventDefault(),u(Math.max(0,l-1))):"Enter"===e.key?v[l]&&(e.preventDefault(),b(v[l])):"Escape"===e.key&&(s?(o(!1),d.current&&d.current.blur()):y())}}),A||n?(0,f.jsx)("button",{type:"button",className:"kfx","aria-label":Xf("clear"),onMouseDown:e=>e.preventDefault(),onClick:a&&!A?()=>r(""):y,children:(0,f.jsx)("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",strokeLinecap:"round","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M6 6l12 12M18 6 6 18"})})}):null]}),s?(0,f.jsxs)("div",{className:"kdd",id:"kdd",role:"listbox",onMouseDown:e=>e.preventDefault(),children:[p.length?(0,f.jsx)("p",{className:"kh",children:Xf("fams")}):null,p.map((e,t)=>k(e,t)),g.length?(0,f.jsx)("p",{className:"kh",children:Xf("langs")}):null,g.map((e,t)=>k(e,p.length+t)),v.length?null:(0,f.jsx)("p",{className:"kh",children:Xf("none")})]}):null]})}
 function qp(e,t,n,r,a,i,l){
 let TWO=2*Math.PI,
+ACT=0,D0=null,
 SL=null,
 PD=null,
 rm=Ya();
@@ -16992,6 +17014,8 @@ PT=(q,w)=>[q*Math.sin(w),-q*Math.cos(w)],
 FX=w=>w[0].toFixed(1)+","+w[1].toFixed(1),
 UID="w"+Math.random().toString(36).slice(2,6);
 return{draw(root){
+/* the phone bar (wb) shows only once something has been chosen: a tap on a slice, or a move to another group */
+null===D0?D0=root:root!==D0&&(ACT=1);
 SL=null;
 a.textContent="";
 a.hidden=!0;
@@ -17160,7 +17184,8 @@ sr:"Na karti",
 sc:"На карти"}[ya()]||"On map",
 mbu=q=>{let L=q&&q.d.data.L,
 g=!L&&root.depth?root:null;
-mb.hidden=wb.hidden=!L&&!g;
+mb.hidden=!L&&!g;
+wb.hidden=mb.hidden||!ACT;
 if(mb.hidden)return;
 mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em>"+ei(L?q.d.data.name:root.data.name)+"</em>";
 mb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||"");
@@ -17198,7 +17223,8 @@ return}
 a.classList.remove("whint");
 a.hidden=!1;
 a.textContent=q.d.data.name+" · "+(l.sbOpen||"tap again to open")},
-act=q=>{if("tick"===q.kind){r(q.d.ancestors().find(x=>1===x.depth));
+act=q=>{ACT=1;
+if("tick"===q.kind){r(q.d.ancestors().find(x=>1===x.depth));
 return}
 if("leaf"!==q.kind){r(q.d);
 return}
