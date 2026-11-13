@@ -1,0 +1,3 @@
+# A new place for a language's point on the map (and its name). Any language; the build checks the name.
+language,lat,lon,why
+Serbian,44.02,20.92,middle of Serbia (Kragujevac); the source point sat in the east beside Vlach (Timok Romanian)

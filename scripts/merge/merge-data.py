@@ -153,6 +153,22 @@ _NEWFAM = {}
 _IMPORT = {}
 
 
+def move_pins(langs):
+    """content/pin-positions.csv: a new place for a language's point on the map (and its name next to it), for any
+    language, e.g. Serbian in the middle of Serbia instead of beside Vlach in the east. Columns: language,lat,lon,why."""
+    import csv
+    p = os.path.join(CONTENT, 'pin-positions.csv')
+    if not os.path.exists(p):
+        return
+    for r in csv.DictReader(l for l in open(p, encoding='utf-8') if not l.startswith('#')):
+        name = r['language'].strip()
+        assert name in langs, f'content/pin-positions.csv: no language "{name}"'
+        lat, lon = float(r['lat']), float(r['lon'])
+        assert -90 <= lat <= 90 and -180 <= lon <= 180, f'content/pin-positions.csv: {name}: lat/lon out of range'
+        langs[name]['lat'], langs[name]['lon'] = lat, lon
+        print(f'  pin: {name} moved to {lat}, {lon} ({r.get("why", "").strip()})')
+
+
 def add_content(langs, lex):
     """Add languages from content/languages/*.json and words from content/words/*.csv.
 
@@ -751,6 +767,7 @@ def main():
     lex = merge_lexicon(langs)
     assert len(lex) == len(langs) == len(el) + len(dl)
     added = add_content(langs, lex)
+    move_pins(langs)
     terr = merge_terr(langs)  # also sets langs[*]['nest']; includes content/ areas
     for r in lex:  # the app draws the map from languages.json before the words arrive
         langs[r['lang']]['fam'] = r['family']
