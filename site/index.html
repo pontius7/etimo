@@ -3390,6 +3390,46 @@ button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
 .knomap .knb{display:flex;gap:.5rem;justify-content:center;margin-top:1.25rem}
 .knomap button{min-height:44px;padding:0 1.1rem;border:1px solid var(--line);border-radius:999px;background:none;color:var(--ink);font:600 .9375rem/1 var(--sans);cursor:pointer}
 .knomap .knl{border-color:var(--hd);background:var(--hd);color:var(--hd-ink)}
+
+/* ---- Region card wheel size (kRgW sets --rgw, the drawing's width in its own units, labels included).
+   Phone: as drawn. Desktop: 1.45 times larger, the names kept at their phone size. */
+@media (width<64rem){.card.kpanel .rgwh{width:min(100%,calc(var(--rgw,200) * 1px))}}
+@media (width>=64rem){.card.kpanel .rgwh{width:min(100%,calc(var(--rgw,200) * 1.45px))}
+  .card.kpanel .rgwh .rgwl text{font-size:8px}}
+
+/* ---- Languages wheel: the chosen language (paint() in qp) comes a little out of the wheel with a soft shadow instead of a
+   heavy outline; the other slices dim by family distance (inline opacity). Same on phone and desktop. */
+#langs .wa{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .28s ease,filter .15s}
+#langs .lay text{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .28s ease}
+#langs .wa.sel{stroke:var(--bg);stroke-width:1.2px;filter:drop-shadow(0 3px 7px rgb(0 0 0 / .28))}
+#langs .wa.sel:focus-visible{stroke:var(--ink);stroke-width:2.4px}
+@media (prefers-reduced-motion:reduce){#langs .wa,#langs .lay text{transition:none}}
+[data-motion=off] #langs .wa,[data-motion=off] #langs .lay text{transition:none}
+
+/* ---- Phone tree (kTree in the page code): one family open at a time, its branching drawn as an outline. Desktop keeps the
+   drawn tree (Cp), so these rules are phone-only. */
+@media (width<64rem){
+  .vtree.vbt{overflow:clip}
+  .vtree.vbt .vb.von>summary{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:3;background:var(--bg);box-shadow:0 1px 0 var(--line)}
+  .vtree.vbt.vone .vb.d1:not(.von)>summary{min-height:2.6rem}
+  .vtree.vbt.vone .vb.d1:not(.von)>summary .vn{font-weight:500!important;font-size:.9375rem!important;color:var(--mut)}
+  .vtree.vbt .vgt{margin-left:1.15rem;padding:.2rem 0 .8rem .55rem;border-left:1.5px solid color-mix(in srgb,var(--ink) 12%,transparent);animation:vgIn .28s cubic-bezier(.2,.8,.2,1) both}
+  .vtree.vbt .vg{position:relative;padding-left:.85rem}
+  .vtree.vbt .vgk{border-left:1.5px solid color-mix(in srgb,var(--ink) 12%,transparent);margin-left:.15rem;padding-left:.55rem}
+  .vtree.vbt .vgn{position:relative;display:flex;align-items:center;gap:.45rem;padding:.9rem 0 .3rem;font:600 .6875rem/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  .vtree.vbt .vgn::before,.vtree.vbt .vgk>.vl::before,.vtree.vbt .vgt>.vl::before{content:"";position:absolute;left:-1.4rem;top:50%;width:1.1rem;border-top:1.5px solid color-mix(in srgb,var(--ink) 12%,transparent)}
+  .vtree.vbt .vgk>.vl::before,.vtree.vbt .vgt>.vl::before{left:-.7rem;width:.55rem}
+  .vtree.vbt .vgn::before{top:calc(.9rem + .4em)}
+  .vtree.vbt .vgn .vc{font-size:.6875rem;padding:.15rem .4rem;letter-spacing:0}
+  .vtree.vbt .vgk>.vl,.vtree.vbt .vgt>.vl{position:relative;padding-left:.35rem}
+}
+@keyframes vgIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.vtree.vbt .vgt{animation:none}}
+[data-motion=off] .vtree.vbt .vgt{animation:none}
+
+/* ---- Phone Languages page: the wheel sits higher (was centred in the free height, leaving a band of empty space above it).
+   Desktop: unchanged. */
+@media (width<64rem){#langs .sbwrap{justify-content:flex-start;padding-top:clamp(.75rem,5dvh,2.25rem)}}
 </style>
 <script type="module">let e,
 t,
@@ -17041,7 +17081,7 @@ OUTS.push({nm,ph});
 return}
 q.lab=1;
 let rc2=(rs+q.r1-6)/2;
-LB.append("text").attr("class","wll").call(__lab,col(q)).attr("dy","0.35em").attr("font-size",f.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+rc2.toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(f.t);
+LB.append("text").attr("class","wll").call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("dy","0.35em").attr("font-size",f.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+rc2.toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(f.t);
 return}
 let th=q.r1-q.r0,rmid=(q.r0+q.r1)/2,f0=Math.min("a"===q.kind?TOP?g0>560?34:28:g0>560?15:13.5:g0>560?12.5:11.5,.5*th),hw=Math.min(sp/2-.008,1.3),room=2*hw*rmid-10;
 if(!TOP&&(f0<9||room<22))return;
@@ -17051,12 +17091,12 @@ if(fs<8)return;
 let g2=best(CAND(q),fs,8,rr,cl);
 if(!g2)return;
 let dg=ph*180/Math.PI,lf=ph>Math.PI;
-LB.append("text").attr("class",cl).call(__lab,col(q)).attr("dy","0.35em").attr("font-size",g2.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+((q.r0+q.r1)/2).toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(g2.t);
+LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("dy","0.35em").attr("font-size",g2.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+((q.r0+q.r1)/2).toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(g2.t);
 return}
 if(!f)return;
 let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+ix;
 LB.append("path").attr("id",id).attr("fill","none").attr("d","M"+FX(A0)+"A"+rb.toFixed(1)+","+rb.toFixed(1)+" 0 0 "+(tp?1:0)+" "+FX(A1));
-LB.append("text").attr("class",cl).call(__lab,col(q)).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
+LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
 P.attr("d",arc);
 {let T=0,
 B=0;
@@ -17139,6 +17179,14 @@ wb.querySelector(".wbm").onclick=mb.onclick,
 L&&(wb.querySelector(".wbo").onclick=()=>Ja(L.id))},
 paint=()=>{P.classed("sel",q=>"leaf"===q.kind&&q.d.data.L.id===SL);
 P.filter(".sel").raise();
+/* the chosen language's slice comes a little out of the wheel (along its middle), its names with it; the family's other
+   languages dim by how far they are from it in the tree: its closest relatives a little, distant branches more. */
+{let S0=SL&&arcs.find(x=>"leaf"===x.kind&&x.d.data.L.id===SL),anc=S0&&new Set(S0.d.ancestors()),out=R*.022;
+P.each(function(x){let o="",tr="";
+if(S0)if(x===S0){let m=(x.a0+x.a1)/2;tr=(Math.sin(m)*out).toFixed(2)+"px "+(-Math.cos(m)*out).toFixed(2)+"px"}
+else if("leaf"===x.kind){let n=x.d,k=0;for(;n&&!anc.has(n);n=n.parent)k++;n&&(k+=S0.d.depth-n.depth,o=Math.max(.36,1.05-.1*k).toFixed(2))}
+else"tick"!==x.kind&&!anc.has(x.d)&&(o=".72");
+this.style.translate=tr,this.style.opacity=o,(x.lts||[]).forEach(t=>{t.style.translate=tr,t.style.opacity=o&&Math.max(.5,+o).toFixed(2)})})}
 let q=SL&&arcs.find(x=>"leaf"===x.kind&&x.d.data.L.id===SL);
 mbu(q),
 i.classList.toggle("pick",!!q),
@@ -17203,11 +17251,23 @@ let i=e=>{let t=e.target.closest&&e.target.closest("[data-go]");
 t&&Ja(t.dataset.go)};
 return n.addEventListener("click",i),()=>{a.disconnect(),n.removeEventListener("click",i)}},[e]),
 (0,f.jsx)("div",{className:"vdendro",ref:t})}
+/* Phones: the tree. A family opens with one tap and shows its whole branching at once (branch names over thin lines, every
+   language a row), instead of a fold-out per branch; one family is open at a time, the others fold to compact rows, and the
+   open family's header stays at the top while its branches scroll, so it closes again with one tap. Kept while the page is
+   left and come back to (mi.tf). Desktop keeps the drawn tree (Cp). */
+function kTree({s:e}){let[o,so]=(0,m.useState)(()=>mi.tf||null),R=(0,m.useRef)(null),
+tog=(id,ev)=>{ev.preventDefault();let n=o===id?null:id;mi.tf=n,so(n);
+n&&requestAnimationFrame(()=>{let el=R.current&&[...R.current.children].find(c=>c.dataset.tf===id),y=el&&el.getBoundingClientRect().top-56;
+el&&(y<0||y>innerHeight*.5)&&window.scrollBy({top:y,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})})};
+return(0,f.jsx)("div",{className:"vtree vbt"+(o?" vone":""),ref:R,style:{display:"block"},children:e.children.map((d,t)=>{let id=d.data.en;
+return d.data.L?(0,f.jsx)(Sp,{d:d},t):(0,f.jsxs)("details",{className:"vb d1"+(o===id?" von":""),open:o===id,"data-tf":id,children:[(0,f.jsxs)("summary",{onClick:ev=>tog(id,ev),"aria-expanded":o===id,children:[(0,f.jsx)("i",{className:"dot "+d.fam}),(0,f.jsx)("span",{className:"vn",children:d.data.name}),(0,f.jsx)("span",{className:"vc",children:d.value})]}),o===id?(0,f.jsx)("div",{className:"vk vgt",children:d.children.map((c,j)=>(0,f.jsx)(kBr,{d:c},j))}):null]},t)})})}
+function kBr({d:e}){if(e.data.L)return(0,f.jsx)(Sp,{d:e});
+return(0,f.jsxs)("div",{className:"vg",children:[(0,f.jsxs)("div",{className:"vgn",children:[(0,f.jsx)("span",{children:e.data.name}),(0,f.jsx)("span",{className:"vc",children:e.value})]}),(0,f.jsx)("div",{className:"vgk",children:e.children.map((c,j)=>(0,f.jsx)(kBr,{d:c},j))})]})}
 function Lp({s:e}){let t="(min-width: 64rem)",
 [n,r]=(0,m.useState)(()=>!(!window.matchMedia||!matchMedia(t).matches));
 return(0,m.useEffect)(()=>{let e=matchMedia(t),n=()=>r(e.matches);
 return e.addEventListener("change",n),()=>e.removeEventListener("change",n)},[]),
-n?(0,f.jsx)(Cp,{s:e}):(0,f.jsx)("div",{className:"vtree",style:{display:"block"},children:e.children.map((e,t)=>(0,f.jsx)(Sp,{d:e},t))})}
+n?(0,f.jsx)(Cp,{s:e}):(0,f.jsx)(kTree,{s:e})}
 function Tp({v:e,on:t}){let n=ja();
 return(0,f.jsx)("div",{className:"sseg",role:"tablist",children:[["w",n.nav.words,"book"],["l",n.nav.lang,"wheel"]].map(([n,r,a])=>(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":e===n,onClick:()=>t(n),children:[(0,f.jsx)(si,{n:a}),(0,f.jsx)("span",{children:r})]},n))})}
 function Ap({q:e}){let t=ja(),
@@ -17648,7 +17708,9 @@ arc=(r0,r1,a,b)=>A({innerRadius:r0,outerRadius:r1,startAngle:a,endAngle:b}),fs=[
 it.forEach(o=>{let b=a0+o.v/tot*2*Math.PI,f=fs[fs.length-1];o.a=a0,o.b=b;
 f&&f.f===o.L.family?f.b=b:fs.push({f:o.L.family,a:a0,b:b,L:o.L}),P+='<path d="'+arc(num?63:76,92,a0,b)+'" fill="'+(Vf(o.L)||"#888")+'" data-sel="'+o.L.id+'" data-n="'+ei(Na(o.L))+'"'+(num?' data-s="'+ei(kRgS(o.v))+'"':"")+' style="--i:'+k++ +'"><title>'+ei(Na(o.L))+(num?" "+kRgS(o.v):"")+"</title></path>",a0=b});
 gr>0&&(P+='<path class="rgo" d="'+arc(63,92,a0,2*Math.PI)+'" style="--i:'+k+'"/>',Q+='<path class="rgo" d="'+arc(46,58,a0,2*Math.PI)+'"/>');
-fs.forEach(f=>{Q+='<path d="'+arc(46,58,f.a,f.b)+'" fill="'+(If(f.f)||Vf(f.L)||"#888")+'" opacity=".55"><title>'+ei(Ca(f.f))+"</title></path>"});
+/* the inner ring names the families; with one family (one language, or several of one family) and no other share it
+   would only repeat the outer ring, so it is left out */
+(fs.length>1||gr>0)&&fs.forEach(f=>{Q+='<path d="'+arc(46,58,f.a,f.b)+'" fill="'+(If(f.f)||Vf(f.L)||"#888")+'" opacity=".55"><title>'+ei(Ca(f.f))+"</title></path>"});
 /* The three largest languages are named outside the wheel, each at the end of a short line out from the middle of its slice,
    turning left or right by the side the slice is on; names on one side are kept 15 apart. The middle stays empty: the list
    below has the numbers. */
@@ -17660,7 +17722,7 @@ let lo=S.length?S[S.length-1].y-106:0;lo>0&&S.forEach(l=>l.y-=lo);
 S.forEach(l=>{l.y=Math.max(-106,l.y),l.h=l.sx*104+8*l.r,X=Math.max(X,Math.abs(l.h)+8+6.4*l.nm.length)})});
 let lab=LB.map(l=>'<g class="rgwl" data-sel="'+l.o.L.id+'" style="--n:'+l.n+'"><path d="M'+(l.sx*95).toFixed(1)+","+(l.sy*95).toFixed(1)+"L"+(l.sx*104).toFixed(1)+","+l.y.toFixed(1)+"H"+l.h.toFixed(1)+'"/><text class="'+(l.r>0?"s":"e")+'" x="'+(l.h+4*l.r).toFixed(1)+'" y="'+l.y.toFixed(1)+'" dy=".35em">'+ei(l.nm)+"</text></g>").join("");
 X=Math.ceil(X);
-return'<section class="psec pwh rgw"><svg class="rgwh" viewBox="'+-X+" -116 "+2*X+' 232" style="width:min(100%,'+2*X+'px)" role="img" aria-label="'+ei(it.map(o=>Na(o.L)+(num?" "+kRgS(o.v):"")).join(", "))+'">'+Q+P+lab+"</svg></section>"}
+return'<section class="psec pwh rgw"><svg class="rgwh" viewBox="'+-X+" -116 "+2*X+' 232" style="--rgw:'+2*X+'" role="img" aria-label="'+ei(it.map(o=>Na(o.L)+(num?" "+kRgS(o.v):"")).join(", "))+'">'+Q+P+lab+"</svg></section>"}
 /* A tap on the region card's wheel names the language on a small label above the tap (its share too when the region has
    figures) for 2.4 s, and the other slices step back meanwhile (v74 in src/styles/v66.css). */
 let kRgTt=0;
@@ -17915,15 +17977,19 @@ B=[Math.min(B[0],u[0]),Math.min(B[1],u[1]),Math.max(B[2],u[2]),Math.max(B[3],u[3
 if(!(B[2]>B[0]))return Fh;
 let pad=b<640?10:36,top=b<640?58:30,k=Math.min((b-2*pad)/(B[2]-B[0]),(y-top-pad)/(B[3]-B[1])),cx=(B[0]+B[2])/2,cy=(B[1]+B[3])/2;
 gFit=k;
-/* phones (<64rem): the first view is 1.7 times closer than "every language fits". It starts at the languages' west edge, so all
+/* the first view is closer than "every language fits": 1.7 times on phones (<64rem), 1.3 times on desktop. It starts at the languages' west edge, so all
    of Europe shows (most languages are there) and the far east is a pan away; up and down it centres on the languages in that
    width (the far east reaches much further north, which would leave the Arctic on screen).
    Zooming out still reaches all of them (gOne uses gFit). */
-if(!me()){k*=1.7;let hw=(b-2*pad)/2/k,hh=(y-top-pad)/2/k,W=[1e9,-1e9];
+{k*=me()?1.3:1.7;let hw=(b-2*pad)/2/k,hh=(y-top-pad)/2/k,W=[1e9,-1e9];
 cx=B[2]-B[0]>2*hw?B[0]+hw:cx;
 x.forEach(e=>{if(!T(e)||Math.abs(e._xy[0]-cx)>hw)return;let u=U(e);W=[Math.min(W[0],u[1]),Math.max(W[1],u[3])]});
-W[1]>W[0]&&(cy=(W[0]+W[1])/2)}
+W[1]>W[0]&&(cy=(W[0]+W[1])/2,
+/* desktop: when those languages reach further up and down than the view, it centres on where most of them are (the middle
+   80%), so a few in the Arctic or in southern Arabia do not pull the view away from Europe, the Caucasus and Iran */
+me()&&W[1]-W[0]>2*hh&&(cy=kMid(x.filter(e=>T(e)&&Math.abs(e._xy[0]-cx)<=hw).map(e=>e._xy[1]))))}
 return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-cx,-cy)}
+function kMid(v){v=v.slice().sort((a,b)=>a-b);let q=f=>v[Math.min(v.length-1,Math.floor(f*v.length))];return v.length?(q(.1)+q(.9))/2:0}
 function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k;
 kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
 /* what is chosen goes to the engine, which sets how strong every area is drawn */

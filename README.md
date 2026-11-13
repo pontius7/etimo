@@ -512,6 +512,17 @@ Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Style
 | **Closing a region card** | flies back to the first view | same | `#cx` in `kRgCard` |
 | **Languages page** | first tap chooses a language, second opens it; a bar above the tab bar names the choice (name opens it, "On map" shows it); no line under the wheel, so nothing jumps | unchanged | `.wbar` in the wheel code (`mbu`) |
 
+## Wheels, tree and first view, 2026-11-13
+Same for every language, region and family:
+- Region card wheel (`kRgW`): the inner family ring is drawn only with two or more families (or an "other" share); one
+  language is one ring. Desktop draws it 1.45 times larger (`--rgw`, v66.css), names kept at their phone size.
+- Languages wheel (`paint()` in `qp`): the chosen slice comes a little out along its middle (2.2% of the radius) with a soft
+  shadow, no heavy outline; the family's other languages dim by tree distance (siblings least, distant branches most).
+- Phone tree (`kTree`): one tap opens a family with its whole branching as an outline; one family open at a time, its header
+  stays pinned while it scrolls. Desktop keeps the drawn tree (`Cp`).
+- First map view (`gHome`): 1.7 times closer than "all languages fit" on phones, 1.3 times on desktop, where it centres on the
+  middle 80% of the languages in view (`kMid`). Phone Languages page: the wheel sits higher (v66.css).
+
 ## A language map from an image: the process
 
 When a map image of a country's languages is handed over (a census map by municipality, a dialect map), it is adapted

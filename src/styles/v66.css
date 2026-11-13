@@ -110,3 +110,43 @@
 .knomap .knb{display:flex;gap:.5rem;justify-content:center;margin-top:1.25rem}
 .knomap button{min-height:44px;padding:0 1.1rem;border:1px solid var(--line);border-radius:999px;background:none;color:var(--ink);font:600 .9375rem/1 var(--sans);cursor:pointer}
 .knomap .knl{border-color:var(--hd);background:var(--hd);color:var(--hd-ink)}
+
+/* ---- Region card wheel size (kRgW sets --rgw, the drawing's width in its own units, labels included).
+   Phone: as drawn. Desktop: 1.45 times larger, the names kept at their phone size. */
+@media (width<64rem){.card.kpanel .rgwh{width:min(100%,calc(var(--rgw,200) * 1px))}}
+@media (width>=64rem){.card.kpanel .rgwh{width:min(100%,calc(var(--rgw,200) * 1.45px))}
+  .card.kpanel .rgwh .rgwl text{font-size:8px}}
+
+/* ---- Languages wheel: the chosen language (paint() in qp) comes a little out of the wheel with a soft shadow instead of a
+   heavy outline; the other slices dim by family distance (inline opacity). Same on phone and desktop. */
+#langs .wa{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .28s ease,filter .15s}
+#langs .lay text{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .28s ease}
+#langs .wa.sel{stroke:var(--bg);stroke-width:1.2px;filter:drop-shadow(0 3px 7px rgb(0 0 0 / .28))}
+#langs .wa.sel:focus-visible{stroke:var(--ink);stroke-width:2.4px}
+@media (prefers-reduced-motion:reduce){#langs .wa,#langs .lay text{transition:none}}
+[data-motion=off] #langs .wa,[data-motion=off] #langs .lay text{transition:none}
+
+/* ---- Phone tree (kTree in the page code): one family open at a time, its branching drawn as an outline. Desktop keeps the
+   drawn tree (Cp), so these rules are phone-only. */
+@media (width<64rem){
+  .vtree.vbt{overflow:clip}
+  .vtree.vbt .vb.von>summary{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:3;background:var(--bg);box-shadow:0 1px 0 var(--line)}
+  .vtree.vbt.vone .vb.d1:not(.von)>summary{min-height:2.6rem}
+  .vtree.vbt.vone .vb.d1:not(.von)>summary .vn{font-weight:500!important;font-size:.9375rem!important;color:var(--mut)}
+  .vtree.vbt .vgt{margin-left:1.15rem;padding:.2rem 0 .8rem .55rem;border-left:1.5px solid color-mix(in srgb,var(--ink) 12%,transparent);animation:vgIn .28s cubic-bezier(.2,.8,.2,1) both}
+  .vtree.vbt .vg{position:relative;padding-left:.85rem}
+  .vtree.vbt .vgk{border-left:1.5px solid color-mix(in srgb,var(--ink) 12%,transparent);margin-left:.15rem;padding-left:.55rem}
+  .vtree.vbt .vgn{position:relative;display:flex;align-items:center;gap:.45rem;padding:.9rem 0 .3rem;font:600 .6875rem/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  .vtree.vbt .vgn::before,.vtree.vbt .vgk>.vl::before,.vtree.vbt .vgt>.vl::before{content:"";position:absolute;left:-1.4rem;top:50%;width:1.1rem;border-top:1.5px solid color-mix(in srgb,var(--ink) 12%,transparent)}
+  .vtree.vbt .vgk>.vl::before,.vtree.vbt .vgt>.vl::before{left:-.7rem;width:.55rem}
+  .vtree.vbt .vgn::before{top:calc(.9rem + .4em)}
+  .vtree.vbt .vgn .vc{font-size:.6875rem;padding:.15rem .4rem;letter-spacing:0}
+  .vtree.vbt .vgk>.vl,.vtree.vbt .vgt>.vl{position:relative;padding-left:.35rem}
+}
+@keyframes vgIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.vtree.vbt .vgt{animation:none}}
+[data-motion=off] .vtree.vbt .vgt{animation:none}
+
+/* ---- Phone Languages page: the wheel sits higher (was centred in the free height, leaving a band of empty space above it).
+   Desktop: unchanged. */
+@media (width<64rem){#langs .sbwrap{justify-content:flex-start;padding-top:clamp(.75rem,5dvh,2.25rem)}}
