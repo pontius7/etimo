@@ -1,0 +1,130 @@
+/* v69  The region card (kRgCard in the page code): the country, the region's name as the list of the country's regions,
+   the family wheel with the region's languages lit, then the languages with speakers and shares (a thin bar in the
+   language's colour). Colours come from src/styles/tokens.css. Phone (<64rem): a light sheet at the bottom, scrolls
+   inside; desktop (>=64rem): the panel down the left side keeps its dark header. */
+.mapbox .card.kpanel:has(>.rgh){--rgx:1.15rem}
+.card.kpanel .rgh .rgk{margin:0;font:600 .6875rem/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--hd-muted)}
+.card.kpanel .rgh :is(.rgt,.rgp){position:relative;display:inline-flex;align-items:center;max-width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.card.kpanel .rgh .rgt{gap:.4rem;margin-top:.35rem}
+.mapbox .card.mcard.kpanel .rgh h3{text-transform:none}
+.mapbox .card.mcard.kpanel .rgh .rgt h3{margin:0;min-width:0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}
+.card.kpanel .rgh .rgv{flex:none;width:1.25rem;height:1.25rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.7;transition:transform .2s ease,opacity .2s}
+.card.kpanel .rgh :is(.rgt,.rgp):hover .rgv{opacity:1}
+.card.kpanel .rgh :is(.rgt,.rgp):active .rgv{transform:translateY(2px)}
+/* the list itself is the phone's own picker (a wheel on iPhone, a list on Android); 16px so iPhone does not zoom in on it */
+.card.kpanel .rgh .rgsel{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.card.kpanel .rgh .rgsel:focus-visible{opacity:0}
+.card.kpanel .rgh :is(.rgt,.rgp):has(.rgsel:focus-visible){outline:2px solid currentColor;outline-offset:3px;border-radius:8px}
+.card.kpanel .rgh .rgp{gap:.3rem;margin-top:.55rem;padding:.3rem .55rem .3rem .7rem;border:1px solid color-mix(in srgb,currentColor 28%,transparent);border-radius:999px;font:600 .8125rem/1.2 var(--sans)}
+.card.kpanel .rgh .rgp span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card.kpanel .rgh .rgp .rgv{width:1rem;height:1rem}
+/* the region's wheel (kRgW): families inside, languages outside; the largest share in the middle */
+.mapbox .card.kpanel .psec.pwh.rgw{display:flex!important;justify-content:center;padding:.35rem var(--rgx) 0!important}
+.card.kpanel .rgwh{display:block;width:100%;max-width:12.5rem;height:auto;overflow:visible}
+.card.kpanel .rgwh path{stroke:var(--bg);stroke-width:.8;transform-box:view-box;transform-origin:50% 50%;animation:rgarc .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 35ms)}
+.card.kpanel .rgwh path[data-sel]{cursor:pointer;transition:opacity .15s}
+.card.kpanel .rgwh:has(path[data-sel]:hover) path[data-sel]:not(:hover){opacity:.55}
+.card.kpanel .rgwh path.rgo{fill:color-mix(in srgb,var(--ink) 13%,transparent)}
+.card.kpanel .rgwh text{text-anchor:middle;fill:var(--ink)}
+.card.kpanel .rgwh .rgc1{font:400 27px/1 var(--serif);letter-spacing:-.02em}
+.card.kpanel .rgwh .rgc2{font:600 9.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;fill:var(--mut)}
+/* languages with numbers */
+.card.kpanel .rgl{display:flex;flex-direction:column;align-items:stretch;gap:0;text-align:left}
+.card.kpanel .rgrows{display:flex;flex-direction:column;width:100%}
+.card.kpanel .rgr{position:relative;display:grid;grid-template-columns:.625rem minmax(0,1fr) auto 3.4rem;align-items:center;column-gap:.65rem;width:100%;min-height:2.85rem;margin:0;padding:.45rem 0 .6rem;border:0;background:none;color:var(--ink);text-align:left;font:inherit;-webkit-tap-highlight-color:transparent}
+button.rgr{cursor:pointer;border-radius:10px;transition:background-color .15s}
+button.rgr:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.card.kpanel .rgr i{width:.625rem;height:.625rem;border-radius:50%;background:var(--c,color-mix(in srgb,var(--ink) 22%,transparent))}
+.card.kpanel .rgr b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 .9375rem/1.25 var(--sans)}
+.card.kpanel .rgr.nx b{font-weight:500;color:var(--mut)}
+.card.kpanel .rgr span{font:500 .8125rem/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut)}
+.card.kpanel .rgr em{font:600 .9375rem/1 var(--sans);font-style:normal;font-variant-numeric:tabular-nums;text-align:right;color:var(--ink)}
+.card.kpanel .rgr::before,.card.kpanel .rgr::after{content:"";position:absolute;left:1.275rem;bottom:.3rem;height:2px;border-radius:2px}
+.card.kpanel .rgr::before{right:0;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.card.kpanel .rgr::after{width:calc((100% - 1.275rem) * var(--w,0));min-width:2px;background:var(--c,color-mix(in srgb,var(--ink) 26%,transparent));transform-origin:left;animation:rgbar .6s cubic-bezier(.2,.7,.2,1) both}
+.card.kpanel .rgr.nn{grid-template-columns:.625rem minmax(0,1fr);min-height:2.6rem;padding:.4rem 0}
+.card.kpanel .rgr.nn::before,.card.kpanel .rgr.nn::after{display:none}
+.card.kpanel .rgmore{align-self:stretch;margin:.35rem 0 0 1.275rem;text-align:left;font:500 .8125rem/1.3 var(--sans);color:var(--mut)}
+.card.kpanel .rgsrc{align-self:stretch;width:100%;box-sizing:border-box;margin:.85rem 0 0;text-align:left;padding-top:.75rem;border-top:1px solid var(--line);font:500 .75rem/1.4 var(--sans);color:var(--mut)}
+.card.kpanel .rgchips{display:flex;flex-wrap:wrap;gap:.4rem}
+.card.kpanel .rgchip{display:inline-flex;align-items:center;gap:.4rem;min-height:2.25rem;padding:0 .75rem;border:1px solid var(--line);border-radius:999px;background:none;color:var(--ink);font:500 .8125rem var(--sans);cursor:pointer}
+.card.kpanel .rgchip i{width:.5rem;height:.5rem;border-radius:50%}
+@keyframes rgarc{from{opacity:0;transform:scale(.9) rotate(-8deg)}}
+@keyframes rgbar{from{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){.card.kpanel .rgwh path,.card.kpanel .rgr::after{animation:none}}
+:root[data-motion=off] .card.kpanel .rgwh path,:root[data-motion=off] .card.kpanel .rgr::after{animation:none}
+
+/* phone: a light sheet; the header stays at the top while the languages scroll under it */
+@media (width<64rem){
+  .mapbox .card.mcard.kpanel:has(>.rgh){display:block!important;padding:0!important;border:1px solid var(--line)!important;border-radius:22px!important;background:var(--bg)!important;box-shadow:0 10px 40px -12px color-mix(in srgb,var(--ink) 30%,transparent),0 1px 3px color-mix(in srgb,var(--ink) 8%,transparent)!important;max-height:min(58dvh,32rem)!important;overflow-y:auto;overscroll-behavior:contain;animation:rgup .32s cubic-bezier(.2,.8,.2,1) both}
+  .mapbox .card.mcard.kpanel>.phd.rgh{position:sticky;top:0;z-index:2;margin:0!important;padding:1rem 3.6rem .5rem var(--rgx)!important;background:color-mix(in srgb,var(--bg) 92%,transparent)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--ink)!important}
+  .mapbox .card.mcard.kpanel>.phd.rgh .close{top:.75rem!important;right:.75rem!important;width:2.25rem;height:2.25rem;border-radius:50%;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)!important}
+  .mapbox .card.mcard.kpanel>.phd.rgh .close svg{width:1rem;height:1rem}
+  .card.kpanel .rgh .rgk{color:var(--mut)}
+  .mapbox .card.mcard.kpanel .rgh h3{font:400 1.75rem/1.1 var(--serif)!important;letter-spacing:-.01em;color:var(--ink)!important}
+  .mapbox .card.mcard.kpanel:has(>.rgh) .psec{padding:0 var(--rgx)!important}
+  .mapbox .card.mcard.kpanel:has(>.rgh) .psec.rgl{padding-top:.5rem!important}
+  .mapbox .card.mcard.kpanel:has(>.rgh) .psec:last-child{padding-bottom:1.1rem!important}
+  .mapbox .card.mcard.kpanel:has(>.rgh) .psec+.psec{margin-top:.85rem}
+  .card.kpanel .rgwh{max-width:min(10rem,46vw)}
+  /* the zoom buttons step aside while the region card is open (pinch zooms), as they do for the language card's details */
+  .mapbox:has(>.card.kpanel:not([hidden])>.rgh) :is(.zoom,.mreset){opacity:0!important;pointer-events:none!important}
+  /* no sources on the phone: the region card's source button, the census list's document buttons and the regions table */
+  .mapbox .card.kpanel :is(.country-panel-source,.country-regions-launch,.rg-cen),.card .country-source-icon{display:none!important}
+  .card .country-name-link{pointer-events:none}
+}
+@keyframes rgup{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){.mapbox .card.mcard.kpanel:has(>.rgh){animation:none}}
+:root[data-motion=off] .mapbox .card.mcard.kpanel:has(>.rgh){animation:none}
+
+/* desktop: the left panel; its dark header carries the country, the region list and the close button */
+@media (width>=64rem){
+  .mapbox .card.kpanel .rgh :is(.rgt,.rgp){color:var(--hd-ink)}
+  .card.kpanel .rgh .rgv{opacity:.85}
+  .mapbox .card.kpanel:has(>.rgh) .psec.rgl{padding-top:.25rem}
+  .card.kpanel .rgwh{max-width:13.5rem}
+}
+
+/* v70  Map credits (the page code builds them where the map is made): the text sits in .mct, the (i) button .mcb opens it on phones */
+.mapbox .mcred .mct{margin:0}
+.mapbox .mcred .mcb svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+@media (width>=64rem){.mapbox .mcred .mcb{display:none}}
+@media (width<64rem){
+  .mapbox .mcred,.mapbox.hascar .mcred{left:8px;bottom:calc(var(--ch,0px) + 8px);max-width:calc(100% - 80px);display:flex;align-items:flex-start;gap:.35rem;padding:3px;border-radius:13px;text-shadow:none;transition:background-color .25s,box-shadow .25s}
+  .mapbox.hascar .mcred{bottom:calc(max(var(--ch,0px),var(--wch,0px)) + 8px)}
+  .mapbox .mcred .mcb{pointer-events:auto;flex:none;display:grid;place-items:center;width:22px;height:22px;margin:0;padding:0;border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);border-radius:50%;background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--mut);cursor:pointer}
+  .mapbox .mcred .mct{padding:3px 6px 2px 0;opacity:0;visibility:hidden;transform:translateX(-4px);transition:opacity .2s,transform .2s,visibility 0s .2s}
+  .mapbox .mcred.open{background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 1px 4px color-mix(in srgb,var(--ink) 10%,transparent)}
+  .mapbox .mcred.open .mct{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .2s}
+  /* folded while a card is open: only the (i) stays, in the corner of the map above the card */
+  .mapbox:has(>.card:not([hidden])) .mcred.open:not(.on){background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .mapbox:has(>.card:not([hidden])) .mcred.open:not(.on) .mct{opacity:0;visibility:hidden}
+}
+
+/* v71  Settings sheet (kSheet in the page code). Phone (<64rem): comes down from the top under the language button, rounded
+   below, with a grab bar on its lower edge; a swipe up closes it. Desktop (>=64rem): from the bottom as before, no bar. */
+.sheet-x .sgrab{display:none}
+@media (width<64rem){
+  .sheet-x.sheet-top{display:flex;flex-direction:column;gap:0;max-height:min(88dvh,44rem);overscroll-behavior:contain;border-radius:0 0 24px 24px!important;border-top:0!important;border-bottom:1px solid var(--line)!important;padding:calc(env(safe-area-inset-top,0px) + .75rem) max(16px,env(safe-area-inset-left,0px)) 0!important;box-shadow:0 22px 50px -20px color-mix(in srgb,var(--ink) 35%,transparent)!important;animation-duration:.42s!important;animation-timing-function:cubic-bezier(.2,.8,.2,1)!important;transition:transform .28s cubic-bezier(.2,.8,.2,1);will-change:transform}
+  .sheet-x.sheet-top[data-state=closed]{animation-duration:.26s!important;animation-timing-function:cubic-bezier(.4,0,1,1)!important}
+  .sheet-x.sheet-top>button[class*=absolute]{top:calc(env(safe-area-inset-top,0px) + .7rem)!important}
+  .sheet-x.sheet-top .inner{width:100%;padding-bottom:.25rem}
+  .sheet-x.sheet-top .sgrab{display:block;order:9;position:sticky;bottom:0;flex:none;height:2.1rem;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));background:linear-gradient(to bottom,transparent,var(--bg) 45%);cursor:grab;touch-action:none}
+  .sheet-x.sheet-top .sgrab::after{content:"";position:absolute;left:50%;bottom:.8rem;width:2.5rem;height:5px;margin-left:-1.25rem;border-radius:3px;background:color-mix(in srgb,var(--ink) 24%,transparent);animation:sgnudge .9s cubic-bezier(.3,.7,.3,1) .55s 1 both}
+}
+@keyframes sgnudge{0%,100%{transform:none}45%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){.sheet-x.sheet-top .sgrab::after{animation:none}}
+:root[data-motion=off] .sheet-x.sheet-top .sgrab::after{animation:none}
+/* the sheet's contents on phones: quiet lists and segmented controls (the chosen one lifts out of a soft track) instead of solid blocks */
+@media (width<64rem){
+  .sheet-x.sheet-top .menu-in .dh{margin:1.15rem 0 .5rem}
+  .sheet-x.sheet-top .menu-in .dh:first-of-type{margin-top:.35rem}
+  .sheet-x.sheet-top .menu-in .opt{min-height:2.9rem;margin:0;padding:0 .8rem;border-radius:12px;box-shadow:none!important;font:500 1rem var(--sans);color:var(--ink)}
+  .sheet-x.sheet-top .menu-in .opt[aria-checked=true]{background:color-mix(in srgb,var(--hd) 9%,transparent)!important;color:var(--ink)!important;font-weight:600}
+  .sheet-x.sheet-top .menu-in .opt[aria-checked=true]:after{width:1.1rem;height:1.1rem;border-radius:0;box-shadow:none;background:var(--hd);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012.5%204.5%204.5L19%207.5%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m5%2012.5%204.5%204.5L19%207.5%22/%3E%3C/svg%3E") center/contain no-repeat}
+  .sheet-x.sheet-top .menu-in :is(.two,.four){gap:2px;padding:3px;border-radius:13px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+  .sheet-x.sheet-top .menu-in :is(.two,.four) button{min-height:2.5rem;border:0!important;border-radius:10px;background:none!important;color:var(--ink)!important;transition:background-color .2s,box-shadow .2s}
+  .sheet-x.sheet-top .menu-in :is(.two,.four) button[aria-checked=true]{background:var(--bg)!important;box-shadow:0 1px 3px color-mix(in srgb,var(--ink) 16%,transparent),0 0 0 .5px color-mix(in srgb,var(--ink) 8%,transparent);font-weight:600}
+  :root[data-theme=dark] .sheet-x.sheet-top .menu-in :is(.two,.four) button[aria-checked=true]{background:color-mix(in srgb,var(--ink) 16%,var(--bg))!important}
+}

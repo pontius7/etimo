@@ -1,0 +1,17 @@
+# Your register of languages spoken in a region, with numbers. Each row: one language in one region.
+# The region card (phone and desktop) shows these in its language wheel and list; colours come from the palette.
+# A region listed here shows only your rows for it (the census table's figures for it are set aside), so this is also
+# how you correct or update a region. Then run ./scripts/add-words.sh (or python3 scripts/merge/region-langs.py).
+#
+# country   as on the map (Romania) or a code (RO / ROU)
+# region    exactly as the region card names it (Argeș); a close spelling stops the build with suggestions
+# language  a language of the site (gets its colour) or any other name (shown in grey)
+# speakers  whole number; may be empty when only the share is known
+# share     percent of the region's people, without the % sign; may be empty (then worked out when every row has speakers)
+# year      year of the figure, e.g. 2021
+# source    a link or a short citation (census table, survey, report)
+# measure   optional: mother tongue, home language, language ... (default: language)
+#
+# Example (remove the # to use it):
+# Romania,Covasna,Hungarian,150468,71.6,2021,https://www.recensamantromania.ro/,mother tongue
+country,region,language,speakers,share,year,source,measure

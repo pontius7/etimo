@@ -1,0 +1,135 @@
+# Census tables name languages in the census's own language. This turns each label into the language name shown on
+# the region card. If the name is one of the site's languages, the card gives it that language's colour by itself.
+# Labels that are already English language names need no row. Used by scripts/merge/region-langs.py.
+label,language
+Româna,Romanian
+Română,Romanian
+Moldovenească,Romanian
+Maghiara,Hungarian
+Ucraineana,Ukrainian
+Ucraineană,Ukrainian
+Germana,German
+Sarba,Serbian
+Slovaca,Slovak
+Bulgara,Bulgarian
+Bulgară,Bulgarian
+Italiana,Italian
+Greaca,Greek
+Ceha,Czech
+Turca,Turkish
+Rusa,Russian
+Rusă,Russian
+Armeana,Armenian
+Tatara,Crimean Tatar
+Polona,Polish
+Ruteana,Rusyn
+Croata,Croatian
+Albaneza,Albanian
+Idis,Yiddish
+Macedoneana,Macedonian
+Romani (Țigănească),Romani
+Găgăuză,Gagauz
+Český jazyk,Czech
+Slovenský jazyk,Slovak
+Ruský jazyk,Russian
+Polský jazyk,Polish
+Ukrajinský jazyk,Ukrainian
+Vietnamský jazyk,Vietnamese
+Maďarský jazyk,Hungarian
+Romský jazyk,Romani
+Německý jazyk,German
+Čínský jazyk,Chinese
+Anglický jazyk,English
+Moravský jazyk,Moravian
+Slezský jazyk,Silesian
+Francouzský jazyk,French
+Italský jazyk,Italian
+Španělský jazyk,Spanish
+Rumunský jazyk,Romanian
+Chorvatský jazyk,Croatian
+Řecký jazyk,Greek
+Moldavský jazyk,Romanian
+Běloruský jazyk,Belarusian
+Mongolský jazyk,Mongolian
+Bulharský jazyk,Bulgarian
+Arabský jazyk,Arabic
+Bosenský jazyk,Bosnian
+Srbský jazyk,Serbian
+Rusínský jazyk,Rusyn
+Albánský jazyk,Albanian
+Arménský jazyk,Armenian
+Český celkem,Czech
+Slovenský celkem,Slovak
+Romský celkem,Romani
+Polský celkem,Polish
+Ruský celkem,Russian
+Maďarský celkem,Hungarian
+Ukrajinský celkem,Ukrainian
+Vietnamský celkem,Vietnamese
+Německý celkem,German
+Čínský celkem,Chinese
+Anglický celkem,English
+Moravský celkem,Moravian
+Slezský celkem,Silesian
+slovenský,Slovak
+ukrajinský,Ukrainian
+poľský,Polish
+maďarský,Hungarian
+český,Czech
+anglický,English
+rusínsky,Rusyn
+nemecký,German
+ruský,Russian
+rómsky,Romani
+Polski,Polish
+angielski,English
+niemiecki,German
+ukraiński,Ukrainian
+rosyjski,Russian
+białoruski,Belarusian
+kaszubski,Kashubian
+śląski,Silesian
+łemkowski,Lemko
+romski,Romani
+litewski,Lithuanian
+czeski,Czech
+słowacki,Slovak
+francuski,French
+włoski,Italian
+hiszpański,Spanish
+wietnamski,Vietnamese
+ormiański,Armenian
+arabski,Arabic
+turecki,Turkish
+chiński,Chinese
+gruziński,Georgian
+dolnoniemiecki,Low German
+polski język migowy,Polish Sign Language
+niderlandzki,Dutch
+grecki,Greek
+deutsch,German
+Deutsch,German
+arabisch,Arabic
+Arabisch,Arabic
+Deutsch (oder Schweizerdeutsch),German
+Französisch (oder Patois Romand),French
+Italienisch (oder Tessiner/Bündner-italienischer Dialekt),Italian
+Rätoromanisch,Romansh
+Englisch,English
+Niederländisch,Dutch
+Dänisch,Danish
+Norwegisch,Norwegian
+Schwedisch,Swedish
+Serbisch und Kroatisch,Serbian and Croatian
+Roma language,Romani
+Roma,Romani
+Romany,Romani
+Vlach language,Vlach
+Bosniaks,Bosnian
+Bosniak,Bosnian
+norweski,Norwegian
+szwedzki,Swedish
+gwary podlaskie (polsko-białorusko-ukraińskie),Podlachian dialects
+Ruthenian,Rusyn
+Vlachs,Vlach
+Bokeljski,Bokelj

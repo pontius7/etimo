@@ -614,7 +614,7 @@ let u=ie&&ie.nm||s;
 return function(e,t,n,r,a){let i=(e,t)=>{let n=e.map(Na);
 return n.slice(0,t).join(", ")+(n.length>t?" +"+(n.length-t):"")},s=(e,t)=>{let n=ae&&Kf&&Kf.M[e.lang];
 return!!(n&&n[t]&&n[t].some(e=>e[0]===ae._i))},MN="MNE"===(e.c||e.r)?.properties.c,o=x.filter(t=>ce(t,"d",a)||s(t,"h")||MN&&"Bosnian"===t.lang&&ce(t,"x",a)),l=x.filter(e=>!o.includes(e)&&(ce(e,"x",a)||s(e,"x"))),u=e=>e===nt?-1:0;
-o.sort((e,t)=>u(e)-u(t)),l.sort((e,t)=>u(e)-u(t)),Ct={t:t||n,s:t&&n?r||n:"",hl:o,dl:l,eth:ie&&ie.d,country:(e.c||e.r)?.properties.c,countryName:e.c?.properties.n,rid:e.r?.properties.region_id};
+o.sort((e,t)=>u(e)-u(t)),l.sort((e,t)=>u(e)-u(t)),Ct={t:t||n,s:t&&n?r||n:"",hl:o,dl:l,eth:ie&&ie.d,country:(e.c||e.r)?.properties.c,countryName:e.c?.properties.n,rid:e.r?.properties.region_id,rf:e.r||null,cd:n,dd:ae&&ae.properties.n||""};
 let c="<b>"+ei(t||n)+(t&&n?"<em> · "+ei(r||n)+"</em>":"")+"</b>";
 if((o.length||l.length)&&(c+='<span class="hm">'+ei(i(o.concat(l),12))+"</span>"),ie&&ie.d){let e=ie.d.g,t=e[0];
 c+='<span class="hm eth"><i>'+ei(ie.d.y)+"</i>"+e.slice(0,4).map(e=>ei(e[0])+" "+e[1]+"%").join(" · ")+(t&&t[1]>50?'<em class="emj">'+ei(t[0])+" "+ei({en:"majority",sq:"shumicë",de:"Mehrheit",sr:"većina",sc:"већина"}[ya()]||"majority")+"</em>":t?'<em class="emj nomaj">'+ei({en:"no majority",sq:"pa shumicë",de:"keine Mehrheit",sr:"bez većine",sc:"без већине"}[ya()]||"no majority")+"</em>":"")+"</span>"}
@@ -794,6 +794,76 @@ let l=[...s].map(([e,t])=>({f:e,cnt:t,isC:!e.properties.t&&!r[e.properties.c]||h
 return(u.length?u:l.slice(0,3)).slice(0,60)},i=a(da[e.lang].d,!0),s=new Set(i.map(e=>e.f)),o=a(da[e.lang].x||"",!1).filter(e=>!s.has(e.f));
 return ne[e.lang]={home:i,dia:o}}(e);
 n&&(n.dia.slice(0,40).forEach((t,n)=>We.append("path").attr("class","kr kdia "+e.family+(t.d?" kd":"")).style("--ri",Math.min(n,24)).style("--kf",window.__albColor?__albColor({data:{L:e}}):null).attr("d",z(t.f))),n.home.slice(0,64).forEach((t,n)=>We.append("path").attr("class","kr home "+e.family+(t.d?" kd":"")).style("--ri",Math.min(n,24)).style("--kf",window.__albColor?__albColor({data:{L:e}}):null).attr("d",z(t.f))),Re(e,n,!1),q.classed("kdm",!!(n.home[0]&&n.home[0].d||n.dia[0]&&n.dia[0].d)),oe=new Set(n.home.concat(n.dia).filter(e=>e.d).map(e=>e.i)),Ne(kV()))})}
+/* The region card (phone and desktop; styles: block v69 in src/styles/v64.css). Top: the country, then the region's
+   name, which is also the list of the country's regions (choosing one flies there and opens its card). A district or
+   an ethnic area that was tapped keeps the title, with the region list under it. Then the family wheel with the
+   region's languages lit, and the languages with speakers and shares from data/region-langs.json (built by
+   scripts/merge/region-langs.py from the census tables and content/region-languages.csv). Languages drawn there on
+   the map without a figure follow by name. No numbers for a region: the languages on the map, as before. */
+let kRgP=null,kRgV=null,kRgK=0,kRgO=[],kRgL=null;
+function kRgD(){return kRgP||(kRgP=fetch("data/region-langs.json").then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(D=>kRgV=D).catch(()=>(kRgP=null,null)))}
+function kRgT(k){let T={en:{rs:"Regions",langs:"languages",lang1:"language",more:"more",ppl:"people",none:"No census figures for this area yet",also:"Also on the map",cen:"Census",multi:"more than one answer possible"},
+sq:{rs:"Rajonet",langs:"gjuhë",lang1:"gjuhë",more:"të tjera",ppl:"veta",none:"Ende pa shifra regjistrimi për këtë zonë",also:"Edhe në hartë",cen:"Regjistrimi",multi:"lejohej më shumë se një përgjigje","mother tongue":"gjuha amtare","home language":"gjuha në shtëpi","everyday language":"gjuha e përditshme","main language at home":"gjuha kryesore në shtëpi",language:"gjuha"},
+de:{rs:"Regionen",langs:"Sprachen",lang1:"Sprache",more:"weitere",ppl:"Personen",none:"Für dieses Gebiet noch keine Zensuszahlen",also:"Auch auf der Karte",cen:"Zensus",multi:"Mehrfachantworten möglich","mother tongue":"Muttersprache","home language":"Sprache zu Hause","everyday language":"Umgangssprache","main language at home":"Hauptsprache zu Hause",language:"Sprache"},
+sr:{rs:"Oblasti",langs:"jezika",lang1:"jezik",more:"još",ppl:"osoba",none:"Za ovu oblast još nema podataka popisa",also:"Takođe na mapi",cen:"Popis",multi:"moguće više odgovora","mother tongue":"maternji jezik","home language":"jezik u kući","everyday language":"svakodnevni jezik","main language at home":"glavni jezik u kući",language:"jezik"},
+sc:{rs:"Области",langs:"језика",lang1:"језик",more:"још",ppl:"особа",none:"За ову област још нема података пописа",also:"Такође на мапи",cen:"Попис",multi:"могуће више одговора","mother tongue":"матерњи језик","home language":"језик у кући","everyday language":"свакодневни језик","main language at home":"главни језик у кући",language:"језик"}};
+return(T[ya()]||T.en)[k]||T.en[k]||k}
+function kRgF(v,d){try{return new Intl.NumberFormat({sq:"sq",de:"de",sr:"sr-Latn",sc:"sr-Cyrl"}[ya()]||"en",{maximumFractionDigits:d}).format(v)}catch{return String(v)}}
+function kRgS(p){return null==p?"":p<.05?"<"+kRgF(.1,1)+"%":kRgF(p,p>=10?0:1)+"%"}
+/* The region's own wheel, drawn like the site's wheel: families inside, languages outside, each slice as large as its
+   share (equal slices when the region has no figures; the middle then gives the number of languages). Languages that are
+   not on the site and the smallest ones share one grey slice. A slice opens its language, as its row does. */
+function kRgW(rows,R,n){let it=[],gr=0,num=rows.length>0;
+num?rows.forEach(o=>{o.L&&null!=o.p&&o.p>=.3?it.push({L:o.L,v:o.p}):gr+=o.p||0}):n.forEach(l=>it.push({L:l,v:1}));
+num&&R.o&&(gr+=R.o[2]||0);
+if(!it.length)return"";
+let fam={};it.forEach(o=>fam[o.L.family]=(fam[o.L.family]||0)+o.v);
+it.sort((A,C)=>fam[C.L.family]-fam[A.L.family]||(A.L.family<C.L.family?-1:A.L.family>C.L.family?1:0)||C.v-A.v);
+let tot=it.reduce((m,o)=>m+o.v,0)+gr,a0=0,P="",Q="",A=lh().padAngle(it.length+(gr>0)>1?.025:0).padRadius(70).cornerRadius(2.5),k=0,
+arc=(r0,r1,a,b)=>A({innerRadius:r0,outerRadius:r1,startAngle:a,endAngle:b}),fs=[];
+it.forEach(o=>{let b=a0+o.v/tot*2*Math.PI,f=fs[fs.length-1];
+f&&f.f===o.L.family?f.b=b:fs.push({f:o.L.family,a:a0,b:b,L:o.L}),P+='<path d="'+arc(num?63:76,92,a0,b)+'" fill="'+(Vf(o.L)||"#888")+'" data-sel="'+o.L.id+'" style="--i:'+k++ +'"><title>'+ei(Na(o.L))+(num?" "+kRgS(o.v):"")+"</title></path>",a0=b});
+gr>0&&(P+='<path class="rgo" d="'+arc(63,92,a0,2*Math.PI)+'" style="--i:'+k+'"/>',Q+='<path class="rgo" d="'+arc(46,58,a0,2*Math.PI)+'"/>');
+fs.forEach(f=>{Q+='<path d="'+arc(46,58,f.a,f.b)+'" fill="'+(If(f.f)||Vf(f.L)||"#888")+'" opacity=".55"><title>'+ei(Ca(f.f))+"</title></path>"});
+let t0=it.slice().sort((A,C)=>C.v-A.v)[0],mid=num?'<text class="rgc1" y="4">'+ei(kRgS(t0.v))+'</text><text class="rgc2" y="22">'+ei(Na(t0.L))+"</text>":'<text class="rgc1" y="4">'+it.length+'</text><text class="rgc2" y="22">'+ei(kRgT(1===it.length?"lang1":"langs"))+"</text>";
+return'<section class="psec pwh rgw"><svg class="rgwh" viewBox="-100 -100 200 200" role="img" aria-label="'+ei(it.map(o=>Na(o.L)+(num?" "+kRgS(o.v):"")).join(", "))+'">'+Q+P+mid+"</svg></section>"}
+function kRgShow(e){let k=++kRgK;
+kRgCard(e,kRgV),t.scrollTop=0,kRgV||kRgD().then(D=>{if(!D||k!==kRgK||t.hidden||!t.querySelector(".rgh"))return;
+let h0=t.offsetHeight;kRgCard(e,D),te&&!me()&&t.offsetHeight!==h0&&Ke(te,f?0:600)})}
+setTimeout(kRgD,2500);
+/* languages drawn anywhere in a region (not only where it was tapped): 25 points across it, kept per region */
+function kRgHere(F){if(!F)return[];if(F.__here)return F.__here;
+let g=F.geometry,P=g?"Polygon"===g.type?[g.coordinates]:"MultiPolygon"===g.type?g.coordinates:[]:[],x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,H=new Set;
+P.forEach(p=>p[0].forEach(c=>{x0=Math.min(x0,c[0]),x1=Math.max(x1,c[0]),y0=Math.min(y0,c[1]),y1=Math.max(y1,c[1])}));
+if(x1-x0<180)for(let i=1;i<6;i++)for(let k=1;k<6;k++){let pt=[x0+(x1-x0)*i/6,y0+(y1-y0)*k/6];
+if(!(pf(F,pt)&&Wu(F,pt)))continue;
+let q=j(pt);if(!q)continue;
+let r=[(q[0]-C[0])/M,(q[1]-C[1])/M];x.forEach(l=>{(ce(l,"d",r)||ce(l,"x",r))&&H.add(l)})}
+return F.__here=[...H]}
+function kRgCard(e,D){let F=e.rf,P=F&&F.properties,R=D&&P&&D.r[P.c+"|"+P.n]||null,S=R&&D.src[R.s]||null,
+B=kRgL||(kRgL=new Map(x.map(l=>[l.lang,l]))),n=[...new Set(e.hl.concat(e.dl,kRgHere(F),(R&&R.P||[]).map(m=>B.get(m)).filter(Boolean)))],
+rows=R&&R.L?R.L.map(([nm,c,p])=>({L:B.get(nm)||null,nm:nm,c:c,p:p})):[],
+inR=new Set(rows.filter(o=>o.L).map(o=>o.L.id)),rest=n.filter(l=>!inR.has(l.id)),
+lit=[...new Set(rows.filter(o=>o.L&&(null==o.p||o.p>=1)).map(o=>o.L).concat(n))],
+top=l=>($f(l.id)||{ancestors:()=>[]}).ancestors().find(a=>1===a.depth),fams=new Set(lit.map(top).filter(Boolean)),
+a=1===fams.size?[...fams][0]:lit[0]&&top(lit[0])||Af(),
+De="de"===ya(),nm=G=>(De?G.properties.nd:G.properties.n)||G.properties.n||"",
+O=P?hf.R.filter(G=>G.properties.c===P.c&&nm(G)).sort((A,C)=>nm(A).localeCompare(nm(C))):[],
+rN=F?nm(F):"",chev='<svg class="rgv" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>',
+sel=O.length>1?'<select class="rgsel" aria-label="'+ei(kRgT("rs")+(e.cd?" · "+e.cd:""))+'">'+O.map((G,i)=>'<option value="'+i+'"'+(G===F?" selected":"")+">"+ei(nm(G))+"</option>").join("")+"</select>":"",
+own=!sel||e.t&&e.t!==rN,
+h='<div class="phd preg rgh"><button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><p class="rgk">'+ei(e.cd||ve("rg"))+"</p>"+(own?"<h3>"+ei(e.t||"")+"</h3>"+(sel?'<label class="rgp"><span>'+ei(rN)+"</span>"+chev+sel+"</label>":e.s&&e.s!==e.cd?'<p class="plin">'+ei(e.s)+"</p>":""):'<label class="rgt"><h3>'+ei(rN)+"</h3>"+chev+sel+"</label>")+"</div>",
+row=o=>{let s="--w:"+(Math.min(100,o.p||0)/100).toFixed(4)+(o.L?";--c:"+(Vf(o.L)||"#888"):""),
+q='<i></i><b>'+ei(o.L?Na(o.L):o.nm)+"</b><span>"+(null==o.c?"":kRgF(o.c,0))+"</span><em>"+kRgS(o.p)+"</em>";
+return o.L?'<button type="button" class="rgr" data-sel="'+o.L.id+'" style="'+s+'">'+q+"</button>":'<div class="rgr nx" style="'+s+'">'+q+"</div>"},
+b=kRgW(rows,R,n),shown=rows.filter((o,i)=>i<3||i<7&&null!=o.p&&o.p>=.1),hid=rows.slice(shown.length),
+mo=(R&&R.o?R.o[0]:0)+hid.length,mp=(R&&R.o&&R.o[1]||0)+hid.reduce((m,o)=>m+(o.c||0),0);
+if(xe=a,je=null,rows.length)b+='<section class="psec rgl"><div class="rgrows">'+shown.map(row).join("")+"</div>"+(mo?'<p class="rgmore">+'+kRgF(mo,0)+" "+ei(kRgT("more"))+(mp?" · "+kRgF(mp,0)+" "+ei(kRgT("ppl")):"")+"</p>":"")+'<p class="rgsrc">'+ei((/^R:/.test(R.s)?"":kRgT("cen")+" ")+(S?S.y:"")+(S&&S.m?" · "+kRgT(S.m):"")+(R.x?" · "+kRgT("multi"):""))+"</p></section>"+(rest.length?'<section class="psec rgalso"><p class="ph">'+ei(kRgT("also"))+'</p><div class="rgchips">'+rest.map(l=>'<button type="button" class="rgchip" data-sel="'+l.id+'"><i style="background:'+(Vf(l)||"")+'"></i>'+ei(Na(l))+"</button>").join("")+"</div></section>":"");
+else n.length&&(b+='<section class="psec rgl"><div class="rgrows">'+n.map(l=>row({L:l,nm:"",c:null,p:null}).replace('class="rgr"','class="rgr nn"')).join("")+"</div>"+(D?'<p class="rgsrc">'+ei(kRgT("none"))+"</p>":"")+"</section>");
+let f0=document.activeElement&&document.activeElement.classList.contains("rgsel");
+t.innerHTML=h+b,kRgO=O,t.dataset.sourceCountry=e.countryName||e.country||"",t.dataset.regionId="",t.classList.add("kpanel"),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Le(null)};
+let s=t.querySelector(".rgsel");
+s&&(s.onchange=()=>{let G=kRgO[+s.value],p=G&&kIn(G),m=p&&le(p);m&&Ge(de(p),m,{clientX:0,clientY:0,target:q.node()})},f0&&s.focus({preventScroll:!0}))}
 var Be=0;
 function Ke(e,t){let n=z.bounds(e),r=(n[0][0]+n[1][0])/2,a=(n[0][1]+n[1][1])/2,i=Math.max((n[1][0]-n[0][0])/2*2.6,b/90),s=Math.max((n[1][1]-n[0][1])/2*2.6,y/90);
 return Wt(r-i,a-s,r+i,a+s,t,60),[r,a]}
@@ -801,11 +871,7 @@ function Ge(n,r,a){let i=Ct;
 if(n)return J(),Le(n),X=!1,function(e){if(!e)return;
 $t(null),Q2.selectAll("text.plabel").classed("fade",!1);
 let n=e.hl.concat(e.dl),r=new Set(n.map(e=>($f(e.id)||{ancestors:()=>[]}).ancestors().find(e=>1===e.depth))),a=1===r.size&&[...r][0]?[...r][0]:(n[0]&&($f(n[0].id)||{ancestors:()=>[]}).ancestors().find(e=>1===e.depth))||Af();
-xe=a,je=null;
-let i='<div class="phd preg"><button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><span class="pfam"><i></i>'+ei(ve("rg"))+"</span><h3>"+ei(e.t||"")+"</h3>"+(e.s?'<p class="plin">'+ei(e.s)+"</p>":"")+"</div>";
-n.length&&(i+='<section class="psec"><p class="ph">'+ei(ve("lh"))+'</p><div class="plist">'+e.hl.map(e=>be(e,0)).join("")+e.dl.map(e=>be(e,1)).join("")+"</div></section>"),n.length&&(i+='<section class="psec pwh"><div class="pwbox">'+Se(r.size>1&&[...r][0]&&[...r][0].parent?[...r][0].parent:a,null,new Set(n.flatMap(e=>$f(e.id)?[e.id]:[e.id,"__fam:"+e.family])))+"</div></section>");
-let s=[];
-s.length&&(i+='<section class="psec"><p class="ph">'+ei(ye("pl"))+'</p><div class="pplaces">'+_e(s,null)+"</div></section>"),t.innerHTML=i,t.dataset.sourceCountry=e.countryName||e.country||"",t.dataset.regionId=e.rid||"",t.classList.add("kpanel"),t.hidden=!1,t.scrollTop=0,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Le(null)}}(i),void Ke(n,f?0:820);
+xe=a,je=null,kRgShow(e)}(i),void Ke(n,f?0:820);
 if(J(),Le(n),X=!0,!n)return Z.classList.add("pin"),void Y({pointerType:"mouse",clientX:a.clientX,clientY:a.clientY,target:a.target,sourceEvent:a},r);
 let s=Ke(n,f?0:820);
 clearTimeout(Be),Be=setTimeout(()=>{if(te!==n)return;
@@ -1198,7 +1264,11 @@ function kFollow(T){Q2.selectAll("text.plabel").each(function(d){let o=this.__o;
 o&&d&&d._xy&&"0"!==this.style.opacity&&(this.setAttribute("x",(T.applyX(d._xy[0])+o[0]).toFixed(1)),this.setAttribute("y",(T.applyY(d._xy[1])+o[1]).toFixed(1)))})}
 function kEnd(){kPaint(kV()),q.classed("zooming",!1),bt()}
 /* credits for the map's data (both maps): one small line in the bottom left corner; only the link takes the pointer */
-e.querySelector(".mcred")||e.insertAdjacentHTML("beforeend",'<p class="mcred"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · © EuroGeographics for the administrative boundaries · Relief: Terrain Tiles (USGS, NOAA, Copernicus)</p>');
+/* map credits: one line on desktop; on phones a small (i) in the map's lower left corner that starts open, folds away at the
+   first touch of the map or while a card is open, and opens again when tapped (styles: v65.css) */
+if(!e.querySelector(".mcred")){e.insertAdjacentHTML("beforeend",'<div class="mcred open"><button type="button" class="mcb" aria-expanded="true" aria-label="'+({en:"Map credits",sq:"Burimet e hartës",de:"Kartennachweise",sr:"Izvori mape",sc:"Извори мапе"}[ya()]||"Map credits")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v6M12 7.6v.01"/></svg></button><p class="mct"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · © EuroGeographics for the administrative boundaries · Relief: Terrain Tiles (USGS, NOAA, Copernicus)</p></div>');
+let K=e.querySelector(".mcred"),KB=K.querySelector(".mcb"),ko=o=>{K.classList.toggle("open",o),KB.setAttribute("aria-expanded",String(o))};
+KB.onclick=ev=>{ev.stopPropagation();let o=!K.classList.contains("open")||!K.classList.contains("on")&&!!e.querySelector(":scope>.card:not([hidden])");ko(o),K.classList.toggle("on",o)},e.addEventListener("pointerdown",ev=>{K.contains(ev.target)||(ko(!1),K.classList.remove("on"))},{capture:!0,passive:!0})}
 let Rt=e.querySelector(".mreset")||(()=>{let t=e,n=document.createElement("button");
 n.type="button",n.className="mreset kreset";
 let r={en:"Reset",sq:"Rifillo",de:"Neustart",sr:"Ispočetka",sc:"Испочетка"}[ya()]||"Reset";
@@ -1373,6 +1443,15 @@ function Gp(){let e=document.documentElement.getAttribute("data-theme");
 return e?"dark"===e:!(!window.matchMedia||!matchMedia("(prefers-color-scheme: dark)").matches)}
 try{let e=localStorage.getItem("khl-theme");
 ("dark"===e||"light"===e)&&document.documentElement.setAttribute("data-theme",e)}catch{}
+/* The settings sheet (language, text size, contrast, night mode, motion). Phone (<64rem): it comes down from the top, where
+   the language button is, and a swipe up closes it (from its grab bar, or anywhere once it is scrolled to its end); the
+   bar at its lower edge shows that. Desktop (>=64rem): from the bottom, as before. Styles: v71 in src/styles/v65.css. */
+function kSheet(u){if(window.matchMedia&&matchMedia("(min-width: 64rem)").matches)return{side:"bottom",className:"sheet-x"};
+let S=null;return{side:"top",className:"sheet-x sheet-top",
+onTouchStart:e=>{let el=e.currentTarget,p=e.touches[0];S=1===e.touches.length?{y:p.clientY,t:Date.now(),dy:0,ok:!!e.target.closest(".sgrab")||el.scrollTop+el.clientHeight>=el.scrollHeight-2}:null},
+onTouchMove:e=>{if(!S||!S.ok)return;let el=e.currentTarget,dy=e.touches[0].clientY-S.y;S.dy=dy<0?dy:0,el.style.transition="none",el.style.transform=S.dy?"translateY("+S.dy+"px)":""},
+onTouchEnd:e=>{let el=e.currentTarget,s0=S;if(S=null,!s0||!s0.ok)return;el.style.transition="";let v=-s0.dy/Math.max(1,Date.now()-s0.t);s0.dy<-72||v>.45&&s0.dy<-24?u(!1):el.style.transform=""},
+onTouchCancel:e=>{S=null,e.currentTarget.style.transition="",e.currentTarget.style.transform=""}}}
 function Up(){var e,
 t;
 let[n,r]=(0,m.useState)(location.hash.replace("#","")),
@@ -1431,7 +1510,7 @@ else if("cat"===b.v)E=(0,f.jsx)(gp,{cat:b.cat});
 else{let e="word"===b.v?(0,f.jsx)(xp,{L:b.L,e:b.e},n):"concept"===b.v?(0,f.jsx)(yp,{c:b.c},b.c):"lang"===b.v?(0,f.jsx)(kp,{L:b.L,d:b.d},b.L.id+(null!=b.d?"d"+b.d:"")):"langs"===b.v?(0,f.jsx)(Pp,{ui:a,theme:s}):"search"===b.v?(0,f.jsx)(Jh,{},"s"+h):"map"===b.v?(0,f.jsx)(Dp,{selId:b.sel||null,conc:b.conc||null,ui:a,theme:s},(b.sel||"")+(b.conc||"")):(0,f.jsx)(wp,{});
 E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("main",{id:"app",children:e},n+a)})}
 return(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"barw",children:(0,f.jsxs)("div",{className:"bar",children:[(0,f.jsxs)("div",{className:"bl",children:["home"===b.v?(0,f.jsx)("button",{type:"button",className:"ib",key:"th","aria-label":y.night,onClick:()=>w("dark"!==s),children:(0,f.jsx)(si,{n:"dark"===s?"sun":"moon"})}):null,j?(0,f.jsx)("button",{type:"button",className:"ib","aria-label":y.back,onClick:()=>{h>1&&history.length>1?history.back():Ja("lang"===b.v||b.sel?"languages":b.conc?"m-"+oa(b.conc):"words")},children:(0,f.jsx)(si,{n:"back"})}):null]}),(0,f.jsx)("h1",{children:(0,f.jsx)(Op,{})}),(0,f.jsxs)("div",{className:"br",children:[S?(0,f.jsxs)("button",{type:"button",className:"ib cpb",onClick:()=>v(S()),children:[(0,f.jsx)(si,{n:"copy"}),(0,f.jsx)("span",{children:g?y.copied:y.copyList})]}):null]})]})}),E,(0,f.jsx)("nav",{className:"tabbar","aria-label":"Main",children:(0,f.jsx)("div",{className:"in",children:[["search","book",y.searchT],["map","map",y.nav.map],["words","words",y.nav.home],["lang","wheel",y.nav.lang],["ui","globe",{en:"English",sq:"Shqip",de:"Deutsch",sr:"Srpski",sc:"Српски"}[a]]].map(e=>(0,f.jsxs)("button",{type:"button","aria-current":_===e[0]?"page":void 0,"aria-haspopup":"ui"===e[0]?"dialog":void 0,"aria-label":"ui"===e[0]?y.uiLang+": "+e[2]:void 0,onClick:()=>function(e){if("ui"!==e)return"search"===e?(mi.sq="",void("search"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("search"))):"words"===e?(mi.q="",mi.n=120,void("home"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("words"))):void("map"===e&&"map"===b.v&&window.__kMapHome?window.__kMapHome():Ja({map:"map",lang:"languages"}[e]));
-u(!0)}(e[0]),children:[(0,f.jsx)(si,{n:e[1]}),(0,f.jsx)("span",{children:e[2]})]},e[0]))})}),(0,f.jsx)(an,{open:l,onOpenChange:u,children:(0,f.jsxs)(Hr,{side:"bottom",className:"sheet-x",children:[(0,f.jsx)(Wr,{className:"sr",children:y.langLabel}),(0,f.jsx)($r,{className:"sr",children:y.textSize}),(0,f.jsxs)("div",{className:"inner menu-in",children:[(0,f.jsx)("p",{className:"dh",children:y.langLabel}),[["en","English"],["sq","Shqip"]].map(e=>(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":a===e[0],onClick:()=>{k(e[0]),u(!1)},children:e[1]},e[0])),(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":q,onClick:()=>{q||(k("sc"),u(!1))},children:"Српски"}),q?(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"sc"===a,onClick:()=>k("sc"),children:"Ћирилица"}),(0,f.jsx)("button",{type:"button","aria-checked":"sr"===a,onClick:()=>k("sr"),children:"Latinica"})]}):null,(0,f.jsx)("p",{className:"dh",children:y.textSize}),(0,f.jsx)("div",{className:"four",children:Fp.map((e,t)=>(0,f.jsx)("button",{type:"button","aria-checked":c.ts===e,style:{fontSize:15+3*t},onClick:()=>x("khl-ts",String(e)),children:"A"},e))}),(0,f.jsx)("p",{className:"dh",children:y.contrast}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.hc,onClick:()=>x("khl-hc","0"),children:y.normal}),(0,f.jsx)("button",{type:"button","aria-checked":c.hc,onClick:()=>x("khl-hc","1"),children:y.high})]}),(0,f.jsx)("p",{className:"dh",children:y.night}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"dark"!==s,onClick:()=>w(!1),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":"dark"===s,onClick:()=>w(!0),children:y.on})]}),(0,f.jsx)("p",{className:"dh",children:y.motion}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.mo,onClick:()=>x("khl-mo","0"),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":c.mo,onClick:()=>x("khl-mo","1"),children:y.on})]})]})]})})]})}
+u(!0)}(e[0]),children:[(0,f.jsx)(si,{n:e[1]}),(0,f.jsx)("span",{children:e[2]})]},e[0]))})}),(0,f.jsx)(an,{open:l,onOpenChange:u,children:(0,f.jsxs)(Hr,{...kSheet(u),children:[(0,f.jsx)("div",{className:"sgrab","aria-hidden":!0}),(0,f.jsx)(Wr,{className:"sr",children:y.langLabel}),(0,f.jsx)($r,{className:"sr",children:y.textSize}),(0,f.jsxs)("div",{className:"inner menu-in",children:[(0,f.jsx)("p",{className:"dh",children:y.langLabel}),[["en","English"],["sq","Shqip"]].map(e=>(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":a===e[0],onClick:()=>{k(e[0]),u(!1)},children:e[1]},e[0])),(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":q,onClick:()=>{q||(k("sc"),u(!1))},children:"Српски"}),q?(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"sc"===a,onClick:()=>k("sc"),children:"Ћирилица"}),(0,f.jsx)("button",{type:"button","aria-checked":"sr"===a,onClick:()=>k("sr"),children:"Latinica"})]}):null,(0,f.jsx)("p",{className:"dh",children:y.textSize}),(0,f.jsx)("div",{className:"four",children:Fp.map((e,t)=>(0,f.jsx)("button",{type:"button","aria-checked":c.ts===e,style:{fontSize:15+3*t},onClick:()=>x("khl-ts",String(e)),children:"A"},e))}),(0,f.jsx)("p",{className:"dh",children:y.contrast}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.hc,onClick:()=>x("khl-hc","0"),children:y.normal}),(0,f.jsx)("button",{type:"button","aria-checked":c.hc,onClick:()=>x("khl-hc","1"),children:y.high})]}),(0,f.jsx)("p",{className:"dh",children:y.night}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"dark"!==s,onClick:()=>w(!1),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":"dark"===s,onClick:()=>w(!0),children:y.on})]}),(0,f.jsx)("p",{className:"dh",children:y.motion}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.mo,onClick:()=>x("khl-mo","0"),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":c.mo,onClick:()=>x("khl-mo","1"),children:y.on})]})]})]})})]})}
 Kp(),
 function(){try{let e=document.createElement("button");
 e.type="button",

@@ -39,6 +39,7 @@ function ensureModal(){
 }
 function safeLink(url){try{const parsed=new URL(url);return ['https:','http:'].includes(parsed.protocol)?escapeHTML(parsed.href):'';}catch{return '';}}
 async function openSources(raw,trigger){
+ if(!matchMedia('(min-width: 64rem)').matches)return; // phones show no source dialogs (README: Phone and desktop)
  ensureModal();opener=trigger;
  modal.innerHTML='<header><h2 id="country-sources-title">'+label()+'</h2><button class="ib" type="button" data-close-sources aria-label="Close sources">'+closeIcon+'</button></header><p role="status">Loading sources…</p>';
  if(!modal.open)modal.showModal();

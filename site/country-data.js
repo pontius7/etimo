@@ -68,6 +68,7 @@ function fill(data,selectedRegion){
  modal.querySelector('[data-close-country]').focus({preventScroll:true});
 }
 async function openCountry(raw,trigger,region){
+ if(!matchMedia('(min-width: 64rem)').matches)return; // phones show no source dialogs (README: Phone and desktop)
  ensureModal();opener=trigger;const id=++requestId;
  modal.innerHTML='<header><h2 id="country-data-title">Regional language data</h2><button class="ib" data-close-country aria-label="Close country">×</button></header><p role="status">Loading tables…</p>';
  if(!modal.open)modal.showModal();

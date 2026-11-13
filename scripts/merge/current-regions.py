@@ -89,6 +89,7 @@ RENAME = {
     # the only Belarusian region in Łacinka; the others have their English forms (Gomel, Vitebsk, Grodno)
     ('BLR', 'Mahilioŭ', 'Region'): {'n': 'Mogilev', 'nd': 'Mogiljow'},
     ('TJK', 'Khujand', 'Region'): {'n': 'Sughd', 'nd': 'Sughd'},          # the region's name since 2000; Khujand is its seat
+    ('CZE', 'Plzeň-', 'Region'): {'n': 'Plzeň', 'nd': 'Pilsen'},           # the name was cut off in the source data
     ('TJK', 'districts of Republican Subordination', 'Region'): {'n': 'Districts of Republican Subordination',
                                                                  'nd': 'Districts of Republican Subordination'},
     ('UZB', 'Karakalpakstan', 'Automonous Region'): {'t': 'Autonomous Republic'},

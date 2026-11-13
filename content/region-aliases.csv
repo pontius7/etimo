@@ -1,0 +1,58 @@
+# Pairs a region name on the map with the name the census uses for it, where the two are in different languages
+# (Bavaria / Bayern). Used by scripts/merge/region-langs.py to link census tables to the map's regions.
+# Names that already match after accents and words like "county" or "kraj" are removed need no row here.
+# country: as on the map, or a 2- or 3-letter code. map_region: exactly as on the map's region card.
+country,map_region,census_region
+Czech Republic,Prague,Hlavní město Praha
+Czech Republic,Central Bohemian,Středočeský kraj
+Czech Republic,South Bohemian,Jihočeský kraj
+Czech Republic,Plzeň,Plzeňský kraj
+Czech Republic,Karlovy Vary,Karlovarský kraj
+Czech Republic,Ústí nad Labem,Ústecký kraj
+Czech Republic,Liberec,Liberecký kraj
+Czech Republic,Hradec Králové,Královéhradecký kraj
+Czech Republic,Pardubice,Pardubický kraj
+Czech Republic,South Moravian,Jihomoravský kraj
+Czech Republic,Olomouc,Olomoucký kraj
+Czech Republic,Zlín,Zlínský kraj
+Czech Republic,Moravian-Silesian,Moravskoslezský kraj
+Slovakia,Bratislava,Bratislavský kraj
+Slovakia,Trnava,Trnavský kraj
+Slovakia,Trenčín,Trenčiansky kraj
+Slovakia,Nitra,Nitriansky kraj
+Slovakia,Žilina,Žilinský kraj
+Slovakia,Banská Bystrica,Banskobystrický kraj
+Slovakia,Prešov,Prešovský kraj
+Slovakia,Košice,Košický kraj
+Poland,Lower Silesian Voivodeship,DOLNOŚLĄSKIE
+Poland,Kuyavian-Pomeranian Voivodeship,KUJAWSKO-POMORSKIE
+Poland,Lublin Voivodeship,LUBELSKIE
+Poland,Lubusz Voivodeship,LUBUSKIE
+Poland,Łódź Voivodeship,ŁÓDZKIE
+Poland,Lesser Poland Voivodeship,MAŁOPOLSKIE
+Poland,Masovian Voivodeship,MAZOWIECKIE
+Poland,Opole Voivodeship,OPOLSKIE
+Poland,Pomeranian Voivodeship,POMORSKIE
+Poland,Silesian Voivodeship,ŚLĄSKIE
+Poland,Warmian-Masurian Voivodeship,WARMIŃSKO-MAZURSKIE
+Poland,Greater Poland Voivodeship,WIELKOPOLSKIE
+Poland,West Pomeranian Voivodeship,ZACHODNIOPOMORSKIE
+Germany,Bavaria,Bayern
+Germany,Free Hanseatic Bremen,Bremen
+Germany,Hesse,Hessen
+Germany,Mecklenburg-Western Pomerania,Mecklenburg-Vorpommern
+Germany,Lower Saxony,Niedersachsen
+Germany,North Rhine-Westphalia,Nordrhein-Westfalen
+Germany,Rhineland-Palatinate,Rheinland-Pfalz
+Germany,Saxony,Sachsen
+Germany,Saxony-Anhalt,Sachsen-Anhalt
+Germany,Thuringia,Thüringen
+Greece,Centre Macedonia,Central Macedonia
+Greece,East Macedonia and Thrace,Eastern Macedonia and Thrace
+Greece,Thessalia,Thessaly
+Greece,West Greece,Western Greece
+Greece,West Macedonia,Western Macedonia
+Croatia,Brod-Posavina,Slavonski Brod-Posavina
+Croatia,Vukovar-Syrmia,Vukovar-Srijem
+Croatia,Primorje-Gorski,Primorje-Gorski kotar
+Romania,Bucharest,MUNICIPIUL BUCURESTI
