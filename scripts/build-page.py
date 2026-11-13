@@ -214,7 +214,26 @@ def hashed_copies():
         out[name] = 'h/' + hn
         if name == 'lexicon.json':
             out['_starts'] = home_starters(data, hdir)
+        if name == 'terr.json':
+            out['_terrd'] = terr_split(data, hdir, hn)
     return out
+
+
+def terr_split(data, hdir, hn):
+    """terr.json in two parts. The copy the page waits for at start (h/terr.<hash>.json) keeps each language area's box (b),
+    size (a) and h: 1 where it has an outline; the outlines themselves (d) go to h/terr-d.<hash>.json, fetched with the
+    region shapes once the map has drawn (kTerrD in the page code). With the engine map nothing reads an outline before then:
+    they serve the place card, a language's home places and its cities. v (a second outline of the old SVG map) is left out."""
+    T = json.loads(data)
+    lite = {k: {**{f: v for f, v in e.items() if f not in ('d', 'v')}, **({'h': 1} if e.get('d') else {})} for k, e in T.items()}
+    shapes = {k: e['d'] for k, e in T.items() if e.get('d')}
+    with open(os.path.join(hdir, hn), 'w', encoding='utf-8') as f:
+        json.dump(lite, f, ensure_ascii=False, separators=(',', ':'))
+    txt = json.dumps(shapes, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+    dn = f'terr-d.{hashlib.sha1(txt).hexdigest()[:10]}.json'
+    with open(os.path.join(hdir, dn), 'wb') as f:
+        f.write(txt)
+    return 'h/' + dn
 
 
 def home_starters(data, hdir, k=3, n=80):
@@ -344,6 +363,7 @@ def placeholders():
     }
     for name, key in HASHED.items():
         P[key] = (jsdump(H[name]), 1)
+    P['H_TERRD'] = (jsdump(H['_terrd']), 1)
     return P, len(shades)
 
 

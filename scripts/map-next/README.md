@@ -44,6 +44,11 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 - **Home page starter.** The home page shows its words from a small file (`home_starters()` in `scripts/build-page.py`, about
   70 KB, one of three at random) and keeps them when the full lexicon arrives (`kLexStart`, `kHN` in the page code); other
   screens wait for the full lexicon as before. Mid-range phone over 4G: words on screen 3.6 s -> 1.7 s.
+- **Area outlines later (2026-11-13).** The page starts with a small copy of `terr.json` (each language area's box, size and
+  whether it has an outline, 7.6 KB instead of 940 KB); the outlines come in `h/terr-d.<hash>.json` with the region shapes,
+  once the map has drawn (`terr_split()` in `scripts/build-page.py`, `kTerrD()` in the page code). Everything that reads an
+  outline (place card, a language's home places and cities) waits for the region shapes; the cities of a language chosen
+  before then are laid out again when they come (`lt(nt)`).
 - **A tap on the map** finds its region with a flat test on the shapes' points (`kHitIn`, `kHitBox`), not d3's test on the sphere.
 - **Style rules and the map.** The map holds about 6,000 page elements (the unseen copies of names and dots, the keyboard
   list). A `:has()` rule on an element that contains them (`body`, `#root`, `.wrap`, `.mapbox`) whose styled element lies

@@ -550,7 +550,7 @@ if(!GL){let e=mf();
 ("FeatureCollection"===e.type?e.features:[e]).forEach(e=>{let t=e.geometry;
 ("Polygon"===t.type?[t.coordinates]:t.coordinates).forEach(e=>{e[0].some(e=>e[0]>=-40&&e[0]<=180&&e[1]>0)&&e.forEach(e=>{let t=e.map(e=>j([Math.max(-60,Math.min(180,e[0])),Math.max(-10,e[1])])),n=1e9,r=1e9,a=-1e9,i=-1e9;
 t.forEach(e=>{e[0]<n&&(n=e[0]),e[0]>a&&(a=e[0]),e[1]<r&&(r=e[1]),e[1]>i&&(i=e[1])}),N.push({r:t,b:[n,r,a,i]})})})})}
-let M=j.scale()/function(e){return e&&e.__esModule?e.default:e}(lf).S0,C=j.translate(),L="translate("+C[0]+","+C[1]+") scale("+M+")",T=e=>!(!da[e.lang]||!da[e.lang].d),A=E.append("g").attr("class","zones"),P=A.append("g").attr("transform",L),I=A.insert("g",":first-child").attr("transform",L).attr("class","dias"),R=E.append("g").attr("class","ters"),O=R.append("g").attr("transform",L),D=null;
+let M=j.scale()/function(e){return e&&e.__esModule?e.default:e}(lf).S0,C=j.translate(),L="translate("+C[0]+","+C[1]+") scale("+M+")",T=e=>!!(da[e.lang]&&(da[e.lang].d||da[e.lang].h)),A=E.append("g").attr("class","zones"),P=A.append("g").attr("transform",L),I=A.insert("g",":first-child").attr("transform",L).attr("class","dias"),R=E.append("g").attr("class","ters"),O=R.append("g").attr("transform",L),D=null;
 function F(e,t){let n=x.indexOf(e),r=e._xy,a=Xa(e),i=a<1e3?15:a<1e4?25:a<1e5?40:a<1e6?70:a<1e7?140:200,s=j([e.info.lon,e.info.lat+i/111]),o=Math.max(Math.hypot(s[0]-r[0],s[1]-r[1]),1.2),l=Ni(72).map(e=>{let t=e/72*2*Math.PI;
 return[r[0]+o*Math.cos(t),r[1]+o*Math.sin(t)]}),u=(D||(D=dl.from(x,e=>e._xy[0],e=>e._xy[1]).voronoi([-2*b,-2*y,3*b,3*y]))).cellPolygon(n);
 if(!u)return l;
@@ -582,8 +582,8 @@ return[t[0]*M+C[0],t[1]*M+C[1],t[2]*M+C[0],t[3]*M+C[1]]}
 return n=(t=F(e)).map(e=>e[0]),[Math.min(...n),Math.min(...r=t.map(e=>e[1])),Math.max(...n),Math.max(...r)]}
 let H=E.append("g").attr("class","adm");
 
-(!ff&&(ff=kAfterMap().then(()=>new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e,{timeout:1500}))).then(()=>fetch("data/today.json")).then(e=>e.json()).then(e=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
-return[...t,...n].forEach(e=>{e.bb=kHitBox(e)}),hf={t:e,R:t,C:n,get mesh(){return this._m||(this._m=af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c))}}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),bt(),kKeys())});
+(!ff&&(ff=kAfterMap().then(()=>new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e,{timeout:1500}))).then(()=>Promise.all([fetch("data/today.json").then(e=>e.json()),kTerrD()])).then(([e])=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
+return[...t,...n].forEach(e=>{e.bb=kHitBox(e)}),hf={t:e,R:t,C:n,get mesh(){return this._m||(this._m=af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c))}}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),nt&&lt(nt),bt(),kKeys())});
 try{new ResizeObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t),new MutationObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t,{attributes:!0,attributeFilter:["hidden"]})}catch{}
 GL||E.insert("g","g.adm").attr("class","shd").attr("pointer-events","none").attr("transform",L).append("image").attr("href",matchMedia("(max-width:820px),(pointer:coarse) and (max-width:1180px)").matches?__ETIMO_H_SHADE_S__:__ETIMO_H_SHADE__).attr("decoding","async").style("opacity",0).on("error",function(){let w=__ETIMO_H_SHADE_WEBP__;
 this.getAttribute("href")!==w&&this.setAttribute("href",w)}).on("load",function(){this.style.transition="opacity .6s";
@@ -638,7 +638,7 @@ let s=a.r?a.r.properties.n:"",o=a.c?a.c.properties.n:"",l=a.r&&(t=a.r)&&("Crimea
 (r=[((n=j(e))[0]-C[0])/M,(n[1]-C[1])/M],x.filter(e=>{let t=0;
 return function(e){if(ee[e.lang])return ee[e.lang];
 let t=da[e.lang]&&da[e.lang].d,n=[];
-return t&&t.split("M").forEach(e=>{e&&n.push(e.replace(/Z/g,"").split("L").map(e=>e.split(",").map(Number)))}),ee[e.lang]=n}(e).forEach(e=>{Id(e,r)&&t++}),t%2==1})).map(Na);
+return t&&(t.split("M").forEach(e=>{e&&n.push(e.replace(/Z/g,"").split("L").map(e=>e.split(",").map(Number)))}),ee[e.lang]=n),n}(e).forEach(e=>{Id(e,r)&&t++}),t%2==1})).map(Na);
 ae=ze(e);
 {let t=Kf&&Kf.E;
 if(ie=null,t)if(t.so&&pf(t.so.f,e)&&Wu(t.so.f,e))ie={nm:t.so.f.properties.n,d:t.so};
@@ -992,7 +992,7 @@ return n.append("circle").attr("r",2.5),n.append("text").attr("x",6).attr("y",3.
 let n=ee[e.lang];
 if(!n){n=[];
 let t=T(e)?da[e.lang].d:"";
-t&&t.split("M").forEach(e=>{e&&n.push(e.replace(/Z/g,"").split("L").map(e=>e.split(",").map(Number)))}),ee[e.lang]=n}
+t&&(t.split("M").forEach(e=>{e&&n.push(e.replace(/Z/g,"").split("L").map(e=>e.split(",").map(Number)))}),ee[e.lang]=n)}
 let r=Jf.map(e=>{let t=j([e[2],e[1]]);
 return{n:e[0],p:e[3],la:e[1],lo:e[2],x:t[0],y:t[1],r:[(t[0]-C[0])/M,(t[1]-C[1])/M]}}),a=r.filter(e=>{let t=0;
 return n.forEach(n=>{Id(n,e.r)&&t++}),t%2==1}).sort((e,t)=>t.p-e.p),i=[];
@@ -1569,6 +1569,11 @@ onTouchCancel:e=>{S=null,e.currentTarget.style.transition="",e.currentTarget.sty
    :has() rules), about 6,000 elements, so it is done only when the order really is different. */
 function kOrd(l,P){let m=new Map;l.forEach(e=>{let p=P(e);m.has(p)?m.get(p).push(e):m.set(p,[e])});
 for(const[p,a]of m){let c=p.lastElementChild;for(let i=a.length-1;i>=0;i--,c=c&&c.previousElementSibling)if(c!==a[i])return!1}return!0}
+/* The language areas' outlines (h/terr-d.<hash>.json, terr_split() in scripts/build-page.py): the page starts with only their
+   boxes and sizes; the outlines come with the region shapes, once the map has drawn, and are put into da. Everything that reads
+   an outline (place card, home places, cities of a language) waits for the region shapes, so it has them. */
+let kTDp=null;
+function kTerrD(){return kTDp||(kTDp=fetch(__ETIMO_H_TERRD__).then(r=>r.ok?r.json():{}).then(S=>{for(const k in S)da[k]&&(da[k].d=S[k]);return!0}).catch(()=>(kTDp=null,!1)))}
 /* Loading order on a phone. The map and the Languages wheel do not use the lexicon (about 8 MB of words) or the region
    shapes (today.json): there they wait until the map engine has drawn its first picture ("etimo:mapready" from map-gl.js),
    so that picture gets the bandwidth and the processor first. Every other screen fetches the lexicon at once.
