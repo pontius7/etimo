@@ -439,5 +439,6 @@ every country of the map (each card named its place; no errors).
 | **Settings sheet** (language, text size, contrast, night mode, motion) | comes down from the top under the language button, grab bar on its lower edge, a swipe up closes it; segmented controls | from the bottom, as before | `kSheet`; block `v71` |
 | **Light mode for everyone** | a visitor starts in light mode whatever the phone or computer is set to; night mode stays a choice and is remembered | same | the first script in `src/page.html` |
 | **Languages page** | slim Wheel / Tree switch, the wheel centred in the free room, the tree as one grouped list with quieter type and indented levels | unchanged | block `v72` |
+| **Pins** | size follows the zoom: where many languages show, a small dot of the language's colour with a thin light edge, no outline or shadow; it grows smoothly into the full pin (disc, outline, soft shadow) only close in; 14% smaller on phones. The chosen pin keeps its outline and larger size | same zoom curve, full size | `PIN_R`, `CORE_R`, `PIN_W`, `SHADOW_O` in `site/map-gl.js` |
 | **Czech region name** | "Plzeň-" was cut off in the source data; now "Plzeň" | same | `RENAME` in `scripts/merge/current-regions.py` |
 

@@ -34,6 +34,15 @@ function themeOf(t) {
    which has the same colour). PIN = radius of the disc in screen pixels. How visible and how large each pin is comes
    from the page, pin by pin: o = 0 to 1, s = 1, or larger for the chosen pin and the one under the pointer. */
 const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coalesce', ['feature-state', 's'], 1], PIN_BIG = ['>', PIN_S, 1.05];
+/* Pin size follows the zoom, so many pins never crowd the map: where many languages show (zoom 4.2 to 5) a pin is a small seed
+   of its colour with a thin light edge, no outline and no shadow; it grows smoothly into the full pin (disc, outline, soft
+   shadow) only close in (zoom 8). Phones (below the site's one breakpoint, 64rem) draw them a little smaller. The chosen pin
+   and the one under the pointer keep their outline and their larger size (s from the page). */
+const PF = typeof matchMedia === 'function' && !matchMedia('(min-width: 64rem)').matches ? .86 : 1;
+const PZ = (a, b, c) => ['interpolate', ['linear'], ['zoom'], 4.2, ['*', a * PF, PIN_S], 6, ['*', b * PF, PIN_S], 8, ['*', c * PF, PIN_S]];
+const PIN_R = PZ(3.4, 4.9, PIN), CORE_R = PZ(2.35, 3, PIN * .58), SHADOW_R = PZ(4, 6.5, PIN + 3.4);
+const PIN_W = ['interpolate', ['linear'], ['zoom'], 4.2, ['case', PIN_BIG, 2, 0], 6, ['case', PIN_BIG, 2, .6], 8, ['case', PIN_BIG, 2, 1]];
+const SHADOW_O = ['interpolate', ['linear'], ['zoom'], 5.5, 0, 7.5, ['*', .34, PIN_O]];
 /* The page's names (layers lab-*): how visible each one is (o, from the page; a fade in progress comes as feature state), and its
    weight. The engine draws the letters itself in the site's font (no font server): it takes the weight from the words in the
    first name of the list and the letters from the first family the browser has, here Manrope (the page loads 300 to 600). */
@@ -133,9 +142,9 @@ async function create(host, id) {
         {id: 'names', type: 'symbol', source: 'names', layout: {'text-field': '', 'text-font': ['Manrope'], 'text-size': 10.5, 'text-max-width': 8, 'text-padding': 3, 'symbol-sort-key': ['get', 'r']}, paint: {'text-color': T0.inner, 'text-halo-color': T0.land, 'text-halo-width': 1.6, 'text-opacity': .86}},
         /* the outlines the page draws (the chosen language's home regions, the place with keyboard focus): under the pins and names, as on the page */
         {id: 'lab-line', type: 'line', source: 'labs', filter: ['==', ['get', 'k'], 'l'], layout: round, paint: {'line-color': ['get', 'c'], 'line-width': ['get', 'lw'], 'line-opacity': LAB_O}},
-        {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN + 3.4, PIN_S], 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': ['*', .34, PIN_O], 'circle-translate': [0, 1.6]}},
-        {id: 'pin-disc', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN, PIN_S], 'circle-color': T0.pin, 'circle-opacity': PIN_O, 'circle-stroke-width': ['case', PIN_BIG, 2, 1], 'circle-stroke-color': ['case', PIN_BIG, T0.pinSel, T0.pinEdge], 'circle-stroke-opacity': PIN_O}},
-        {id: 'pin-core', type: 'circle', source: 'pins', paint: {'circle-radius': ['*', PIN * .58, PIN_S], 'circle-color': ['get', 'color'], 'circle-opacity': PIN_O}},
+        {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': SHADOW_R, 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': SHADOW_O, 'circle-translate': [0, 1.6]}},
+        {id: 'pin-disc', type: 'circle', source: 'pins', paint: {'circle-radius': PIN_R, 'circle-color': T0.pin, 'circle-opacity': PIN_O, 'circle-stroke-width': PIN_W, 'circle-stroke-color': ['case', PIN_BIG, T0.pinSel, T0.pinEdge], 'circle-stroke-opacity': PIN_O}},
+        {id: 'pin-core', type: 'circle', source: 'pins', paint: {'circle-radius': CORE_R, 'circle-color': ['get', 'color'], 'circle-opacity': PIN_O}},
         /* What the page writes on the map (language, family, district and city names, city dots, the word view's circles), drawn
            here so that nothing of the page is redrawn while the map moves. The page lays them out when the map comes to rest and
            hands each one over as it stands, in screen pixels and in the look its style sheet gives it (labels() below): a name keeps
