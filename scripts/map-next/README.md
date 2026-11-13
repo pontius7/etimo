@@ -35,7 +35,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   engine, its settings and the relief are fetched from the first moment and the lexicon (8 MB of words) only after the map has
   drawn ("etimo:mapready", sent by `map-gl.js` at the first quiet moment after a tile came; `kLexWhen` / `kAfterMap` in the
   page code); the region shapes (`today.json`) and districts also wait for it. Other screens fetch the lexicon at once and
-  the engine quietly 1.5 s after the page has loaded. The lexicon's lists are built in slices of 8 ms (`kLexBuild`).
+  the engine quietly 1.5 s after the lexicon is in. The lexicon's lists are built in slices of 8 ms (`kLexBuild`).
 - **A tap on the map** finds its region with a flat test on the shapes' points (`kHitIn`, `kHitBox`), not d3's test on the sphere.
 - **Style rules and the map.** The map holds about 6,000 page elements (the unseen copies of names and dots, the keyboard
   list). A `:has()` rule on an element that contains them (`body`, `#root`, `.wrap`, `.mapbox`) whose styled element lies
