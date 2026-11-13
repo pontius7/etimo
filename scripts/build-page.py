@@ -212,6 +212,55 @@ def hashed_copies():
         hn = f'{base}.{hashlib.sha1(data).hexdigest()[:10]}{ext}'
         shutil.copyfile(src, os.path.join(hdir, hn))
         out[name] = 'h/' + hn
+        if name == 'lexicon.json':
+            out['_starts'] = home_starters(data, hdir)
+    return out
+
+
+def home_starters(data, hdir, k=3, n=80):
+    """Small word files for the home page (site/h/lexicon-start-<i>.<hash>.json, about 70 KB each), so it shows its words
+    before the full lexicon (about 1 MB) has come: the page takes one at random (kLexStart in the page code), runs the home
+    page's own choosing on it and keeps what it shows when the full lexicon arrives. Each file: the cards' first meanings (zf in
+    the page code) and n of the 400 most widely translated meanings (in 40 languages or more), with the 8 shortest words of each
+    family for each meaning, the words keeping their place in their language's list (so a word's link is the same as later).
+    The choice of meanings follows the lexicon's hash: the same lexicon gives the same files."""
+    import random
+    L = json.loads(data)
+    langs, occ = {}, {}
+    for R in L:
+        for i, e in enumerate(R['entries']):
+            for p in set(str(e.get('meaning', '')).split(', ')):
+                langs.setdefault(p, set()).add(R['lang'])
+                occ.setdefault(p, []).append((len(e['word']), R['lang'], i, R['family']))
+    ranked = sorted((p for p, v in langs.items() if len(v) >= 40 and len(p) <= 16), key=lambda p: (-len(langs[p]), p))[:400]
+    first = ['mother', 'horse', 'water', 'heart', 'bread', 'house', 'night', 'God']
+    pool = [p for p in ranked if p not in first]
+    random.Random(hashlib.sha1(data).hexdigest()).shuffle(pool)
+    out = []
+    for j in range(k):
+        pick = {}
+        for p in first + pool[j * n:(j + 1) * n]:
+            fam = {}
+            for ln, lang, i, f in occ.get(p, []):
+                fam.setdefault(f, []).append((ln, lang, i))
+            for a in fam.values():
+                for ln, lang, i in sorted(a)[:8]:
+                    pick.setdefault(lang, set()).add(i)
+        S = []
+        for R in L:
+            if R['lang'] in pick:
+                es = {}
+                for i in sorted(pick[R['lang']]):
+                    e = R['entries'][i]
+                    c = {'word': e['word'], 'meaning': e['meaning']}
+                    c.update({key: e[key] for key in ('lat', 'ipa') if e.get(key)})
+                    es[str(i)] = c
+                S.append({'lang': R['lang'], 'e': es})
+        txt = json.dumps(S, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        hn = f'lexicon-start-{j}.{hashlib.sha1(txt).hexdigest()[:10]}.json'
+        with open(os.path.join(hdir, hn), 'wb') as f:
+            f.write(txt)
+        out.append('h/' + hn)
     return out
 
 
@@ -222,12 +271,21 @@ def search_version():
     return vs[0]
 
 
+def first_tiles():
+    """The four zoom-3 tiles of the phone's first map view (Europe to Iran; the same on every phone size from 360 to 430 wide),
+    with the tiles' version, so the page's first lines can fetch them before the engine asks."""
+    with open(os.path.join(ROOT, 'site', 'map-next', 'data', 'meta.json'), encoding='utf-8') as f:
+        v = json.load(f)['tiles']['v']
+    return [f'map-next/tiles/3/{x}/{y}.pbf?v={v}' for x in (3, 4) for y in (3, 4)
+            if os.path.exists(os.path.join(ROOT, 'site', 'map-next', 'tiles', '3', str(x), f'{y}.pbf'))]
+
+
 def preloads(H):
     """What the browser fetches from the first moment, before the page script runs. Every screen needs the three small
     startup files. A map screen (#map, #map-..., #mm-...) then needs the map engine and its settings (the relief is not needed for the
     first picture and would take bandwidth from the tiles), and not
     the lexicon (8 MB of words, fetched once the map has drawn: kLexWhen in the page code); every other screen needs the
-    lexicon, and there the map engine is fetched quietly once the lexicon is in (before that it would slow the lexicon
+    lexicon (the home page first one of its small starter files, home_starters()), and there the map engine is fetched quietly once the lexicon is in (before that it would slow the lexicon
     on a slow connection), so opening the map is quick.
     The engine addresses are read from the import lines themselves, so a new ?v= there is never missed here."""
     app = open(os.path.join(SRC, 'app', '6-app-screens-and-startup.js'), encoding='utf-8').read()
@@ -239,8 +297,12 @@ def preloads(H):
     js = ('(function(){var h=location.hash,d=document,a=function(r,u,f){var l=d.createElement("link");l.rel=r;l.href=u;'
           'if(f){l.as="fetch";l.crossOrigin="anonymous"}d.head.appendChild(l)},map=/^#(map|mm-)/.test(h);'
           f'if(map){{a("modulepreload","{mapjs}");a("modulepreload","{mlib}");a("preload","map-next/data/meta.json",1);'
-          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);a("preload","data/regional/ME.json",1);a("prefetch","{worker}");'
+          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);a("preload","data/regional/ME.json",1);'
+          # the worker and, on phones, the first view's four tiles: fetched (into the HTTP cache: both are cached for a year)
+          f'[{json.dumps(worker)}].concat(matchMedia("(max-width: 63.99rem)").matches?{json.dumps(first_tiles())}:[]).forEach(function(u){{fetch(u).then(function(r){{return r.arrayBuffer()}}).catch(function(){{}})}});'
+          f'import("./{mapjs}").then(function(m){{window.__etimoMap=m;var go=function(){{m.prewarm&&m.prewarm()}};d.body?go():addEventListener("DOMContentLoaded",go,{{once:true}})}}).catch(function(){{}});'
           '}'
+          f'if(/^#?(words)?$/.test(h)){{var st={json.dumps(H["_starts"])};window.__kStart=st[Math.random()*st.length|0];a("preload",window.__kStart,1)}}'
           f'if(!/^#(map|map-.+|languages|tree)$/.test(h))a("preload","{H["lexicon.json"]}",1);'
           f'if(!map)addEventListener("etimo:lex",function(){{setTimeout(function(){{["{mapjs}","{mlib}","{worker}"].forEach(function(u){{a("prefetch",u)}})}},1500)}},{{once:true}})'
           '})()')

@@ -66,7 +66,21 @@ export function drop() {
   mapReady();
   if (made) { try { made.map && made.map.remove(); } catch {} made.box.remove(); made = null; }
   if (window.__kgl) delete window.__kgl;
+  document.querySelectorAll('[data-kpre]').forEach(n => n.remove());
   engine = null;
+}
+/* Called from the page's first lines on a map screen (preloads() in scripts/build-page.py): the engine is made at once, in a
+   hidden box the size of the screen, so its worker, settings and first tiles load while the page's own code is still on its
+   way; attach() then moves the ready map into the page's map box (use() below). */
+export function prewarm() {
+  if (engine || !document.body) return;
+  const host = document.createElement('div');
+  host.setAttribute('data-kpre', '');
+  host.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100dvh;visibility:hidden;pointer-events:none;z-index:-1;overflow:hidden';
+  document.body.appendChild(host);
+  const id = gen;
+  engine = create(host, id, true).catch(e => { if (id === gen) drop(); throw e; });
+  engine.catch(() => {});
 }
 /* The page calls this every time it (re)builds its map box. The map itself is made once and kept. */
 export async function attach(host, ctx) {
@@ -76,7 +90,7 @@ export async function attach(host, ctx) {
   return G;
 }
 
-async function create(host, id) {
+async function create(host, id, early) {
   if (!document.createElement('canvas').getContext('webgl2')) throw Error('no WebGL2');
   /* The relief picture is downloaded and decoded once, while the map data loads, and handed to the engine as it is:
      AVIF (smaller one on phones), or WebP where AVIF cannot be decoded. Without it the map still works, just flat. */
@@ -107,7 +121,8 @@ async function create(host, id) {
   const round = {'line-join': 'round', 'line-cap': 'round'};
   const map = new maplibregl.Map({
     container: box,
-    center: at(...[(meta.home[0] + meta.home[2]) / 2, (meta.home[1] + meta.home[3]) / 2]), zoom: 3,
+    center: at(...[(meta.home[0] + meta.home[2]) / 2, (meta.home[1] + meta.home[3]) / 2]),
+    zoom: early ? (innerWidth >= 1024 ? 4.4 : 3.6) : 3,      // early: about the zoom of the page's first view, so its tiles are the ones loaded
     maxBounds: [at(cx - 2700, cy + 2000), at(cx + 2700, cy - 2100)],
     renderWorldCopies: false, attributionControl: false, fadeDuration: 0,
     dragRotate: false, pitchWithRotate: false, touchPitch: false, rollEnabled: false, maxPitch: 0,
@@ -177,7 +192,7 @@ async function create(host, id) {
   /* the first picture with the map's shapes in it: the first quiet moment after a tile of land and areas has come.
      The page waits for this before it loads what the map does not need yet (lexicon, region shapes). */
   let tiled = false;
-  const drawn = () => { if (tiled) { map.off('idle', drawn); mapReady(); } };
+  const drawn = () => { if (tiled && !(box.parentNode && box.parentNode.hasAttribute('data-kpre'))) { map.off('idle', drawn); mapReady(); } };   // drawn in the page, not in the early hidden box
   map.on('data', function first(e) { if (e.sourceId === 'base' && e.tile) { tiled = true; map.off('data', first); relief().then(img => img && putRelief(img)); } });
   map.on('idle', drawn);
   let nameFeats = [];
@@ -230,6 +245,7 @@ async function create(host, id) {
   const colour = n => colourOf[n];
   /* a language's colour as the page shows it in this theme (pin, wheel, card); the built-in table is the fallback */
   function colours() {
+    if (!ctx) return;
     colourOf = {};
     const add = (n, col) => { if (col && !colourOf[n]) colourOf[n] = col; };
     for (const l of ctx.languages) add(l.lang, ctx.color(l));
@@ -410,7 +426,7 @@ async function create(host, id) {
     /* (re)attach to the page's map box */
     use(host, c) {
       ctx = c; H = {};
-      if (box.parentNode !== host) host.prepend(box);
+      if (box.parentNode !== host) { const was = box.parentNode; host.prepend(box); if (was && was.hasAttribute('data-kpre')) was.remove(); }
       map.resize();
       colours();
       pins();

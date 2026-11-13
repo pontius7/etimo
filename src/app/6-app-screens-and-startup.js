@@ -1254,7 +1254,9 @@ gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took t
 (window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=9").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,e.querySelectorAll("canvas[aria-label]").forEach(c=>c.setAttribute("aria-label",Ea({sq:"Harta e gjuhëve",sr:"Mapa jezika"}[ya()]||"Map of languages"))),GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
-start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
+start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),
+/* the names and dots are laid out a frame after the map is in place, so the map shows first */
+requestAnimationFrame(()=>requestAnimationFrame(()=>{q.node().isConnected&&(kTick(kV()),bt())}))}).catch(gBad)}
 /* GL: the pins are drawn by the engine (site/map-gl.js: a disc with the language's colour at its core), so zooming does not redraw 210 of them on every frame.
    The pin elements stay in the page, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin (style sheet and classes, unchanged).
    gPinStep reads what those rules say for every pin and hands it to the engine; it runs for a moment after anything about the pins changes.
@@ -1579,6 +1581,14 @@ if(!late())return Promise.resolve();
 let wheel=/^(languages|tree)$/.test(location.hash.replace("#",""));
 return new Promise(res=>{let go=()=>{removeEventListener("hashchange",chk),res()},chk=()=>{late()||go()};
 addEventListener("hashchange",chk),wheel?setTimeout(go,1500):kAfterMap().then(go)})}
+/* The home page's starter (a file of home_starters() in scripts/build-page.py, chosen in the page's first lines): the same
+   lists as kLexBuild makes, from its few words, each at its place in its language's list. The home page shows from these
+   (window.__lexStart) and keeps what it shows; kLexBuild then puts the full lists in place. */
+function kLexStart(S){let by={};ua.forEach(e=>{by[e.lang]=e});
+for(const R of S){let e=by[R.lang];if(!e)continue;
+for(const k in R.e){let t=R.e[k],n,r;e.entries[+k]=t;
+t._l=e.lang,n=t.meaning,r=[],n.split(", ").forEach(e=>{let t=sa[e]||e;
+ia[t]&&0>r.indexOf(t)&&r.push(t)}),t.cs=r,t.cats={},t.cs.forEach(n=>{t.cats[ia[n]]=1,ha[n].push({L:e,e:t})});}}}
 /* The word lists from the lexicon, built in slices of about 8 ms with the main thread given back in between, so a tap or a
    map move never waits for them. The result is the one a single long run gives: the same lists, in the same order (each
    language's words sorted on their own, then the sorted languages merged; ties keep their order, as a stable sort does).
@@ -1602,7 +1612,7 @@ up=i=>{for(;i>0;){let q=i-1>>1;if(!less(h[i],h[q]))break;[h[i],h[q]]=[h[q],h[i]]
 down=i=>{for(;;){let l=2*i+1,r=l+1,m=i;l<h.length&&less(h[l],h[m])&&(m=l),r<h.length&&less(h[r],h[m])&&(m=r);if(m===i)break;[h[i],h[m]]=[h[m],h[i]],i=m}};
 lists.forEach((a,i)=>{a.length&&(h.push(i),up(h.length-1))});
 for(;h.length;){let i=h[0];out.push(lists[i][pos[i]++]),pos[i]<lists[i].length?down(0):(h[0]=h[h.length-1],h.pop(),h.length&&down(0));if(!(511&out.length)&&(g=gap()))await g}
-EN.forEach(([e,es])=>{e.entries=es}),Object.keys(HA).forEach(k=>{let a=ha[k]||(ha[k]=[]);for(const x of HA[k])a.push(x)}),pa=out}
+EN.forEach(([e,es])=>{e.entries=es}),Object.keys(HA).forEach(k=>{let a=ha[k]||(ha[k]=[]);a.length=0;for(const x of HA[k])a.push(x)}),pa=out}
 /* Region and country shapes for a tap (kPl; names kHit*, as the map code has its own kIn): every polygon's rings as flat lists of lon/lat, made continuous over the 180°
    line, with their box. The data's points lie close together, so a flat test on them finds the same place as d3's test on
    the sphere, at a small part of the cost. A polygon around a pole keeps d3's test. */
@@ -1634,6 +1644,7 @@ for(let i=1;i<m.length;i++){let d=m[i][0]-m[i-1][1];d>gap&&(gap=d,gi=i)}
 if(gap<=0)return[[-180,s],[180,n]];
 let W=gi<0?m[0][0]:m[gi][0],E=gi<0?m[m.length-1][1]:m[gi-1][1],nm=v=>((v+180)%360+360)%360-180;
 return[[nm(W),s],[E>180?nm(E):E,n]]}
+let kHN=0;
 function Up(){var e,
 t;
 let[n,r]=(0,m.useState)(location.hash.replace("#","")),
@@ -1644,10 +1655,10 @@ let[n,r]=(0,m.useState)(location.hash.replace("#","")),
 [h,p]=(0,m.useState)(0),
 {done:g,
 copy:v}=pi();
-(0,m.useEffect)(()=>{let e=()=>{r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)};
+(0,m.useEffect)(()=>{let e=()=>{kHN++,r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)};
 return window.addEventListener("hashchange",e),()=>window.removeEventListener("hashchange",e)},[]),
 (0,m.useEffect)(()=>{let e=()=>p(e=>e+1);
-return window.addEventListener("etimo:lex",e),()=>window.removeEventListener("etimo:lex",e)},[]),
+return window.addEventListener("etimo:lex",e),window.addEventListener("etimo:lexstart",e),()=>{window.removeEventListener("etimo:lex",e),window.removeEventListener("etimo:lexstart",e)}},[]),
 (0,m.useEffect)(()=>{let e=window.matchMedia("(prefers-color-scheme: dark)"),t=()=>o(Gp()?"dark":"light");
 return e.addEventListener?.("change",t),()=>e.removeEventListener?.("change",t)},[]);
 let b=function(e){if(fa[e])return{v:"lang",
@@ -1686,8 +1697,8 @@ S="concept"===b.v?(e=b.c,()=>ha[e].slice().sort((e,t)=>Na(e.L).localeCompare(Na(
 _="langs"===b.v||"lang"===b.v?"lang":"map"!==b.v||b.conc?"search"===b.v?"search":"words":"map",
 q="sr"===a||"sc"===a,
 E=null;
-if(!window.__lexReady&&"map"!==b.v&&"langs"!==b.v)E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("p",{className:"boot",children:y.loading})});
-else if("home"===b.v)E=(0,f.jsx)(fp,{ui:a},"home"+h);
+if(!window.__lexReady&&!(window.__lexStart&&"home"===b.v)&&"map"!==b.v&&"langs"!==b.v)E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("p",{className:"boot",children:y.loading})});
+else if("home"===b.v)E=(0,f.jsx)(fp,{ui:a},"home"+kHN);
 else if("cat"===b.v)E=(0,f.jsx)(gp,{cat:b.cat});
 else{let e="word"===b.v?(0,f.jsx)(xp,{L:b.L,e:b.e},n):"concept"===b.v?(0,f.jsx)(yp,{c:b.c},b.c):"lang"===b.v?(0,f.jsx)(kp,{L:b.L,d:b.d},b.L.id+(null!=b.d?"d"+b.d:"")):"langs"===b.v?(0,f.jsx)(Pp,{ui:a,theme:s}):"search"===b.v?(0,f.jsx)(Jh,{},"s"+h):"map"===b.v?(0,f.jsx)(Dp,{selId:b.sel||null,conc:b.conc||null,ui:a,theme:s},(b.sel||"")+(b.conc||"")):(0,f.jsx)(wp,{});
 E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("main",{id:"app",children:e},n+a)})}
@@ -1695,7 +1706,7 @@ E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("main",{id:"app",children
    (style sheet: body.kbk .fdtheme). A class on body changes only that button; the :has() rule it replaces made the browser
    restyle the whole page, map included, after any change on the page. */
 (0,m.useEffect)(()=>{document.body.classList.toggle("kbk","words"!==_&&("home"===b.v||!!j))});
-return(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"barw",children:(0,f.jsxs)("div",{className:"bar",children:[(0,f.jsxs)("div",{className:"bl",children:["home"===b.v?(0,f.jsx)("button",{type:"button",className:"ib",key:"th","aria-label":y.night,onClick:()=>w("dark"!==s),children:(0,f.jsx)(si,{n:"dark"===s?"sun":"moon"})}):null,j?(0,f.jsx)("button",{type:"button",className:"ib","aria-label":y.back,onClick:()=>{h>1&&history.length>1?history.back():Ja("lang"===b.v||b.sel?"languages":b.conc?"m-"+oa(b.conc):"words")},children:(0,f.jsx)(si,{n:"back"})}):null]}),(0,f.jsx)("h1",{children:(0,f.jsx)(Op,{})}),(0,f.jsxs)("div",{className:"br",children:[S?(0,f.jsxs)("button",{type:"button",className:"ib cpb",onClick:()=>v(S()),children:[(0,f.jsx)(si,{n:"copy"}),(0,f.jsx)("span",{children:g?y.copied:y.copyList})]}):null]})]})}),E,(0,f.jsx)("nav",{className:"tabbar","aria-label":"Main",children:(0,f.jsx)("div",{className:"in",children:[["search","book",y.searchT],["map","map",y.nav.map],["words","words",y.nav.home],["lang","wheel",y.nav.lang],["ui","globe",{en:"English",sq:"Shqip",sr:"Srpski",sc:"Српски"}[a]]].map(e=>(0,f.jsxs)("button",{type:"button","aria-current":_===e[0]?"page":void 0,"aria-haspopup":"ui"===e[0]?"dialog":void 0,"aria-label":"ui"===e[0]?y.uiLang+": "+e[2]:void 0,onClick:()=>function(e){if("ui"!==e)return"search"===e?(mi.sq="",void("search"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("search"))):"words"===e?(mi.q="",mi.n=120,void("home"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("words"))):void("map"===e&&"map"===b.v&&window.__kMapHome?window.__kMapHome():Ja({map:"map",lang:"languages"}[e]));
+return(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"barw",children:(0,f.jsxs)("div",{className:"bar",children:[(0,f.jsxs)("div",{className:"bl",children:["home"===b.v?(0,f.jsx)("button",{type:"button",className:"ib",key:"th","aria-label":y.night,onClick:()=>w("dark"!==s),children:(0,f.jsx)(si,{n:"dark"===s?"sun":"moon"})}):null,j?(0,f.jsx)("button",{type:"button",className:"ib","aria-label":y.back,onClick:()=>{h>1&&history.length>1?history.back():Ja("lang"===b.v||b.sel?"languages":b.conc?"m-"+oa(b.conc):"words")},children:(0,f.jsx)(si,{n:"back"})}):null]}),(0,f.jsx)("h1",{children:(0,f.jsx)(Op,{})}),(0,f.jsxs)("div",{className:"br",children:[S?(0,f.jsxs)("button",{type:"button",className:"ib cpb",onClick:()=>v(S()),children:[(0,f.jsx)(si,{n:"copy"}),(0,f.jsx)("span",{children:g?y.copied:y.copyList})]}):null]})]})}),E,(0,f.jsx)("nav",{className:"tabbar","aria-label":"Main",children:(0,f.jsx)("div",{className:"in",children:[["search","book",y.searchT],["map","map",y.nav.map],["words","words",y.nav.home],["lang","wheel",y.nav.lang],["ui","globe",{en:"English",sq:"Shqip",sr:"Srpski",sc:"Српски"}[a]]].map(e=>(0,f.jsxs)("button",{type:"button","aria-current":_===e[0]?"page":void 0,"aria-haspopup":"ui"===e[0]?"dialog":void 0,"aria-label":"ui"===e[0]?y.uiLang+": "+e[2]:void 0,onClick:()=>function(e){if("ui"!==e)return"search"===e?(mi.sq="",void("search"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("search"))):"words"===e?(mi.q="",mi.n=120,void("home"===b.v?(kHN++,p(e=>e+1),window.scrollTo(0,0)):Ja("words"))):void("map"===e&&"map"===b.v&&window.__kMapHome?window.__kMapHome():Ja({map:"map",lang:"languages"}[e]));
 u(!0)}(e[0]),children:[(0,f.jsx)(si,{n:e[1]}),(0,f.jsx)("span",{children:e[2]})]},e[0]))})}),(0,f.jsx)(an,{open:l,onOpenChange:u,children:(0,f.jsxs)(Hr,{...kSheet(u),children:[(0,f.jsx)("div",{className:"sgrab","aria-hidden":!0}),(0,f.jsx)(Wr,{className:"sr",children:y.langLabel}),(0,f.jsx)($r,{className:"sr",children:y.textSize}),(0,f.jsxs)("div",{className:"inner menu-in",children:[(0,f.jsx)("p",{className:"dh",children:y.langLabel}),[["en","English"],["sq","Shqip"]].map(e=>(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":a===e[0],onClick:()=>{k(e[0]),u(!1)},children:e[1]},e[0])),(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":q,onClick:()=>{q||(k("sc"),u(!1))},children:"Српски"}),q?(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"sc"===a,onClick:()=>k("sc"),children:"Ћирилица"}),(0,f.jsx)("button",{type:"button","aria-checked":"sr"===a,onClick:()=>k("sr"),children:"Latinica"})]}):null,(0,f.jsx)("p",{className:"dh",children:y.textSize}),(0,f.jsx)("div",{className:"four",children:Fp.map((e,t)=>(0,f.jsx)("button",{type:"button","aria-checked":c.ts===e,style:{fontSize:15+3*t},onClick:()=>x("khl-ts",String(e)),children:"A"},e))}),(0,f.jsx)("p",{className:"dh",children:y.contrast}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.hc,onClick:()=>x("khl-hc","0"),children:y.normal}),(0,f.jsx)("button",{type:"button","aria-checked":c.hc,onClick:()=>x("khl-hc","1"),children:y.high})]}),(0,f.jsx)("p",{className:"dh",children:y.night}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"dark"!==s,onClick:()=>w(!1),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":"dark"===s,onClick:()=>w(!0),children:y.on})]}),(0,f.jsx)("p",{className:"dh",children:y.motion}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.mo,onClick:()=>x("khl-mo","0"),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":c.mo,onClick:()=>x("khl-mo","1"),children:y.on})]})]})]})})]})}
 Kp(),
 function(){try{let e=document.createElement("button");
@@ -1757,6 +1768,7 @@ addEventListener("resize",()=>document.querySelectorAll(".kmtn").forEach(e=>e.re
 let Hp=document.getElementById("root");
 Hp.innerHTML='<div class="wrap"><p class="boot">'+ja().loading+"</p></div>",
 Promise.all([__ETIMO_H_LANGUAGES__,__ETIMO_H_WORLD__].map(e=>fetch(e).then(t=>{if(!t.ok)throw Error(e+" "+t.status);
-return t.json()})).concat([fetch(__ETIMO_H_TERR__).then(e=>e.ok?e.json():{}).catch(()=>({}))])).then(([t,n,r])=>{ua=Object.keys(t).map(e=>({lang:e,place:t[e].pl,family:t[e].fam,gc:t[e].gc,entries:[]})),ca=n,Object.keys(ia).forEach(e=>{ha[e]=[]}),ua.forEach(e=>{e.id="l-"+oa(e.lang),e.info=t[e.lang]||{},fa[e.id]=e}),pa=[],da=r||{},window.__lexReady=!1,Hp.innerHTML="",(0,p.createRoot)(Hp).render((0,f.jsx)(Up,{})),kLexWhen().then(()=>{let u=__ETIMO_H_LEXICON__;
+return t.json()})).concat([fetch(__ETIMO_H_TERR__).then(e=>e.ok?e.json():{}).catch(()=>({}))])).then(([t,n,r])=>{ua=Object.keys(t).map(e=>({lang:e,place:t[e].pl,family:t[e].fam,gc:t[e].gc,entries:[]})),ca=n,Object.keys(ia).forEach(e=>{ha[e]=[]}),ua.forEach(e=>{e.id="l-"+oa(e.lang),e.info=t[e.lang]||{},fa[e.id]=e}),pa=[],da=r||{},window.__lexReady=!1,Hp.innerHTML="",(0,p.createRoot)(Hp).render((0,f.jsx)(Up,{})),
+window.__kStart&&fetch(window.__kStart).then(r=>r.ok?r.json():null).then(S=>{S&&!window.__lexReady&&(kLexStart(S),window.__lexStart=!0,window.dispatchEvent(new Event("etimo:lexstart")))}).catch(()=>{}),kLexWhen().then(()=>{let u=__ETIMO_H_LEXICON__;
 return fetch(u).then(t=>{if(!t.ok)throw Error(u+" "+t.status);
 return t.json()})}).then(kLexBuild).then(()=>{window.__lexReady=!0,window.dispatchEvent(new Event("etimo:lex"))}).catch(e=>{console.error(e),Hp.querySelector(".boot")&&(Hp.querySelector(".boot").textContent=ja().loadErr)})}).catch(e=>{console.error(e),Hp.innerHTML='<div class="wrap"><p class="boot">'+ja().loadErr+"</p></div>"});

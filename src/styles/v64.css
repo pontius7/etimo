@@ -40,3 +40,6 @@
 @property --ch{syntax:"<length>";inherits:false;initial-value:0px}
 @property --wch{syntax:"<length>";inherits:false;initial-value:0px}
 .mapbox>:is(.zoom,.mcred,.mreset){--ch:inherit;--wch:inherit}
+
+/* the engine made early, in its hidden box (prewarm() in site/map-gl.js): the map fills it, as it fills .mapbox. Both sizes. */
+[data-kpre]>.kgl{position:absolute;inset:0}
