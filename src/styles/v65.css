@@ -72,7 +72,7 @@ button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
   .mapbox:has(>.card.kpanel:not([hidden])>.rgh) :is(.zoom,.mreset){opacity:0!important;pointer-events:none!important}
   /* no sources on the phone: the region card's source button, the census list's document buttons and the regions table */
   .mapbox .card.kpanel :is(.country-panel-source,.country-regions-launch,.rg-cen),.card .country-source-icon{display:none!important}
-  .card .country-name-link{pointer-events:none}
+  .card .country-name-link{pointer-events:none;text-decoration:none!important;border-bottom:0!important;box-shadow:none!important}
 }
 @keyframes rgup{from{opacity:0;transform:translateY(14px)}}
 @media (prefers-reduced-motion:reduce){.mapbox .card.mcard.kpanel:has(>.rgh){animation:none}}
@@ -127,4 +127,34 @@ button.rgr:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
   .sheet-x.sheet-top .menu-in :is(.two,.four) button{min-height:2.5rem;border:0!important;border-radius:10px;background:none!important;color:var(--ink)!important;transition:background-color .2s,box-shadow .2s}
   .sheet-x.sheet-top .menu-in :is(.two,.four) button[aria-checked=true]{background:var(--bg)!important;box-shadow:0 1px 3px color-mix(in srgb,var(--ink) 16%,transparent),0 0 0 .5px color-mix(in srgb,var(--ink) 8%,transparent);font-weight:600}
   :root[data-theme=dark] .sheet-x.sheet-top .menu-in :is(.two,.four) button[aria-checked=true]{background:color-mix(in srgb,var(--ink) 16%,var(--bg))!important}
+}
+
+/* v72  Languages page (wheel and tree) on phones (<64rem); desktop (>=64rem) unchanged.
+   The Wheel / Tree switch is a slim track with the chosen side lifted out (as in the settings sheet); the wheel sits in the
+   middle of the free room; the tree is one grouped list: soft dividers, the family dot, quieter type, nested levels indented. */
+@media (width<64rem){
+  #langs .lmrow .lm.tvs{height:2.6rem!important;padding:3px!important;border:0!important;border-radius:13px!important;background:color-mix(in srgb,var(--ink) 6%,transparent)!important;box-shadow:none!important}
+  #langs .lm.tvs::before{top:3px!important;bottom:3px!important;left:3px!important;width:calc(50% - 3px)!important;border-radius:10px!important;background:var(--bg)!important;box-shadow:0 1px 3px color-mix(in srgb,var(--ink) 16%,transparent),0 0 0 .5px color-mix(in srgb,var(--ink) 8%,transparent)!important}
+  :root[data-theme=dark] #langs .lm.tvs::before{background:color-mix(in srgb,var(--ink) 16%,var(--bg))!important}
+  #langs .lm.tvs button{gap:.4rem!important;font:600 .875rem var(--sans)!important;color:var(--mut)!important}
+  #langs .lm.tvs button[aria-selected=true]{color:var(--ink)!important}
+  #langs .lm.tvs svg{width:16px!important;height:16px!important}
+  #langs .sbwrap{min-height:calc(100dvh - 56px - 4.6rem - var(--tab,62px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;justify-content:center}
+  #langs .wmap{box-shadow:0 8px 24px -10px color-mix(in srgb,var(--ink) 45%,transparent)!important}
+
+  .vtree{margin-top:1rem;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:color-mix(in srgb,var(--ink) 1.5%,var(--bg))}
+  .vtree>details.vb.d1{margin:0 0 -1px!important}
+  .vtree .vb>summary{gap:.6rem;min-height:2.85rem;padding:.25rem .9rem .25rem 1rem;border-bottom:1px solid var(--line)!important;-webkit-tap-highlight-color:transparent;transition:background-color .15s}
+  .vtree .vb>summary:active{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  .vtree .vb.d1>summary{min-height:3.6rem}
+  .vtree .vb.d1>summary .vn{font:600 1.0625rem/1.25 var(--sans)!important;letter-spacing:0}
+  .vtree .vb:not(.d1)>summary .vn{font:500 .9375rem/1.3 var(--sans)!important;color:var(--ink)}
+  .vtree .vb .vc{font:500 .75rem/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut);padding:.25rem .5rem;border-radius:999px;background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  .vtree .vb>summary:after{width:.4rem!important;height:.4rem!important;border-color:color-mix(in srgb,var(--ink) 40%,transparent)!important;transform:rotate(-45deg)}
+  .vtree .vb[open]>summary:after{transform:rotate(45deg)}
+  .vtree .vb[open]>summary{background:color-mix(in srgb,var(--ink) 2.5%,transparent)}
+  .vtree .vk{padding-left:.85rem;border-left:2px solid color-mix(in srgb,var(--ink) 7%,transparent);margin-left:1.1rem}
+  .vtree .vl{min-height:2.75rem;padding:.25rem .9rem .25rem .25rem;border-bottom:1px solid var(--line)}
+  .vtree .vl .vn{font:500 .9375rem/1.3 var(--sans)}
+  .vtree .vl .vp{font:500 .75rem/1.3 var(--sans);color:var(--mut)}
 }

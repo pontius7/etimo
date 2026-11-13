@@ -1,8 +1,5 @@
 /* stronger borders everywhere */
-.mapbox{--coast:#606a7c;--bord:#abb4c4}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .mapbox{--coast:#2d3e5d;--bord:#23324f}
-}
-:root[data-theme=dark] .mapbox{--coast:#2d3e5d;--bord:#23324f}
+/* --coast, --bord on the map: src/styles/tokens.css */
 .mapbox .coast{stroke-width:.9px}
 .mapbox .adm path{stroke-width:.7px}
 .mapbox svg.zin .adm path{opacity:.95}

@@ -1,8 +1,5 @@
 /* modern state borders: clear at every zoom */
-.mapbox{--bord2:#374256}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .mapbox{--bord2:#526380}
-}
-:root[data-theme=dark] .mapbox{--bord2:#526380}
+/* --bord2: src/styles/tokens.css */
 .mapbox .bord{stroke:var(--bord2)!important;stroke-width:1.05px;opacity:.9!important;stroke-linejoin:round;stroke-linecap:round}
 .mapbox svg.zin .bord{stroke-width:1.5px;opacity:1!important}
 /* minority peoples a lighter shade of their colour */

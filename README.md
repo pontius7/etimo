@@ -54,11 +54,14 @@ content/                      your additions (the only place to add words, langu
   language-aliases.csv        other spellings of language names found in word lists
   sheets.txt                  Google Sheet links that are fetched as word lists
   minority-areas.csv          which language areas are drawn in a lighter tint, with the census figure and source for each
+  region-languages.csv        your register: languages spoken in a region, with speakers, share, year and source
+  region-aliases.csv          a map region's name paired with the census's name for it (Bavaria / Bayern)
+  census-language-names.csv   census language labels in their own language turned into language names (Maghiara = Hungarian)
   import-report.txt           built: where the rows of the large word lists went
 
 src/                          the page's source (see "How the page is built")
   page.html                   the page and the order of its parts
-  styles/                     30 style files: main.css, the layers v41..v62 and etimo-*.css, fd.css
+  styles/                     the style files: tokens.css (ALL interface and map colours), main.css, the layers v41..v65 and etimo-*.css, fd.css
   app/                        the app script in seven parts (1 and 3 are libraries)
 
 scripts/
@@ -74,6 +77,7 @@ scripts/
     dedupe.py, fetch-sheets.py, topo.py   helpers for the two above
     palette.py, families.py   the one source of colours and of the family list
     devter-synonyms.json      synonym table used when content/meanings.csv adds a meaning
+    region-langs.py           languages with numbers per region (census tables + content/region-languages.csv)
     check-overlaps.py         check: no two language areas overlap
     check-colors.py, probe-colors.mjs   check in Chrome: map = palette = wheel, light and dark
     words-report.py, jslit.js check: every new word landed in a language, family and category
@@ -90,6 +94,7 @@ site/                         the published website (Cloudflare serves this fold
   _headers                    by hand: caching rules for Cloudflare
   data/                       map data
     languages.json, lexicon.json, terr.json, dia.json, micro.json, ethno.json, adm2.json   built by merge-data.py
+    region-langs.json         built by region-langs.py: languages, speakers and shares per region (region card)
     world-50m.json, world-50s.json, borders-10m.json, today.json, greece-10m.json          outlines and borders
     albanian-dialects.json, vlach-areas.json, serbia-areas.json                            traced area layers
     greece-areas.json, montenegro-areas.json, athos.json                                   traced (scripts/areas/)
@@ -115,6 +120,8 @@ All four are content changes. No code is touched. Details and every field: `cont
 | **A language** | Copy `content/languages/_example.json.txt` to `content/languages/<name>.json` and fill it in |
 | **A dialect** | Words only: write the language as `Serbian (Torlak)` in the CSV and map the label in `content/language-aliases.csv`. With its own area on the map: add it as a language that has the same `path` as its parent |
 | **A lighter (minority) area** | Add a row to `content/minority-areas.csv`: language, `min` or `plu`, region, the census shares, the source |
+| **Languages of a region, with numbers** | Add rows to `content/region-languages.csv`: country, region, language, speakers, share, year, source (details: `content/README.md`, section 5) |
+| **A colour of the interface or the map** | Change it in `src/styles/tokens.css` (light and dark blocks) |
 | **A language family** | Add one entry to `content/families.json` (name, two colours, where its name sits on the map). A ready Baltic example is in the file: remove the `_` in `_Baltic` to switch it on |
 
 Then:
@@ -136,13 +143,20 @@ a colour check fails. First run sets up Python in `.venv` (needs Python 3, Node 
 | check | what it proves |
 |---|---|
 | `test-search-key.js` | plain Latin typing finds special letters and other scripts (`voda` finds вода) |
+| `region-langs.py` | every row of `content/region-languages.csv` and `region-aliases.csv` names a country and a region the map has (a misspelling stops the build and suggests the closest names) and gives a number, a year and a source |
 | `check-overlaps.py` | no two language areas on the map overlap |
 | `words-report.py` | every new word landed in a language, a family and a category |
 | `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like `reference/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
 
 ## Colours: one source
 
-`scripts/merge/palette.py` and `scripts/merge/families.py` are the only places colours come from.
+**Interface and map: `src/styles/tokens.css`.** Page background, text, lines, the dark header band, cards, and the map's
+sea, land, coast, borders, names and pins, each in a light block and a dark block (night mode). Every style file uses
+these names and none defines them again; the map engine (`site/map-gl.js`, `themeOf`) reads its `--map-*` colours from
+the same file (the `THEMES` table there is only the fallback). Moving them there changed no colour: all values were
+compared in Chrome before and after, light, dark and high contrast.
+
+**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours come from.
 
 - A **family** has one colour per theme (light, dark). Five come from the original Etimo and never
   change, four were chosen for the merge, and any further family is defined in `content/families.json`.
@@ -263,7 +277,7 @@ the preview.
 | in `src/` | what it is |
 |---|---|
 | `page.html` | the page itself: the head, and the order in which the styles and scripts are joined |
-| `styles/` | the style sheets, one file per block, one rule per line. `main.css` is the base; `v41.css` to `v62.css` and the `etimo-*.css` files are later layers (a later file wins). New rules go at the end of `v62.css` as a numbered block (`v63` to `v68` are there now); `fd.css` styles the full dictionary and the language page |
+| `styles/` | the style sheets, one file per block, one rule per line. `tokens.css` holds every colour of the interface and the map and comes first; `main.css` is the base; `v41.css` to `v65.css` and the `etimo-*.css` files are later layers (a later file wins). `v65.css` comes last and holds the newest numbered blocks (`v69` to `v72`: region card, map credits, settings sheet, languages page on phones); new rules go at its end as a numbered block; `fd.css` styles the full dictionary and the language page |
 | `app/1-libraries-ui.js`, `app/3-libraries-map.js` | other people's libraries (React and the interface kit; d3 for the map). Not meant to be edited |
 | `app/2-app-text-and-tables.js` | every interface text in each language (`Zr`), the word categories, language and place names, region tabs |
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
@@ -410,3 +424,20 @@ Command line: `wrangler deployments list --name etimo` shows recent deploys.
 The map is drawn by MapLibre GL since 2026-11-12: `site/map-gl.js` (engine side) and the `GL` parts of the map code in
 `src/app/6-app-screens-and-startup.js` (page side). Data: `scripts/map-next/build.py`. The old map is one switch away
 (`?map=svg`). Everything about it is in `scripts/map-next/README.md`.
+
+## Phone redesign, 2026-11-12
+
+Checked in Chrome at phone size (390 x 844) and desktop size (1440 x 900), light and dark, and on 282 regions spread over
+every country of the map (each card named its place; no errors).
+
+| what | phone (<64rem) | desktop (>=64rem) | where |
+|---|---|---|---|
+| **Region card** | a light sheet: the country, the region's name, which is also the list of the country's regions (the phone's own picker; choosing one flies the map there), the region's wheel (families inside, languages outside, sized by share; equal thin slices and "N languages" when there are no figures), then languages with speakers, shares and a bar in the language's colour, the census year and question. Languages drawn anywhere in the region on the map without a figure follow by name | the same contents in the left panel with its dark header | `kRgCard`, `kRgW`, `kRgHere` in `src/app/6-app-screens-and-startup.js`; block `v69` in `v65.css`; data: `region-langs.py` |
+| **Numbers per region** | 321 regions in 14 countries with speakers and shares (Albania, Austria, Bosnia and Herzegovina, Bulgaria, Croatia, the Czech Republic, Estonia, Germany, Moldova, Montenegro, North Macedonia, Poland, Romania, Slovakia), 13 Greek regions with the languages documented there. The tables of the other 14 countries have no rows at the map's region level (country totals only, other levels, or no figures yet) | same | `content/region-languages.csv` adds more |
+| **Sources** | no source buttons, no source dialogs, country names in the census list are plain text | unchanged (sources button, "Regions & municipalities") | `v69`; `site/country-sources.js`, `site/country-data.js` |
+| **Map credits** | a small (i) in the map's lower left corner: open on arrival, folds away at the first touch of the map and while a card is open, a tap opens it again (as MapLibre's compact credit does). Never over a card | one line, as before | `v70`; the credits are built where the map is made |
+| **Settings sheet** (language, text size, contrast, night mode, motion) | comes down from the top under the language button, grab bar on its lower edge, a swipe up closes it; segmented controls | from the bottom, as before | `kSheet`; block `v71` |
+| **Light mode for everyone** | a visitor starts in light mode whatever the phone or computer is set to; night mode stays a choice and is remembered | same | the first script in `src/page.html` |
+| **Languages page** | slim Wheel / Tree switch, the wheel centred in the free room, the tree as one grouped list with quieter type and indented levels | unchanged | block `v72` |
+| **Czech region name** | "Plzeň-" was cut off in the source data; now "Plzeň" | same | `RENAME` in `scripts/merge/current-regions.py` |
+

@@ -1,7 +1,4 @@
-:root{--hd:#2e4369;--hd-line:#24385d;--hd-muted:#d6e0f2}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--hd:#273a5b;--hd-line:#33486e;--hd-muted:#c7d3e7}
-}
-:root[data-theme=dark]{--hd:#273a5b;--hd-line:#33486e;--hd-muted:#c7d3e7}
+/* header colours: src/styles/tokens.css */
 .wety{margin:1.1rem 0 .2rem}
 .wety .et{margin:.2rem 0 0;font:400 1.0625rem/1.45 var(--serif);color:var(--ink)}
 .wety .root{font-style:italic;font-weight:500}

@@ -27,10 +27,7 @@
 /* selection uses navy, not black */
 .pin.sel,g.pin.sel .mk{stroke:var(--hd)}
 .wa.sel{stroke:var(--hd);stroke-width:3px}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--selc:#a6b5ce}
-}
-:root[data-theme=dark]{--selc:#a6b5ce}
-:root{--selc:var(--hd)}
+/* --selc (ring of the chosen pin): src/styles/tokens.css */
 :root[data-theme=dark] .pin.sel,:root[data-theme=dark] g.pin.sel .mk,:root[data-theme=dark] .wa.sel{stroke:#dee6f5}
 .menu-in button[aria-checked=true]:not(.opt),.menu button[aria-checked=true]:not(.opt){background:var(--hd);color:var(--hd-ink);border-color:var(--hd)}
 .menu-in .opt[aria-checked=true],.menu .opt[aria-checked=true]{background:color-mix(in srgb,var(--hd) 9%,transparent);font-weight:600}

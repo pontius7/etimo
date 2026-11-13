@@ -134,7 +134,30 @@ A meaning the site doesn't know is still searchable but not listed under a categ
 add a row to `content/meanings.csv`: `meaning,subcategory,sr,sq` (subcategory = an existing one
 such as `Water`, `Movement`, `Religion & magic`; sr/sq = Serbian and Albanian labels).
 
-## 5. Build and check
+## 5. Languages of a region, with numbers (optional)
+
+The region card on the map (tap a region, or pick one from the list under its name) shows the languages spoken there in a
+wheel and a list, with speakers and shares. Its numbers come from two places, joined by
+`scripts/merge/region-langs.py` into `site/data/region-langs.json`:
+
+- **The census tables** in `site/data/tables/` (28 countries). They are linked to the map's regions by name, by
+  themselves. Where a census names a region in another language than the map (Bavaria / Bayern, Prešov / Prešovský
+  kraj), add the pair to `content/region-aliases.csv`. Where a census names a language in its own language (Maghiara,
+  angielski), add it to `content/census-language-names.csv`; the build lists any it could not name.
+- **Your register, `content/region-languages.csv`**: one row per language per region:
+
+  ```
+  country,region,language,speakers,share,year,source,measure
+  Romania,Covasna,Hungarian,150468,71.6,2021,https://www.recensamantromania.ro/,mother tongue
+  ```
+
+  `country` as on the map or a code (RO / ROU); `region` exactly as the region card names it; `language` one of the
+  site's languages (it gets that language's colour by itself) or any other name (shown in grey); `speakers` and/or
+  `share` (percent, no % sign); `year` and `source` are required. A region you list here shows only your rows (the
+  census table's figures for it are set aside), so this is also how to correct or update a region. A misspelt region
+  stops the build and suggests the closest names.
+
+## 6. Build and check
 
 ```
 ./scripts/add-words.sh

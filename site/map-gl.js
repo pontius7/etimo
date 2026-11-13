@@ -6,7 +6,7 @@
    dots, outlines: labels() below), so nothing of the page is redrawn while the map moves. The page
    (src/app/6-app-screens-and-startup.js) still decides what shows where, and keeps search and the language card.
 
-   The data comes from scripts/map-next/build.py (map-next/data/). Colours of sea, land and lines: THEMES below.
+   The data comes from scripts/map-next/build.py (map-next/data/). Colours of sea, land and lines: src/styles/tokens.css (themeOf below).
    Which area is how strong when a language or a family is chosen: paint() below; the lists and the strengths of
    the detailed layers are the ones in regional-layer.js, so both maps follow one rule.
 
@@ -20,6 +20,16 @@ const THEMES = {
   dark:  {sea: '#0a0f18', land: '#161e2b', coast: '#2d3e5d', border: '#526380', inner: '#eef2f8', relief: .5, pin: '#0e141e', pinEdge: 'rgba(238,242,248,.66)', pinSel: '#ffffff'},
   light: {sea: '#e5eaf1', land: '#fbfaf6', coast: '#606a7c', border: '#374256', inner: '#06110e', relief: .62, pin: '#ffffff', pinEdge: 'rgba(22,32,50,.45)', pinSel: '#141c2c'},
 };
+/* The colours themselves live in the page's colour file, src/styles/tokens.css (--map-sea, --map-land, ...); THEMES above
+   only stands in where the page has none, or when it is asked for the theme the page is not showing. */
+const CSSKEY = {sea: 'sea', land: 'land', coast: 'coast', border: 'border', inner: 'name', pin: 'pin', pinEdge: 'pin-edge', pinSel: 'pin-sel'};
+function themeOf(t) {
+  const P = {...THEMES[t]}, root = document.documentElement;
+  if ((root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light') !== t) return P;
+  const c = getComputedStyle(root);
+  for (const [k, n] of Object.entries(CSSKEY)) { const v = c.getPropertyValue('--map-' + n).trim(); if (v) P[k] = v; }
+  return P;
+}
 /* A language pin: a soft shadow, a disc, and the language's colour at its core (so a pin stands out from its own area,
    which has the same colour). PIN = radius of the disc in screen pixels. How visible and how large each pin is comes
    from the page, pin by pin: o = 0 to 1, s = 1, or larger for the chosen pin and the one under the pointer. */
@@ -212,7 +222,7 @@ async function create(host, id) {
   const byName = key => { const pairs = Object.entries(colourOf).flat(); return pairs.length ? ['to-color', ['match', ['get', key], ...pairs, ['get', key === 'lang' ? 'base' : 'color']]] : ['get', key === 'lang' ? 'base' : 'color']; };
   /* Light and dark, and the zoom-dependent relief: only colours change, nothing is reloaded. */
   function look() {
-    const P = THEMES[S.theme], col = byName('name');
+    const P = themeOf(S.theme), col = byName('name');
     /* minority areas: the language's colour mixed with the land colour (46% / 74%, as on the site) */
     const mix = s => ['interpolate', ['linear'], s, 0, P.land, 1, col];
     map.setPaintProperty('sea', 'background-color', P.sea);

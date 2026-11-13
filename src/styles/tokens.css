@@ -1,0 +1,55 @@
+/* Etimo's colours: the one file for the colours of the interface and the map. Change a value here, run
+   python3 scripts/build-page.py (or ./scripts/add-words.sh) and reload. Every style file uses these names.
+   Three blocks with the same names: light (everyone starts here), dark for night mode (and, only if the page could not
+   set a theme, for a phone or computer set to dark), and dark again when night mode is chosen.
+   Not here: the colour of each language and family. Those come from scripts/merge/palette.py, scripts/merge/families.py
+   and src/app/7-language-colours.js (README, "Colours: one source"), so map, wheel, cards and dots always agree. */
+:root{
+  /* page */
+  --bg:#f8f8f6;          /* page background */
+  --soft:#efefeb;        /* quiet fills: chips, hovers */
+  --ink:#0a0e16;         /* text and icons */
+  --mut:#373e4a;         /* secondary text */
+  --line:#dfe0db;        /* hairlines and borders */
+  --ac:#0a0e16;--ac-ink:#f8f8f6;--ac-soft:#efefeb;   /* accent button: fill, its text, soft version */
+  --mark:#ffe7a0;        /* highlighted search match */
+  --gold:#0a0e16;
+  --on-fam:#ffffff;      /* text on a family colour */
+  /* dark header band (language card, desktop panel) and cards */
+  --hd:#2e4369;--hd-ink:#f5f3ee;--hd-muted:#d6e0f2;--hd-line:#24385d;
+  --bd:#eef0f4;--bd-line:#d8dce5;
+  --selc:var(--hd);      /* ring of the chosen pin */
+  /* map: the page's drawings (the old map and the parts drawn over the engine) */
+  --land:#fbfaf6;--sea:#e5eaf1;--coast:#bbc2cf;--bord:#d4d8e1;--grat:#d2d8e2;--wl:#bac2d1;
+  --tl:#f3eee3;--tsea:#e3e8ef;--tc:#8a7c62;--tgrid:#c0c5ce;--tcoast:#5f6878;
+  /* map engine (site/map-gl.js reads these when it draws or changes theme) */
+  --map-sea:#e5eaf1;--map-land:#fbfaf6;--map-coast:#606a7c;--map-border:#374256;
+  --map-name:#06110e;    /* names drawn on the map */
+  --map-pin:#ffffff;--map-pin-edge:rgba(22,32,50,.45);--map-pin-sel:#141c2c;
+}
+.mapbox{--coast:#606a7c;--bord:#abb4c4;--bord2:#374256}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){
+    --bg:#0a0d12;--soft:#141922;--ink:#f3f4f7;--mut:#a3a9b5;--line:#242b38;
+    --ac:#f3f4f7;--ac-ink:#0a0d12;--ac-soft:#141922;--mark:#5b4b10;--gold:#f3f4f7;--on-fam:#0a0d12;
+    --hd:#273a5b;--hd-ink:#f5f3ee;--hd-muted:#c7d3e7;--hd-line:#33486e;--bd:#141a24;--bd-line:#171f2d;
+    --selc:#a6b5ce;
+    --land:#161e2b;--sea:#0a0f18;--coast:#1a2539;--bord:#131d2f;--grat:#161e2b;--wl:#131e33;
+    --tl:#151d2a;--tsea:#0b1019;--tc:#a2b0ca;--tgrid:#212d44;--tcoast:#3c4f71;
+    --map-sea:#0a0f18;--map-land:#161e2b;--map-coast:#2d3e5d;--map-border:#526380;--map-name:#eef2f8;
+    --map-pin:#0e141e;--map-pin-edge:rgba(238,242,248,.66);--map-pin-sel:#ffffff;
+  }
+  :root:not([data-theme=light]) .mapbox{--coast:#2d3e5d;--bord:#23324f;--bord2:#526380}
+}
+:root[data-theme=dark]{
+  --bg:#0a0d12;--soft:#141922;--ink:#f3f4f7;--mut:#a3a9b5;--line:#242b38;
+  --ac:#f3f4f7;--ac-ink:#0a0d12;--ac-soft:#141922;--mark:#5b4b10;--gold:#f3f4f7;--on-fam:#0a0d12;
+  --hd:#273a5b;--hd-ink:#f5f3ee;--hd-muted:#c7d3e7;--hd-line:#33486e;--bd:#141a24;--bd-line:#171f2d;
+  --selc:#a6b5ce;
+  --land:#161e2b;--sea:#0a0f18;--coast:#1a2539;--bord:#131d2f;--grat:#161e2b;--wl:#131e33;
+  --tl:#151d2a;--tsea:#0b1019;--tc:#a2b0ca;--tgrid:#212d44;--tcoast:#3c4f71;
+  --map-sea:#0a0f18;--map-land:#161e2b;--map-coast:#2d3e5d;--map-border:#526380;--map-name:#eef2f8;
+  --map-pin:#0e141e;--map-pin-edge:rgba(238,242,248,.66);--map-pin-sel:#ffffff;
+}
+:root[data-theme=dark] .mapbox{--coast:#2d3e5d;--bord:#23324f;--bord2:#526380}

@@ -19,10 +19,7 @@
 /* wheel: nothing beneath */
 .sbh[hidden]{display:none}
 /* topographic map */
-:root{--tl:#f3eee3;--tsea:#e3e8ef;--tc:#8a7c62;--tgrid:#c0c5ce;--tcoast:#5f6878}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--tl:#151d2a;--tsea:#0b1019;--tc:#a2b0ca;--tgrid:#212d44;--tcoast:#3c4f71}
-}
-:root[data-theme=dark]{--tl:#151d2a;--tsea:#0b1019;--tc:#a2b0ca;--tgrid:#212d44;--tcoast:#3c4f71}
+/* its colours (--tl, --tsea, --tc, --tgrid, --tcoast): src/styles/tokens.css */
 .mapbox{background:var(--tsea)}
 .mapbox .tland{fill:var(--tl)}
 .mapbox .tgrid{fill:none;stroke:var(--tgrid);stroke-width:.8px;stroke-dasharray:3 5;opacity:.75}
