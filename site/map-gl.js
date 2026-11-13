@@ -82,8 +82,11 @@ async function create(host, id) {
      AVIF (smaller one on phones), or WebP where AVIF cannot be decoded. Without it the map still works, just flat. */
   const small = matchMedia('(max-width:820px),(pointer:coarse) and (max-width:1180px)').matches;
   const picture = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r.status); return r.blob(); }).then(b => createImageBitmap(b));
-  const relief = picture('data/' + (small ? 'shade-s.avif' : 'shade.avif')).catch(() => picture('data/shade.webp'))
-    .catch(e => { console.warn('Etimo: the relief could not be loaded, the map is drawn without it', e); return null; });
+  /* fetched once the first tile of shapes has come (below), so on a phone it does not take bandwidth from the engine's
+     own files and the tiles; until then the map is drawn without it */
+  let reliefP = null;
+  const relief = () => reliefP || (reliefP = picture('data/' + (small ? 'shade-s.avif' : 'shade.avif')).catch(() => picture('data/shade.webp'))
+    .catch(e => { console.warn('Etimo: the relief could not be loaded, the map is drawn without it', e); return null; }));
 
   const [meta, index, meValues] = await Promise.all([json(DATA + 'meta.json'), get('regional/index.json'), get('regional/ME.json')]);
   const {cx, cy, c} = meta.unit;
@@ -164,12 +167,9 @@ async function create(host, id) {
   });
   made.map = map;
   /* MapLibre counts the map as loaded only once the relief source has a picture. It gets an empty one at once, so the
-     map never waits for the relief, and the real one as soon as it is decoded (nearly always before the map data). */
-  map.once('style.load', () => {
-    const put = img => { if (id === gen) map.getSource('relief').updateImage({image: img}); };
-    put(new ImageData(1, 1));
-    relief.then(img => img && put(img));
-  });
+     map never waits for the relief, and the real one once it is decoded (fetched after the first tile, see relief above). */
+  const putRelief = img => { if (id === gen && map.getSource('relief')) map.getSource('relief').updateImage({image: img}); };
+  map.once('style.load', () => putRelief(new ImageData(1, 1)));
   window.__kgl = map;      // for looking at the map from the browser console
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
@@ -178,7 +178,7 @@ async function create(host, id) {
      The page waits for this before it loads what the map does not need yet (lexicon, region shapes). */
   let tiled = false;
   const drawn = () => { if (tiled) { map.off('idle', drawn); mapReady(); } };
-  map.on('data', function first(e) { if (e.sourceId === 'base' && e.tile) { tiled = true; map.off('data', first); } });
+  map.on('data', function first(e) { if (e.sourceId === 'base' && e.tile) { tiled = true; map.off('data', first); relief().then(img => img && putRelief(img)); } });
   map.on('idle', drawn);
   let nameFeats = [];
   /* the census region names (census-names.json), once the map has drawn and the site's font is ready, so the letters are drawn in it */

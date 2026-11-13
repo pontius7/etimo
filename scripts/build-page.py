@@ -234,10 +234,12 @@ def preloads(H):
     eng = open(os.path.join(ROOT, 'site', 'map-gl.js'), encoding='utf-8').read()
     mapjs = re.search(r'import\("\./(map-gl\.js\?v=\d+)"\)', app).group(1)
     mlib, mver = re.search(r"from '\./(map-next/vendor/maplibre-gl\.mjs\?v=([\d.]+))'", eng).groups()
+    rl = re.search(r"from '\./(regional-layer\.js\?v=\d+)'", eng).group(1)      # the engine's own rules (map-gl.js imports them)
     worker = f'map-next/vendor/maplibre-gl-worker.mjs?v={mver}'     # MapLibre adds ?v=<its version> to its worker itself
     js = ('(function(){var h=location.hash,d=document,a=function(r,u,f){var l=d.createElement("link");l.rel=r;l.href=u;'
           'if(f){l.as="fetch";l.crossOrigin="anonymous"}d.head.appendChild(l)},map=/^#(map|mm-)/.test(h);'
           f'if(map){{a("modulepreload","{mapjs}");a("modulepreload","{mlib}");a("preload","map-next/data/meta.json",1);'
+          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);a("preload","data/regional/ME.json",1);a("prefetch","{worker}");'
           '}'
           f'if(!/^#(map|map-.+|languages|tree)$/.test(h))a("preload","{H["lexicon.json"]}",1);'
           f'if(!map)addEventListener("etimo:lex",function(){{setTimeout(function(){{["{mapjs}","{mlib}","{worker}"].forEach(function(u){{a("prefetch",u)}})}},1500)}},{{once:true}})'
