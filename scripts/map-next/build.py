@@ -223,7 +223,7 @@ def main_languages(langs):
                 if row[0] not in best or p > best[row[0]][0]:
                     best[row[0]] = (p, name)
     js = open(os.path.join(ROOT, 'site', 'regional-layer.js'), encoding='utf-8').read()
-    m = re.search(r"Object\.entries\(\{(Albania:[^}]*)\}\)", js)
+    m = re.search(r"const MAIN_LANG=\{(Albania:[^}]*)\}", js)
     if not m:
         sys.exit('map-next: the list of main languages was not found in site/regional-layer.js')
     for a, b, v in re.findall(r"""(?:'([^']+)'|([\w ]+)):'([^']+)'""", m.group(1)):

@@ -8,11 +8,9 @@
 
    The data comes from scripts/map-next/build.py (map-next/data/). Colours of sea, land and lines: src/styles/tokens.css (themeOf below).
    Which area is how strong when a language or a family is chosen: paint() below; the lists and the strengths of
-   the detailed layers are the ones in regional-layer.js, so both maps follow one rule.
-
-   Going back to the old map: open the site with ?map=svg (or set localStorage "etimo-map" to "svg"). */
+   the detailed layers are the ones in regional-layer.js, which the data build reads too, so both follow one rule. */
 import * as maplibregl from './map-next/vendor/maplibre-gl.mjs';
-import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js?v=41';
+import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js?v=42';
 
 const DATA = 'map-next/data/';
 /* Sea, land and line colours: the same values as the site's stylesheet (--sea, --land, --coast, --bord2, relief opacity). */
@@ -59,7 +57,7 @@ const json = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 let engine = null, made = null, gen = 0;
-/* Takes the engine out of the page again: its box, its map and the kept copy. The page calls it when it goes back to the old map. */
+/* Takes the engine out of the page again: its box, its map and the kept copy. The page calls it when the engine fails (it then shows a note instead of the map). */
 export function drop() {
   gen++;
   if (made) { try { made.map && made.map.remove(); } catch {} made.box.remove(); made = null; }
@@ -182,7 +180,7 @@ async function create(host, id) {
       map.getSource('names').setData({type: 'FeatureCollection', features});
     }).catch(e => console.warn('Etimo: the census names could not be loaded', e));
   });
-  /* A map data file that did not arrive leaves a map with holes, and MapLibre still reports the map as loaded: the page is told, and goes back to the old map. */
+  /* A map data file that did not arrive leaves a map with holes, and MapLibre still reports the map as loaded: the page is told, and shows its note instead of the map. */
   let broken = null;
   map.on('error', e => { if (broken || !['land', 'lines', 'areas'].includes(e.sourceId)) return; broken = e.error || e; if (H.fail) H.fail(broken); });
   await new Promise((ok, no) => { map.once('load', ok); map.once('error', e => no(e.error || e)); });
@@ -271,7 +269,7 @@ async function create(host, id) {
     /* a country tinted with its main language */
     map.setFilter('base', alb ? ['==', name, ''] : sel ? ['all', ['has', 'base'], ['==', ['get', 'lang'], sel.lang]] : ['has', 'base']);
     map.setPaintProperty('base', 'fill-opacity', fam ? ['case', ['==', ['get', 'bfam'], fam], BASE, .1] : BASE);
-    /* The detailed layers: the strengths are the ones both maps share (restOp, dialOp, vlachOp in regional-layer.js) */
+    /* The detailed layers: the strengths are the shared ones (restOp, dialOp, vlachOp in regional-layer.js) */
     const rest = dfam => restOp(dfam, sel, fam);
     const isSel = n => !!sel && (n === sel.lang || PAR[n] === sel.lang);
     const rules = {

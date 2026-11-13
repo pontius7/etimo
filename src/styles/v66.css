@@ -99,3 +99,14 @@
 .card.kpanel .rgleg .rgr.nn i{flex:none;width:.7rem;height:.7rem}
 .card.kpanel .rgleg .rgr.nn b{font:500 1.0625rem/1.2 var(--sans)}
 @media (prefers-reduced-motion:reduce){.card.kpanel .rgtip{transition:none}}
+
+/* 7 (both sizes)  The map's fallback (kNoMap): when the engine cannot start, a note over the map box with the ways on that
+   still work. Replaces the old SVG map (retired 2026-11-13). */
+.mapbox .knomap{position:absolute;inset:0;z-index:40;display:grid;place-items:center;padding:1.5rem;background:var(--bg)}
+.knomap .knm{max-width:22rem;text-align:center}
+.knomap svg{width:40px;height:40px;fill:none;stroke:var(--mut);stroke-width:1.6;stroke-linejoin:round}
+.knomap h3{margin:.75rem 0 .4rem;font:500 1.375rem/1.25 var(--serif);color:var(--ink)}
+.knomap p{margin:0;font:400 .9375rem/1.5 var(--sans);color:var(--mut)}
+.knomap .knb{display:flex;gap:.5rem;justify-content:center;margin-top:1.25rem}
+.knomap button{min-height:44px;padding:0 1.1rem;border:1px solid var(--line);border-radius:999px;background:none;color:var(--ink);font:600 .9375rem/1 var(--sans);cursor:pointer}
+.knomap .knl{border-color:var(--hd);background:var(--hd);color:var(--hd-ink)}

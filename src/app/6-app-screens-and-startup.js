@@ -146,7 +146,7 @@ TOP=!root.depth&&kids.length>1&&kids.every(q=>!q.data.L),
 __t=(LS=.08),
 HINT={en:"Tap a family to open it",
 sq:"Prek një familje për ta hapur",
-de:"Tippe auf eine Familie, um sie zu öffnen",
+
 sr:"Dodirni porodicu da je otvoriš",
 sc:"Додирни породицу да је отвориш"}[ya()]||"Tap a family to open it",
 hasB=kids.some(q=>!q.data.L),
@@ -301,7 +301,7 @@ mb.after(z);
 return z})(),
 OM={en:"On map",
 sq:"Në hartë",
-de:"Auf der Karte",
+
 sr:"Na karti",
 sc:"На карти"}[ya()]||"On map",
 mbu=q=>{let L=q&&q.d.data.L,
@@ -399,7 +399,7 @@ return(0,f.jsx)("div",{className:"sseg",role:"tablist",children:[["w",n.nav.word
 function Ap({q:e}){let t=ja(),
 n={en:"Map",
 sq:"Harta",
-de:"Karte",
+
 sr:"Mapa",
 sc:"Мапа"}[ya()]||"Map",
 r=Da((e||"").trim()),
@@ -491,11 +491,9 @@ w.current=d,
 if(i.current&&n)return o.current=function(e,t,n,r,a={}){let i,s,o,l,u,c,d,h=ja(),f=Ya();
 /* GL: the base of the map (areas, borders, relief, census view) is drawn by the map engine in site/map-gl.js, which also owns zoom and pan.
    Everything on top (pins, names, outlines, card) is still drawn here. The functions for it are kV ... gStart further down.
-   Without GL (the address ends in ?map=svg, or the engine cannot start) the map is drawn here in full, as before. */
-if(void 0===window.__etimoSVG){let s=!1;
-try{s=/[?&]map=svg/.test(location.search)||"svg"===localStorage.getItem("etimo-map")}catch{}
-window.__etimoSVG=s}
-let GL=!window.__etimoSVG,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gFit=0,gMv=!1,gLon=!1;
+   The old map drawn here in SVG was retired on 2026-11-13: when the engine cannot start (no WebGL2, a failed or stalled
+   download) the map box shows a short note instead (kNoMap). GL is always on; the remaining "!GL" branches are inert. */
+let GL=!0,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gFit=0,gMv=!1,gLon=!1;
 e.querySelectorAll(":scope > svg").forEach(e=>e.remove());
 let p=null,m={};
 r&&(p=new Set,ha[r].forEach(e=>{p.add(e.L.id),(m[e.L.id]=m[e.L.id]||[]).push(e.e)}));
@@ -558,7 +556,7 @@ if(T(e)){let t=da[e.lang].b;
 return[t[0]*M+C[0],t[1]*M+C[1],t[2]*M+C[0],t[3]*M+C[1]]}
 return n=(t=F(e)).map(e=>e[0]),[Math.min(...n),Math.min(...r=t.map(e=>e[1])),Math.max(...n),Math.max(...r)]}
 let H=E.append("g").attr("class","adm");
-GL||import("./regional-layer.js?v=41").then(({attachRegionalEvidence})=>attachRegionalEvidence({host:e,parent:E,path:z,current:()=>nt,languages:x,color:Vf,tooltip:Y,hideTooltip:J})).catch(error=>console.warn("Regional evidence unavailable",error));
+
 (!ff&&(ff=new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e)).then(()=>fetch("data/today.json")).then(e=>e.json()).then(e=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
 return[...t,...n].forEach(e=>{e.bb=pu(e)}),hf={t:e,R:t,C:n,mesh:af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c)}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),bt(),kKeys())});
 try{new ResizeObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t),new MutationObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t,{attributes:!0,attributeFilter:["hidden"]})}catch{}
@@ -611,7 +609,7 @@ A.selectAll("path").on("pointermove",(e,t)=>{if(!vt())return e.pointerType&&"mou
 let X=!1,ee={},te=null,ne={},re={},ae=null,ie=null,se=[],oe=new Set;
 function le(e){let t,n,r,a=kPl(e);
 if(!a)return null;
-let i="de"===ya(),s=a.r?i?a.r.properties.nd:a.r.properties.n:"",o=a.c?i?a.c.properties.nd:a.c.properties.n:"",l=a.r&&(t=a.r)&&("Crimea"===t.properties.n||"Sevastopol"===t.properties.n)?h.crimea:"";
+let s=a.r?a.r.properties.n:"",o=a.c?a.c.properties.n:"",l=a.r&&(t=a.r)&&("Crimea"===t.properties.n||"Sevastopol"===t.properties.n)?h.crimea:"";
 (r=[((n=j(e))[0]-C[0])/M,(n[1]-C[1])/M],x.filter(e=>{let t=0;
 return function(e){if(ee[e.lang])return ee[e.lang];
 let t=da[e.lang]&&da[e.lang].d,n=[];
@@ -621,7 +619,7 @@ ae=ze(e);
 if(ie=null,t)if(t.so&&pf(t.so.f,e)&&Wu(t.so.f,e))ie={nm:t.so.f.properties.n,d:t.so};
 else{let e=a.r&&a.r.properties.c+"|"+a.r.properties.n,n=a.c&&a.c.properties.c;
 ie=e&&t.r[e]?{d:t.r[e]}:n&&t.r[n]?{d:t.r[n]}:null}}
-a.r&&/^(Autonomous Republic of Crimea|Sevastopol)$/.test(a.r.properties.n)&&(o={en:"disputed",sq:"e diskutueshme",de:"umstritten",sr:"sporno",sc:"спорно"}[ya()]||"disputed");
+a.r&&/^(Autonomous Republic of Crimea|Sevastopol)$/.test(a.r.properties.n)&&(o={en:"disputed",sq:"e diskutueshme",sr:"sporno",sc:"спорно"}[ya()]||"disputed");
 let u=ie&&ie.nm||s;
 return function(e,t,n,r,a){let i=(e,t)=>{let n=e.map(Na);
 return n.slice(0,t).join(", ")+(n.length>t?" +"+(n.length-t):"")},s=(e,t)=>{let n=ae&&Kf&&Kf.M[e.lang];
@@ -629,7 +627,7 @@ return!!(n&&n[t]&&n[t].some(e=>e[0]===ae._i))},MN="MNE"===(e.c||e.r)?.properties
 o.sort((e,t)=>u(e)-u(t)),l.sort((e,t)=>u(e)-u(t)),Ct={t:t||n,s:t&&n?r||n:"",hl:o,dl:l,eth:ie&&ie.d,country:(e.c||e.r)?.properties.c,countryName:e.c?.properties.n,rid:e.r?.properties.region_id,rf:e.r||null,cd:n,dd:ae&&ae.properties.n||""};
 let c="<b>"+ei(t||n)+(t&&n?"<em> · "+ei(r||n)+"</em>":"")+"</b>";
 if((o.length||l.length)&&(c+='<span class="hm">'+ei(i(o.concat(l),12))+"</span>"),ie&&ie.d){let e=ie.d.g,t=e[0];
-c+='<span class="hm eth"><i>'+ei(ie.d.y)+"</i>"+e.slice(0,4).map(e=>ei(e[0])+" "+e[1]+"%").join(" · ")+(t&&t[1]>50?'<em class="emj">'+ei(t[0])+" "+ei({en:"majority",sq:"shumicë",de:"Mehrheit",sr:"većina",sc:"већина"}[ya()]||"majority")+"</em>":t?'<em class="emj nomaj">'+ei({en:"no majority",sq:"pa shumicë",de:"keine Mehrheit",sr:"bez većine",sc:"без већине"}[ya()]||"no majority")+"</em>":"")+"</span>"}
+c+='<span class="hm eth"><i>'+ei(ie.d.y)+"</i>"+e.slice(0,4).map(e=>ei(e[0])+" "+e[1]+"%").join(" · ")+(t&&t[1]>50?'<em class="emj">'+ei(t[0])+" "+ei({en:"majority",sq:"shumicë",sr:"većina",sc:"већина"}[ya()]||"majority")+"</em>":t?'<em class="emj nomaj">'+ei({en:"no majority",sq:"pa shumicë",sr:"bez većine",sc:"без већине"}[ya()]||"no majority")+"</em>":"")+"</span>"}
 if(nt&&!o.includes(nt)&&!l.includes(nt)){let t=ne[nt.lang],n=t&&(t.home[0]||t.dia[0]||{}).d?ae:e.r||e.c;
 t&&n&&(t.home.some(e=>e.f===n)?c+='<span class="hm">'+ei(Na(nt))+" · "+ei(Xf("home"))+"</span>":t.dia.some(e=>e.f===n)&&(c+='<span class="hm">'+ei(Na(nt))+"</span>"))}
 return c}(a,ae&&ae.properties.n||u,o,ae&&u?u:l,r)}
@@ -668,10 +666,10 @@ let e={type:"FeatureCollection",features:Ff.lp.filter(d)},t=z(e)||"",n=z(af(Ff.t
 wt.attr("d",t),xt.attr("d",n),_t||(_t=E.select("path.tland"),qt=_t.empty()?null:_t.attr("d")),_t&&qt&&_t.attr("d",t),Et=s}finally{j.clipExtent(h)}}
 function me(){return!p&&!(!window.matchMedia||!matchMedia("(min-width: 64rem)").matches)}
 function ge(){return me()&&t&&!t.hidden&&t.classList.contains("kpanel")?t.offsetWidth+12:0}
-function ve(e){let t={en:{rg:"Area",lh:"Languages here",pl:"Places",kin:"Kinship",maj:"majority",nomaj:"No group has a majority",lin:"Lineage",cen:"Home region"},sq:{rg:"Zona",lh:"Gjuhët këtu",pl:"Vende",kin:"Afërsia",maj:"shumicë",nomaj:"Asnjë grup nuk ka shumicë",lin:"Prejardhja",cen:"Rajoni"},de:{rg:"Gebiet",lh:"Sprachen hier",pl:"Orte",kin:"Verwandtschaft",maj:"Mehrheit",nomaj:"Keine Gruppe hat die Mehrheit",lin:"Abstammung",cen:"Heimatregion"},sr:{rg:"Oblast",lh:"Jezici ovde",pl:"Mesta",kin:"Srodstvo",maj:"većina",nomaj:"Nijedna grupa nema većinu",lin:"Poreklo",cen:"Matična oblast"},sc:{rg:"Област",lh:"Језици овде",pl:"Места",kin:"Сродство",maj:"већина",nomaj:"Ниједна група нема већину",lin:"Порекло",cen:"Матична област"}};
+function ve(e){let t={en:{rg:"Area",lh:"Languages here",pl:"Places",kin:"Kinship",maj:"majority",nomaj:"No group has a majority",lin:"Lineage",cen:"Home region"},sq:{rg:"Zona",lh:"Gjuhët këtu",pl:"Vende",kin:"Afërsia",maj:"shumicë",nomaj:"Asnjë grup nuk ka shumicë",lin:"Prejardhja",cen:"Rajoni"},sr:{rg:"Oblast",lh:"Jezici ovde",pl:"Mesta",kin:"Srodstvo",maj:"većina",nomaj:"Nijedna grupa nema većinu",lin:"Poreklo",cen:"Matična oblast"},sc:{rg:"Област",lh:"Језици овде",pl:"Места",kin:"Сродство",maj:"већина",nomaj:"Ниједна група нема већину",lin:"Порекло",cen:"Матична област"}};
 return(t[ya()]||t.en)[e]||t.en[e]}
 function be(e,t){return'<button type="button" class="prow" data-sel="'+e.id+'"><i class="pdot" style="background:'+(Vf(e)||"")+'"></i><span class="prn"><b>'+ei(Na(e))+"</b><small>"+ei(Pf(e))+"</small></span>"+"</button>"}
-function ye(e){let t={en:{rgn:"Region",spk:"Census count",st:"Status",go:"Words",more:"Details",near:"Nearby in this family",pl:"Places",hint:"Tap a place to see who speaks there"},sq:{rgn:"Rajoni",spk:"Regjistrimi",st:"Statusi",go:"Fjalët",more:"Detaje",near:"Afër në këtë familje",pl:"Vende",hint:"Prek një vend për të parë kush flet atje"},de:{rgn:"Region",spk:"Zensus",st:"Status",go:"Wörter",more:"Details",near:"In der Nähe, gleiche Familie",pl:"Orte",hint:"Ort antippen, um die Sprachen dort zu sehen"},sr:{rgn:"Oblast",spk:"Popis",st:"Status",go:"Reči",more:"Detalji",near:"U blizini, ista porodica",pl:"Mesta",hint:"Dodirni mesto da vidiš ko tamo govori"},sc:{rgn:"Област",spk:"Попис",st:"Статус",go:"Речи",more:"Детаљи",near:"У близини, иста породица",pl:"Места",hint:"Додирни место да видиш ко тамо говори"}};
+function ye(e){let t={en:{rgn:"Region",spk:"Census count",st:"Status",go:"Words",more:"Details",near:"Nearby in this family",pl:"Places",hint:"Tap a place to see who speaks there"},sq:{rgn:"Rajoni",spk:"Regjistrimi",st:"Statusi",go:"Fjalët",more:"Detaje",near:"Afër në këtë familje",pl:"Vende",hint:"Prek një vend për të parë kush flet atje"},sr:{rgn:"Oblast",spk:"Popis",st:"Status",go:"Reči",more:"Detalji",near:"U blizini, ista porodica",pl:"Mesta",hint:"Dodirni mesto da vidiš ko tamo govori"},sc:{rgn:"Област",spk:"Попис",st:"Статус",go:"Речи",more:"Детаљи",near:"У близини, иста породица",pl:"Места",hint:"Додирни место да видиш ко тамо говори"}};
 return(t[ya()]||t.en)[e]||t.en[e]}
 let ke={},we=[],xe=null,je=null;
 function Se(e,t,n){let r=getComputedStyle(document.documentElement),a=r.getPropertyValue("--bg").trim(),i=r.getPropertyValue("--ink").trim(),s=parseInt((a||"#fff").replace("#","").slice(0,2),16)>128?.94:.7,o=2*Math.PI/(e.x1-e.x0||1),l=e.x0,u=e.descendants().filter(t=>t!==e),c=Math.min(2,Math.max(1,...u.filter(e=>!e.data.L).map(t=>t.depth-e.depth))),d=150,h=54/c,f=lh().padAngle(.006).padRadius(80).cornerRadius(2.5),p="",m="",g=[],v=!e.depth,b=n&&n.size,y="km"+Math.random().toString(36).slice(2,7),k=document.createElement("canvas").getContext("2d"),w=(e,t,n,r)=>(k.font=n+" "+t+"px Manrope, system-ui, sans-serif",k.measureText(e).width+r*t*e.length),x=(e,t,n,r,a,i)=>{for(let s=t;s>=n;s-=.25)if(w(e,s,a,i)<=r)return s;
@@ -788,7 +786,7 @@ let n=function(e){if(!hf||!da[e.lang])return null;
 let t=ne[e.lang];
 if(t)return t;
 let n=e=>{let t=e.properties;
-return"de"===ya()&&t.nd||t.n},r={};
+return t.n},r={};
 hf.C.forEach(e=>{r[e.properties.c]=n(e)});
 let a=(t,a)=>{let i=ue(t),s=new Map,o=0;
 if(i.length){let e=1e9,t=1e9,n=-1e9,r=-1e9;
@@ -816,11 +814,11 @@ let kRgP=null,kRgV=null,kRgK=0,kRgO=[],kRgL=null;
 function kRgD(){return kRgP||(kRgP=fetch("data/region-langs.json").then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(D=>kRgV=D).catch(()=>(kRgP=null,null)))}
 function kRgT(k){let T={en:{find:"Find a region",rs:"Regions",langs:"languages",lang1:"language",more:"more",ppl:"people",none:"No census figures for this area yet",also:"Also on the map",cen:"Census",multi:"more than one answer possible"},
 sq:{find:"Gjej një rajon",rs:"Rajonet",langs:"gjuhë",lang1:"gjuhë",more:"të tjera",ppl:"veta",none:"Ende pa shifra regjistrimi për këtë zonë",also:"Edhe në hartë",cen:"Regjistrimi",multi:"lejohej më shumë se një përgjigje","mother tongue":"gjuha amtare","home language":"gjuha në shtëpi","everyday language":"gjuha e përditshme","main language at home":"gjuha kryesore në shtëpi",language:"gjuha"},
-de:{find:"Region suchen",rs:"Regionen",langs:"Sprachen",lang1:"Sprache",more:"weitere",ppl:"Personen",none:"Für dieses Gebiet noch keine Zensuszahlen",also:"Auch auf der Karte",cen:"Zensus",multi:"Mehrfachantworten möglich","mother tongue":"Muttersprache","home language":"Sprache zu Hause","everyday language":"Umgangssprache","main language at home":"Hauptsprache zu Hause",language:"Sprache"},
+
 sr:{find:"Pronađi oblast",rs:"Oblasti",langs:"jezika",lang1:"jezik",more:"još",ppl:"osoba",none:"Za ovu oblast još nema podataka popisa",also:"Takođe na mapi",cen:"Popis",multi:"moguće više odgovora","mother tongue":"maternji jezik","home language":"jezik u kući","everyday language":"svakodnevni jezik","main language at home":"glavni jezik u kući",language:"jezik"},
 sc:{find:"Пронађи област",rs:"Области",langs:"језика",lang1:"језик",more:"још",ppl:"особа",none:"За ову област још нема података пописа",also:"Такође на мапи",cen:"Попис",multi:"могуће више одговора","mother tongue":"матерњи језик","home language":"језик у кући","everyday language":"свакодневни језик","main language at home":"главни језик у кући",language:"језик"}};
 return(T[ya()]||T.en)[k]||T.en[k]||k}
-function kRgF(v,d){try{return new Intl.NumberFormat({sq:"sq",de:"de",sr:"sr-Latn",sc:"sr-Cyrl"}[ya()]||"en",{maximumFractionDigits:d}).format(v)}catch{return String(v)}}
+function kRgF(v,d){try{return new Intl.NumberFormat({sq:"sq",sr:"sr-Latn",sc:"sr-Cyrl"}[ya()]||"en",{maximumFractionDigits:d}).format(v)}catch{return String(v)}}
 function kRgS(p){return null==p?"":p<.05?"<"+kRgF(.1,1)+"%":kRgF(p,p>=10?0:1)+"%"}
 /* The region's own wheel, drawn like the site's wheel: families inside, languages outside, each slice as large as its
    share (equal slices when the region has no figures; the middle then gives the number of languages). Languages that are
@@ -881,7 +879,7 @@ inR=new Set(rows.filter(o=>o.L).map(o=>o.L.id)),rest=n.filter(l=>!inR.has(l.id))
 lit=[...new Set(rows.filter(o=>o.L&&(null==o.p||o.p>=1)).map(o=>o.L).concat(n))],
 top=l=>($f(l.id)||{ancestors:()=>[]}).ancestors().find(a=>1===a.depth),fams=new Set(lit.map(top).filter(Boolean)),
 a=1===fams.size?[...fams][0]:lit[0]&&top(lit[0])||Af(),
-De="de"===ya(),nm=G=>(De?G.properties.nd:G.properties.n)||G.properties.n||"",
+nm=G=>G.properties.n||"",
 O=P?hf.R.filter(G=>G.properties.c===P.c&&nm(G)).sort((A,C)=>nm(A).localeCompare(nm(C))):[],
 rN=F?nm(F):"",chev='<svg class="rgv" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>',
 sel=O.length>1?'<select class="rgsel" aria-label="'+ei(kRgT("rs")+(e.cd?" · "+e.cd:""))+'">'+O.map((G,i)=>'<option value="'+i+'"'+(G===F?" selected":"")+">"+ei(nm(G))+"</option>").join("")+"</select>":"",
@@ -1169,12 +1167,12 @@ for(let[a,c]of I)for(let u of[.5,.25,.75,.1,.9]){let t=[a+(c-a)*u,Y0];if(de(t)==
 return Kf&&Kf.E?F.__in=o:o}
 function kKeys(){e.querySelectorAll(".kkeys").forEach(n=>n.remove());
 if(!hf)return;
-let D="de"===ya(),nm=F=>(D?F.properties.nd:F.properties.n)||F.properties.n||"",cn={},has=new Set(hf.R.map(r=>r.properties.c)),named=new Set(hf.C.filter(c=>has.has(c.properties.c)).map(c=>c.properties.n));
-hf.C.forEach(c=>{cn[c.properties.c]=nm(c)});
-let L=hf.R.filter(nm).map(r=>({F:r,c:cn[r.properties.c]||r.properties.c||"",n:nm(r)})).concat(hf.C.filter(c=>!has.has(c.properties.c)&&!named.has(c.properties.n)&&nm(c)).map(c=>({F:c,c:nm(c),n:""})));
-L.sort((a,c)=>a.c.localeCompare(c.c)||a.n.localeCompare(c.n)),L.forEach(it=>it.l=it.n?it.n+", "+it.c:it.c);
+let nm=F=>F.properties.n||"",cn={},has=new Set(hf.R.map(r=>r.properties.c)),named=new Set(hf.C.filter(c=>has.has(c.properties.c)).map(c=>c.properties.n));
+hf.C.forEach(c=>{cn[c.properties.c]=Ma({place:nm(c)})});
+let L=hf.R.filter(nm).map(r=>({F:r,c:cn[r.properties.c]||r.properties.c||"",n:nm(r)})).concat(hf.C.filter(c=>!has.has(c.properties.c)&&!named.has(c.properties.n)&&nm(c)).map(c=>({F:c,c:Ma({place:nm(c)}),n:""})));
+L.sort((a,c)=>a.c.localeCompare(c.c,Ia())||a.n.localeCompare(c.n,Ia())),L.forEach(it=>it.l=it.n?it.n+", "+it.c:it.c);
 let G=document.createElement("div"),fr=document.createDocumentFragment(),cur=0,ta="",taT=0;
-G.className="kkeys",G.setAttribute("role","group"),G.setAttribute("aria-label",{en:"Places on the map",sq:"Vende në hartë",de:"Orte auf der Karte",sr:"Mesta na mapi",sc:"Места на мапи"}[ya()]||"Places on the map");
+G.className="kkeys",G.setAttribute("role","group"),G.setAttribute("aria-label",{en:"Places on the map",sq:"Vende në hartë",sr:"Mesta na mapi",sc:"Места на мапи"}[ya()]||"Places on the map");
 L.forEach((it,i)=>{let B=document.createElement("button");
 B.type="button",B.tabIndex=i?-1:0,B.textContent=it.l,B.dataset.i=i,fr.appendChild(B)}),G.appendChild(fr);
 /* a place is checked when the keyboard is about to land on it (kIn); one a click can never open is skipped and hidden */
@@ -1204,11 +1202,22 @@ h?(Y({clientX:r.left+T.applyX(P[0]),clientY:r.top+T.applyY(P[1])},h),De(de(t))):
 if(X>40&&X<b-40&&Yp>64&&Yp<y-40-w())return show();
 let TT=Fh.translate(b/2-T.k*P[0],top-T.k*P[1]).scale(T.k);
 GL?kGo(TT,f?0:380):q.transition().duration(f?0:380).ease(Po).call(Dt.transform,TT),setTimeout(show,f?40:440)}
-function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start, the map is drawn the old way",err),window.__etimoSVG=!0,GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),a.fail&&a.fail())},/* a start that takes longer than 20 seconds (a stalled download) also goes back to the old map */
+/* The map's fallback (v74 in src/styles/v66.css): a short note over the map box when the engine cannot start, with the two
+   ways on that still work (the Languages wheel, and trying again). The rest of the site does not need the map. */
+function kNoMap(box){if(!box||box.querySelector(".knomap"))return;
+let T={en:["The map can't be shown in this browser","It needs WebGL 2, the browser's graphics. The languages and the dictionary work as usual.","Languages","Try again"],
+sq:["Harta nuk mund të shfaqet në këtë shfletues","Kërkon WebGL 2, grafikën e shfletuesit. Gjuhët dhe fjalori punojnë si zakonisht.","Gjuhët","Provo përsëri"],
+sr:["Mapa ne može da se prikaže u ovom pregledaču","Potreban je WebGL 2, grafika pregledača. Jezici i rečnik rade kao i obično.","Jezici","Pokušaj ponovo"]}[ya()]||[],
+E0=["The map can't be shown in this browser","It needs WebGL 2, the browser's graphics. The languages and the dictionary work as usual.","Languages","Try again"],
+t=i=>ei(Ea(T[i]||E0[i])),d=document.createElement("div");
+d.className="knomap",d.setAttribute("role","status"),
+d.innerHTML='<div class="knm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14"/></svg><h3>'+t(0)+"</h3><p>"+t(1)+'</p><div class="knb"><button type="button" class="knl">'+t(2)+'</button><button type="button" class="knr">'+t(3)+"</button></div></div>",
+d.querySelector(".knl").onclick=()=>Ja("languages"),d.querySelector(".knr").onclick=()=>location.reload(),box.appendChild(d)}
+function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start",err),GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),kNoMap(e))},/* a start that takes longer than 20 seconds (a stalled download) also ends in the note */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
 (window.__etimoMap?Promise.resolve(window.__etimoMap):import("./map-gl.js?v=8").then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
-GM=g,GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
+GM=g,e.querySelectorAll("canvas[aria-label]").forEach(c=>c.setAttribute("aria-label",Ea({sq:"Harta e gjuhëve",sr:"Mapa jezika"}[ya()]||"Map of languages"))),GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0),gLmv(!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),gLmv(!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),kTick(kV()),bt()}).catch(gBad)}
 /* GL: the pins are drawn by the engine (site/map-gl.js: a disc with the language's colour at its core), so zooming does not redraw 210 of them on every frame.
    The pin elements stay in the page, unseen, for pointer and keyboard and for the rules that fade, dim or hide a pin (style sheet and classes, unchanged).
@@ -1326,12 +1335,12 @@ function kEnd(){kPaint(kV()),q.classed("zooming",!1),bt()}
 /* credits for the map's data (both maps): one small line in the bottom left corner; only the link takes the pointer */
 /* map credits: one line on desktop; on phones a small (i) in the map's lower left corner that starts open, folds away at the
    first touch of the map or while a card is open, and opens again when tapped (styles: v65.css) */
-if(!e.querySelector(".mcred")){e.insertAdjacentHTML("beforeend",'<div class="mcred open"><button type="button" class="mcb" aria-expanded="true" aria-label="'+({en:"Map credits",sq:"Burimet e hartës",de:"Kartennachweise",sr:"Izvori mape",sc:"Извори мапе"}[ya()]||"Map credits")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v6M12 7.6v.01"/></svg></button><p class="mct"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · © EuroGeographics for the administrative boundaries · Relief: Terrain Tiles (USGS, NOAA, Copernicus)</p></div>');
+if(!e.querySelector(".mcred")){e.insertAdjacentHTML("beforeend",'<div class="mcred open"><button type="button" class="mcb" aria-expanded="true" aria-label="'+({en:"Map credits",sq:"Burimet e hartës",sr:"Izvori mape",sc:"Извори мапе"}[ya()]||"Map credits")+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v6M12 7.6v.01"/></svg></button><p class="mct"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · © EuroGeographics for the administrative boundaries · Relief: Terrain Tiles (USGS, NOAA, Copernicus)</p></div>');
 let K=e.querySelector(".mcred"),KB=K.querySelector(".mcb"),ko=o=>{K.classList.toggle("open",o),KB.setAttribute("aria-expanded",String(o))};
 KB.onclick=ev=>{ev.stopPropagation();let o=!K.classList.contains("open")||!K.classList.contains("on")&&!!e.querySelector(":scope>.card:not([hidden])");ko(o),K.classList.toggle("on",o)},e.addEventListener("pointerdown",ev=>{K.contains(ev.target)||(ko(!1),K.classList.remove("on"))},{capture:!0,passive:!0})}
 let Rt=e.querySelector(".mreset")||(()=>{let t=e,n=document.createElement("button");
 n.type="button",n.className="mreset kreset";
-let r={en:"Reset",sq:"Rifillo",de:"Neustart",sr:"Ispočetka",sc:"Испочетка"}[ya()]||"Reset";
+let r={en:"Reset",sq:"Rifillo",sr:"Ispočetka",sc:"Испочетка"}[ya()]||"Reset";
 return n.setAttribute("aria-label",r),n.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',n.setAttribute("title",r),t.appendChild(n),n})(),Ot=null,Dt=Qh().extent([[0,0],[b,y]]).scaleExtent([.8,150]).translateExtent(function(e,t,n){let r=e.scale()/1e3,a=e.translate(),i=a[0]+-1490*r,s=a[0]+1660*r,o=a[1]+-1670*r,l=a[1]+-10*r,u=t/.55,c=n/.55,d=(i+s)/2,h=(o+l)/2;
 return s-i<u&&(i=d-u/2,s=d+u/2),l-o<c&&(o=h-c/2,l=h+c/2),[[i,o],[s,l]]}(j,b,y)).filter(e=>!(e.button||e.ctrlKey&&"wheel"!==e.type||0===String(e.type).indexOf("touch")||"touch"===e.pointerType)).on("start",()=>{clearTimeout(Mt),De(null),q.classed("zooming",!0),X=!1,J()}).on("end",()=>{Lt||kEnd()}).on("zoom",e=>kTick(e.transform));
 GL||q.call(Dt);
@@ -1483,7 +1492,7 @@ a.mapAll,
 a.mapCauc,
 a.mapDag,
 a.mapNorth;
-return(0,f.jsx)("div",{className:"view exv2"+(v?" isfs":""),children:(0,f.jsxs)("div",{className:"mapbox",ref:i,children:[t?null:(0,f.jsx)(_p,{api:o,ui:n}),(0,f.jsxs)("div",{className:"zoom",role:"group","aria-label":"Zoom",children:[(0,f.jsx)("button",{type:"button",id:"zi","aria-label":"+",children:(0,f.jsx)("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeLinecap:"round","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M12 4.5v15M4.5 12h15"})})}),(0,f.jsx)("button",{type:"button",id:"zo","aria-label":"−",children:(0,f.jsx)("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeLinecap:"round","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M4.5 12h15"})})})]}),t?(0,f.jsx)("div",{className:"wcar",id:"wc",role:"listbox","aria-label":La(t)}):null,(0,f.jsx)("div",{className:"card mcard",ref:s,hidden:!0,"aria-live":"polite"})]})})}
+return(0,f.jsx)("div",{className:"view exv2"+(v?" isfs":""),children:(0,f.jsxs)("div",{className:"mapbox",ref:i,children:[t?null:(0,f.jsx)(_p,{api:o,ui:n}),(0,f.jsxs)("div",{className:"zoom",role:"group","aria-label":Ea({sq:"Zmadhimi",sr:"Zumiranje"}[ya()]||"Zoom"),children:[(0,f.jsx)("button",{type:"button",id:"zi","aria-label":Ea({sq:"Zmadho",sr:"Uvećaj"}[ya()]||"Zoom in"),children:(0,f.jsx)("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeLinecap:"round","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M12 4.5v15M4.5 12h15"})})}),(0,f.jsx)("button",{type:"button",id:"zo","aria-label":Ea({sq:"Zvogëlo",sr:"Umanji"}[ya()]||"Zoom out"),children:(0,f.jsx)("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeLinecap:"round","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M4.5 12h15"})})})]}),t?(0,f.jsx)("div",{className:"wcar",id:"wc",role:"listbox","aria-label":La(t)}):null,(0,f.jsx)("div",{className:"card mcard",ref:s,hidden:!0,"aria-live":"polite"})]})})}
 let Fp=[1,1.1,1.2,1.3];
 function Bp(){let e=1,
 t=!1,
@@ -1571,7 +1580,7 @@ else if("home"===b.v)E=(0,f.jsx)(fp,{ui:a},"home"+h);
 else if("cat"===b.v)E=(0,f.jsx)(gp,{cat:b.cat});
 else{let e="word"===b.v?(0,f.jsx)(xp,{L:b.L,e:b.e},n):"concept"===b.v?(0,f.jsx)(yp,{c:b.c},b.c):"lang"===b.v?(0,f.jsx)(kp,{L:b.L,d:b.d},b.L.id+(null!=b.d?"d"+b.d:"")):"langs"===b.v?(0,f.jsx)(Pp,{ui:a,theme:s}):"search"===b.v?(0,f.jsx)(Jh,{},"s"+h):"map"===b.v?(0,f.jsx)(Dp,{selId:b.sel||null,conc:b.conc||null,ui:a,theme:s},(b.sel||"")+(b.conc||"")):(0,f.jsx)(wp,{});
 E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("main",{id:"app",children:e},n+a)})}
-return(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"barw",children:(0,f.jsxs)("div",{className:"bar",children:[(0,f.jsxs)("div",{className:"bl",children:["home"===b.v?(0,f.jsx)("button",{type:"button",className:"ib",key:"th","aria-label":y.night,onClick:()=>w("dark"!==s),children:(0,f.jsx)(si,{n:"dark"===s?"sun":"moon"})}):null,j?(0,f.jsx)("button",{type:"button",className:"ib","aria-label":y.back,onClick:()=>{h>1&&history.length>1?history.back():Ja("lang"===b.v||b.sel?"languages":b.conc?"m-"+oa(b.conc):"words")},children:(0,f.jsx)(si,{n:"back"})}):null]}),(0,f.jsx)("h1",{children:(0,f.jsx)(Op,{})}),(0,f.jsxs)("div",{className:"br",children:[S?(0,f.jsxs)("button",{type:"button",className:"ib cpb",onClick:()=>v(S()),children:[(0,f.jsx)(si,{n:"copy"}),(0,f.jsx)("span",{children:g?y.copied:y.copyList})]}):null]})]})}),E,(0,f.jsx)("nav",{className:"tabbar","aria-label":"Main",children:(0,f.jsx)("div",{className:"in",children:[["search","book",y.searchT],["map","map",y.nav.map],["words","words",y.nav.home],["lang","wheel",y.nav.lang],["ui","globe",{en:"English",sq:"Shqip",de:"Deutsch",sr:"Srpski",sc:"Српски"}[a]]].map(e=>(0,f.jsxs)("button",{type:"button","aria-current":_===e[0]?"page":void 0,"aria-haspopup":"ui"===e[0]?"dialog":void 0,"aria-label":"ui"===e[0]?y.uiLang+": "+e[2]:void 0,onClick:()=>function(e){if("ui"!==e)return"search"===e?(mi.sq="",void("search"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("search"))):"words"===e?(mi.q="",mi.n=120,void("home"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("words"))):void("map"===e&&"map"===b.v&&window.__kMapHome?window.__kMapHome():Ja({map:"map",lang:"languages"}[e]));
+return(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"barw",children:(0,f.jsxs)("div",{className:"bar",children:[(0,f.jsxs)("div",{className:"bl",children:["home"===b.v?(0,f.jsx)("button",{type:"button",className:"ib",key:"th","aria-label":y.night,onClick:()=>w("dark"!==s),children:(0,f.jsx)(si,{n:"dark"===s?"sun":"moon"})}):null,j?(0,f.jsx)("button",{type:"button",className:"ib","aria-label":y.back,onClick:()=>{h>1&&history.length>1?history.back():Ja("lang"===b.v||b.sel?"languages":b.conc?"m-"+oa(b.conc):"words")},children:(0,f.jsx)(si,{n:"back"})}):null]}),(0,f.jsx)("h1",{children:(0,f.jsx)(Op,{})}),(0,f.jsxs)("div",{className:"br",children:[S?(0,f.jsxs)("button",{type:"button",className:"ib cpb",onClick:()=>v(S()),children:[(0,f.jsx)(si,{n:"copy"}),(0,f.jsx)("span",{children:g?y.copied:y.copyList})]}):null]})]})}),E,(0,f.jsx)("nav",{className:"tabbar","aria-label":"Main",children:(0,f.jsx)("div",{className:"in",children:[["search","book",y.searchT],["map","map",y.nav.map],["words","words",y.nav.home],["lang","wheel",y.nav.lang],["ui","globe",{en:"English",sq:"Shqip",sr:"Srpski",sc:"Српски"}[a]]].map(e=>(0,f.jsxs)("button",{type:"button","aria-current":_===e[0]?"page":void 0,"aria-haspopup":"ui"===e[0]?"dialog":void 0,"aria-label":"ui"===e[0]?y.uiLang+": "+e[2]:void 0,onClick:()=>function(e){if("ui"!==e)return"search"===e?(mi.sq="",void("search"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("search"))):"words"===e?(mi.q="",mi.n=120,void("home"===b.v?(p(e=>e+1),window.scrollTo(0,0)):Ja("words"))):void("map"===e&&"map"===b.v&&window.__kMapHome?window.__kMapHome():Ja({map:"map",lang:"languages"}[e]));
 u(!0)}(e[0]),children:[(0,f.jsx)(si,{n:e[1]}),(0,f.jsx)("span",{children:e[2]})]},e[0]))})}),(0,f.jsx)(an,{open:l,onOpenChange:u,children:(0,f.jsxs)(Hr,{...kSheet(u),children:[(0,f.jsx)("div",{className:"sgrab","aria-hidden":!0}),(0,f.jsx)(Wr,{className:"sr",children:y.langLabel}),(0,f.jsx)($r,{className:"sr",children:y.textSize}),(0,f.jsxs)("div",{className:"inner menu-in",children:[(0,f.jsx)("p",{className:"dh",children:y.langLabel}),[["en","English"],["sq","Shqip"]].map(e=>(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":a===e[0],onClick:()=>{k(e[0]),u(!1)},children:e[1]},e[0])),(0,f.jsx)("button",{type:"button",className:"opt",role:"menuitemradio","aria-checked":q,onClick:()=>{q||(k("sc"),u(!1))},children:"Српски"}),q?(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"sc"===a,onClick:()=>k("sc"),children:"Ћирилица"}),(0,f.jsx)("button",{type:"button","aria-checked":"sr"===a,onClick:()=>k("sr"),children:"Latinica"})]}):null,(0,f.jsx)("p",{className:"dh",children:y.textSize}),(0,f.jsx)("div",{className:"four",children:Fp.map((e,t)=>(0,f.jsx)("button",{type:"button","aria-checked":c.ts===e,style:{fontSize:15+3*t},onClick:()=>x("khl-ts",String(e)),children:"A"},e))}),(0,f.jsx)("p",{className:"dh",children:y.contrast}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.hc,onClick:()=>x("khl-hc","0"),children:y.normal}),(0,f.jsx)("button",{type:"button","aria-checked":c.hc,onClick:()=>x("khl-hc","1"),children:y.high})]}),(0,f.jsx)("p",{className:"dh",children:y.night}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":"dark"!==s,onClick:()=>w(!1),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":"dark"===s,onClick:()=>w(!0),children:y.on})]}),(0,f.jsx)("p",{className:"dh",children:y.motion}),(0,f.jsxs)("div",{className:"two",children:[(0,f.jsx)("button",{type:"button","aria-checked":!c.mo,onClick:()=>x("khl-mo","0"),children:y.off}),(0,f.jsx)("button",{type:"button","aria-checked":c.mo,onClick:()=>x("khl-mo","1"),children:y.on})]})]})]})})]})}
 Kp(),
 function(){try{let e=document.createElement("button");

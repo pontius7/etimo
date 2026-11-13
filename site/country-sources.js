@@ -6,7 +6,7 @@ const alpha3='ALB:AL BIH:BA BGR:BG HRV:HR GRC:GR XKX:XK KOS:XK MNE:ME MKD:MK ROU
 const aliases=Object.fromEntries(alpha3.split(' ').map(x=>x.split(':')));
 Object.assign(aliases,{'Bosnia and Herz.':'BA','Republic of Serbia':'RS','Czech Republic':'CZ','Türkiye':'TR','Italy':'IT','South Tyrol':'IT','Macedonia':'MK','Republic of Moldova':'MD','Russian Federation':'RU'});
 let registry, request, modal, opener;
-function label(){return ({sq:'Burimet',sr:'Izvori',sc:'Извори',de:'Quellen'})[document.documentElement.lang]||'Sources';}
+function label(){return ({sq:'Burimet',sr:'Izvori',sc:'Извори'})[document.documentElement.lang]||'Sources';}
 function load(){return request ||= fetch('data/country-sources.json').then(r=>{if(!r.ok)throw Error('Source register unavailable');return r.json();}).then(r=>{registry=r;for(const c of Object.values(r))aliases[c.country]=c.code;return r;}).catch(e=>{request=null;throw e;});}
 function countryKey(raw){return registry?.[raw]?raw:aliases[raw];}
 function sourceButton(raw){

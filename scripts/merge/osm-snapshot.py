@@ -59,10 +59,10 @@ ABSORB = {'AZ-GAR': 'AZ-BA'}
 # 2026-11-12, "at capacity"): same OSM data, whole outlines.
 BY_NOMINATIM = {'MNG', 'KGZ', 'TKM'}
 # OSM's English name without its letters (the old data had it right, but on the wrong place)
-NAME_FIX = {'MN-064': ('Govisümber', 'Gobi-Sümber-Aimag')}
+NAME_FIX = {'MN-064': 'Govisümber'}
 # The kind of unit is shown on its own (t), so it is left out of the name: 'Atyrau Region' -> 'Atyrau'
 SUFFIX = (' İnzibati Ərazisi', ' rayonu', ' Rayonu', ' şəhəri', ' Region', ' Province', ' Oblast', ' District', ' City')
-PREFIX = ('Gebiet ', 'Provinz ', 'Oblast ', 'Rajon ', 'Bezirk ', 'Region ', 'Verwaltungsgebiet ')
+PREFIX = ('Oblast ', 'Region ')
 
 
 def short(name):
@@ -226,7 +226,7 @@ def topology(shapes, arcs):
 
 
 def overpass_units(c, cc, levels, namekey, do_fetch, report):
-    """Units of a country from Overpass relations (`out geom`): (ISO code, name, German name, OSM ids, shape)."""
+    """Units of a country from Overpass relations (`out geom`): (ISO code, name, OSM ids, shape)."""
     rels = raw(f'geom-{cc}{levels}.json' if levels != '4' else f'geom-{cc}.json', query(cc, levels), do_fetch)
     if c in EXTRA:
         more = raw(f'extra-{cc}.json', '[out:json][timeout:200];rel(id:' + ','.join(map(str, EXTRA[c])) + ');out geom;', do_fetch)
@@ -294,8 +294,7 @@ def main():
         shapes = []
         for tags, ids, shp in units:
             iso = tags['ISO3166-2']
-            en = NAME_FIX[iso][0] if iso in NAME_FIX else tags.get(namekey) or tags.get('name:en') or tags.get('name')
-            de = NAME_FIX[iso][1] if iso in NAME_FIX else tags.get('name:de') if namekey == 'name:en' else None
+            en = NAME_FIX[iso] if iso in NAME_FIX else tags.get(namekey) or tags.get('name:en') or tags.get('name')
             # OSM's regions reach into the sea (territorial waters); the map's regions end at its own coastline and
             # borders, so each region is cut to the map's outline of its country
             shp = shp.intersection(land)
@@ -303,7 +302,6 @@ def main():
                 report.append(f'{c} {iso} {en}: no land inside the map outline, left out')
                 continue
             shapes.append(({'c': c, 'iso': iso, 'osm': ids, 'en': short(en), 'full': en,
-                            'de': short(de) if de else short(en), 'de_full': de or en,
                             't': kinds.get(iso, kind)}, shp))
         for part, into in ABSORB.items():
             a = next((x for x in shapes if x[0]['iso'] == part), None)

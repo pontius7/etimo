@@ -45,7 +45,7 @@ def _load():
             f'{where}: "label" must be [longitude, latitude] of where the family name sits on the map'
         sr, sq = d.get('sr') or name, d.get('sq') or name
         out[name] = {'key': key, 'light': d['light'].lower(), 'dark': d['dark'].lower(), 'label': lab,
-                     'sr': sr, 'sq': sq, 'de': d.get('de') or name,
+                     'sr': sr, 'sq': sq,
                      'sr_of': d.get('sr_of') or sr, 'sq_of': d.get('sq_of') or sq}
     return out
 

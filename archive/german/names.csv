@@ -1,0 +1,320 @@
+kind,english,german
+language,Russian,Russisch
+language,Ukrainian,Ukrainisch
+language,Belarusian,Belarussisch
+language,Polish,Polnisch
+language,Czech,Tschechisch
+language,Slovak,Slowakisch
+language,Slovene,Slowenisch
+language,Croatian,Kroatisch
+language,Serbian,Serbisch
+language,Bosnian,Bosnisch
+language,Montenegrin,Montenegrinisch
+language,Bulgarian,Bulgarisch
+language,Macedonian,Mazedonisch
+language,Kashubian,Kaschubisch
+language,Rusyn,Russinisch
+language,Upper Sorbian,Obersorbisch
+language,Lower Sorbian,Niedersorbisch
+language,Persian,Persisch
+language,Northern Kurdish,Nordkurdisch
+language,Central Kurdish,Zentralkurdisch
+language,Southern Kurdish,Südkurdisch
+language,Pashto,Paschtu
+language,Ossetic,Ossetisch
+language,Digor Ossetic,Digorisch-Ossetisch
+language,Tat,Tatisch
+language,Tati,Tati
+language,Balochi,Belutschisch
+language,Hawrami,Hawrami
+language,Bakhtiari,Bachtiarisch
+language,Lari,Lari
+language,Mazanderani,Masanderanisch
+language,Wakhi,Wachi
+language,Sarikoli,Sarikoli
+language,Yaghnobi,Jaghnobi
+language,Kumzari,Kumzari
+language,Albanian,Albanisch
+language,Gheg Albanian,Gegisch
+language,Arbëresh,Arbëresh
+language,Greek,Griechisch
+language,Cypriot Greek,Zyperngriechisch
+language,Pontic Greek,Pontisch
+language,Cappadocian Greek,Kappadokisch-Griechisch
+language,Griko,Griko
+language,French,Französisch
+language,Italian,Italienisch
+language,Spanish,Spanisch
+language,Portuguese,Portugiesisch
+language,Romanian,Rumänisch
+language,Catalan,Katalanisch
+language,Friulian,Friaulisch
+language,Ladin,Ladinisch
+language,Milanese,Mailändisch
+language,Neapolitan,Neapolitanisch
+language,Sardinian,Sardisch
+language,Walloon,Wallonisch
+language,Franco-Provençal,Frankoprovenzalisch
+language,Megleno-Romanian,Meglenorumänisch
+language,Adyghe,Adygeisch
+language,Kabardian,Kabardinisch
+language,Abkhaz,Abchasisch
+language,Abaza,Abasinisch
+language,Ubykh,Ubychisch
+language,Svan,Swanisch
+language,Mingrelian,Mingrelisch
+language,Laz,Lasisch
+language,Old Georgian,Altgeorgisch
+language,Southern Akhvakh,Südachwachisch
+language,Chirag,Tschiragisch
+language,Kubachi,Kubatschi
+language,Kaitag,Kaitagisch
+language,Southwestern Dargwa,Südwestdarginisch
+language,Qushan Aghul,Kuschan-Agulisch
+language,Aghwan,Aghwanisch (Kaukasisch-Albanisch)
+language,Gagauz,Gagausisch
+language,South Azerbaijani,Südaserbaidschanisch
+language,Khorasan Turkic,Chorasantürkisch
+language,Qashqa'i,Kaschkai
+language,Rumelian Turkish,Rumelientürkisch
+language,Salar,Salarisch
+language,Uyghur,Uigurisch
+language,Ili Turki,Ili-Türki
+language,Ainu (China),Äynu (China)
+language,Southern Uzbek,Südusbekisch
+language,Chagatai,Tschagataisch
+language,Siberian Tatar,Sibirisch-Tatarisch
+language,Krymchak,Krimtschakisch
+language,Kipchak Urum,Urum (kiptschakisch)
+language,Karaim,Karaimisch
+language,Southern Altai,Südaltaisch
+language,Pecheneg,Petschenegisch
+language,Dolgan,Dolganisch
+language,Northern Altai,Nordaltaisch
+language,Lower Chulym Turkic,Unteres Tschulym-Türkisch
+language,Taiga Sayan Turkic,Taiga-Sajan-Türkisch
+language,Khakas,Chakassisch
+language,Mrassu Shor-Tutal,Mrassu-Schorisch (Tutal)
+language,Khalaj,Chaladsch
+language,West Yugur,Westyugurisch
+language,Old Turkic,Alttürkisch
+language,Bolgarian,Wolgabulgarisch
+language,Dagur,Daurisch
+language,Mogholi,Moghol
+language,Middle Mongol,Mittelmongolisch
+language,Buryat of China,Burjatisch (China)
+language,Buryat of Mongolia,Burjatisch (Mongolei)
+language,Peripheral Mongolian,Peripheres Mongolisch
+language,Khamnigan Mongol,Chamnigan-Mongolisch
+language,East Yugur,Ostyugurisch
+language,Bonan,Bonan
+language,Dongxiang,Dongxiang
+language,Kangjia,Kangjia
+language,Mangghuer,Mangghuer
+language,Mongghul,Mongghul
+language,Aghul,Agulisch
+language,Akhvakh,Achwachisch
+language,Andi,Andisch
+language,Archi,Artschinisch
+language,Avar,Awarisch
+language,Azerbaijani,Aserbaidschanisch
+language,Bagvalal,Bagwalalisch
+language,Bashkir,Baschkirisch
+language,Bezhta,Beschtinisch
+language,Botlikh,Botlichisch
+language,Budukh,Buduchisch
+language,Buryat,Burjatisch
+language,Chamalal,Tschamalalisch
+language,Chechen,Tschetschenisch
+language,Chuvash,Tschuwaschisch
+language,Crimean Tatar,Krimtatarisch
+language,Dargwa,Darginisch
+language,Enets,Enzisch
+language,Erzya,Ersjanisch
+language,Estonian,Estnisch
+language,Finnish,Finnisch
+language,Georgian,Georgisch
+language,Godoberi,Godoberisch
+language,Hill Mari,Bergmari
+language,Hinuq,Hinuchisch
+language,Hungarian,Ungarisch
+language,Hunzib,Hunsibisch
+language,Inari Sami,Inarisamisch
+language,Ingush,Inguschisch
+language,Kalmyk,Kalmückisch
+language,Karachay-Balkar,Karatschai-Balkarisch
+language,Karakalpak,Karakalpakisch
+language,Karata,Karatinisch
+language,Karelian,Karelisch
+language,Kazakh,Kasachisch
+language,Khanty,Chantisch
+language,Khinalug,Chinalugisch
+language,Khwarshi,Chwarschinisch
+language,Kildin Sami,Kildinsamisch
+language,Komi,Komi-Syrjänisch
+language,Komi-Permyak,Komi-Permjakisch
+language,Kryz,Krysisch
+language,Kumyk,Kumykisch
+language,Kyrgyz,Kirgisisch
+language,Lak,Lakisch
+language,Lezgian,Lesgisch
+language,Livonian,Livisch
+language,Livvi Karelian,Livvi-Karelisch
+language,Lule Sami,Lulesamisch
+language,Mansi,Mansisch
+language,Mari,Mari
+language,Moksha,Mokschanisch
+language,Mongolian,Mongolisch
+language,Nenets,Nenzisch
+language,Nganasan,Nganasanisch
+language,Nogai,Nogaisch
+language,Northern Sami,Nordsamisch
+language,Rutul,Rutulisch
+language,Selkup,Selkupisch
+language,Skolt Sami,Skoltsamisch
+language,Southern Sami,Südsamisch
+language,Tabasaran,Tabassaranisch
+language,Tatar,Tatarisch
+language,Tindi,Tindisch
+language,Tsakhur,Zachurisch
+language,Tsez,Tsesisch
+language,Tsova-Tush,Batsisch (Zowa-Tuschisch)
+language,Turkish,Türkisch
+language,Turkmen,Turkmenisch
+language,Tuvan,Tuwinisch
+language,Udi,Udisch
+language,Udmurt,Udmurtisch
+language,Uzbek,Usbekisch
+language,Veps,Wepsisch
+language,Yakut,Jakutisch
+place,Russia,Russland
+place,Ukraine,Ukraine
+place,Belarus,Belarus
+place,Poland,Polen
+place,Czechia,Tschechien
+place,Slovakia,Slowakei
+place,Slovenia,Slowenien
+place,Croatia,Kroatien
+place,Serbia,Serbien
+place,Bosnia and Herzegovina,Bosnien und Herzegowina
+place,Montenegro,Montenegro
+place,Bulgaria,Bulgarien
+place,North Macedonia,Nordmazedonien
+place,"Pomerania, Poland","Pommern, Polen"
+place,Carpathians,Karpaten
+place,"Lusatia, Germany","Lausitz, Deutschland"
+place,Iran,Iran
+place,Kurdistan,Kurdistan
+place,Iran/Iraq,Iran/Irak
+place,Afghanistan/Pakistan,Afghanistan/Pakistan
+place,North Ossetia,Nordossetien
+place,Dagestan/Azerbaijan,Dagestan/Aserbaidschan
+place,Balochistan,Belutschistan
+place,Pamir,Pamir
+place,Tajikistan,Tadschikistan
+place,Oman,Oman
+place,Albania,Albanien
+place,Kosovo/N Albania,Kosovo/Nordalbanien
+place,Italy,Italien
+place,Greece,Griechenland
+place,Cyprus,Zypern
+place,Black Sea diaspora,Schwarzmeer-Diaspora
+place,Cappadocia / Greece,Kappadokien / Griechenland
+place,"Salento & Calabria, Italy","Salento & Kalabrien, Italien"
+place,France,Frankreich
+place,Spain,Spanien
+place,Portugal,Portugal
+place,Romania,Rumänien
+place,Catalonia,Katalonien
+place,Friuli,Friaul
+place,Dolomites,Dolomiten
+place,Lombardy,Lombardei
+place,Campania,Kampanien
+place,Sardinia,Sardinien
+place,Wallonia,Wallonien
+place,Savoy/Aosta/Romandy,Savoyen/Aosta/Romandie
+place,Meglen,Moglena
+place,Adygea,Adygeja
+place,Kabardino-Balkaria,Kabardino-Balkarien
+place,Abkhazia,Abchasien
+place,Karachay-Cherkessia,Karatschai-Tscherkessien
+place,Black Sea coast (Sochi),Schwarzmeerküste (Sotschi)
+place,Svaneti,Swanetien
+place,Samegrelo,Samegrelo
+place,Rize & Artvin,Rize & Artvin
+place,Kartli,Kartlien
+place,Caucasian Albania,Kaukasisch-Albanien
+place,Gagauzia,Gagausien
+place,Iranian Azerbaijan,Iranisch-Aserbaidschan
+place,Khorasan,Chorasan
+place,Fars,Fars
+place,Balkans,Balkan
+place,Qinghai,Qinghai
+place,Xinjiang,Xinjiang
+place,Afghanistan,Afghanistan
+place,Central Asia,Zentralasien
+place,Tsalka,Zalka
+place,Lithuania,Litauen
+place,Altai Republic,Republik Altai
+place,Pontic steppe,Pontische Steppe
+place,Chulym River,Fluss Tschulym
+place,Tofalaria,Tofalarien
+place,Khakassia,Chakassien
+place,Mountain Shoria,Bergschorien
+place,Central Iran,Zentraliran
+place,Gansu,Gansu
+place,Orkhon Valley,Orchon-Tal
+place,Volga Bulgaria,Wolgabulgarien
+place,Inner Mongolia,Innere Mongolei
+place,Mongol Empire,Mongolisches Reich
+place,Hulunbuir,Hulun Buir
+place,Transbaikalia,Transbaikalien
+place,Azerbaijan,Aserbaidschan
+place,Bashkortostan,Baschkortostan
+place,Buryatia,Burjatien
+place,Chechnya,Tschetschenien
+place,Chuvashia,Tschuwaschien
+place,Crimea,Krim
+place,Dagestan,Dagestan
+place,Dagestan/Stavropol,Dagestan/Stawropol
+place,Estonia,Estland
+place,Finland,Finnland
+place,Georgia,Georgien
+place,Hungary,Ungarn
+place,Ingushetia,Inguschetien
+place,Kalmykia,Kalmückien
+place,Karachay-Cherkessia/Kabardino-Balkaria,Karatschai-Tscherkessien/Kabardino-Balkarien
+place,Karakalpakstan,Karakalpakstan
+place,Karelia,Karelien
+place,Karelia/Leningrad,Karelien/Leningrad
+place,Kazakhstan,Kasachstan
+place,Khanty-Mansi Okrug,Chanten-Mansen-Okrug
+place,Kola Peninsula,Halbinsel Kola
+place,Komi Republic,Republik Komi
+place,Kyrgyzstan,Kirgisistan
+place,Latvia,Lettland
+place,Mari El,Mari El
+place,Mongolia,Mongolei
+place,Mordovia,Mordwinien
+place,Nenets/Yamal,Nenzen/Jamal
+place,Norway/Sweden/Finland,Norwegen/Schweden/Finnland
+place,Perm Krai,Region Perm
+place,Sweden/Norway,Schweden/Norwegen
+place,Tatarstan,Tatarstan
+place,Taymyr,Taimyr
+place,Turkey,Türkei
+place,Turkmenistan,Turkmenistan
+place,Tuva,Tuwa
+place,Udmurtia,Udmurtien
+place,Uzbekistan,Usbekistan
+place,Western Siberia,Westsibirien
+place,Yakutia,Jakutien
+family,Slavic,slawisch
+family,Iranian,iranisch
+family,Albanian,albanisch
+family,Greek,griechisch
+family,Romance,romanisch
+family,Caucasian,kaukasisch
+family,Turkic,turksprachig
+family,Uralic,uralisch
+family,Mongolic,mongolisch

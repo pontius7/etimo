@@ -18,7 +18,7 @@ cities with county rights), and is left exactly as it is.
                    boundaries; LAU gives the same 80 in Cyrillic only)       (today.json had 69)
 
 In Norway, Switzerland and Sardinia a region that is the same place as before (nearly the same extent both ways, so
-not a merger or a split) keeps its English and German names from today.json; every other region takes the official
+not a merger or a split) keeps its English name from today.json; every other region takes the official
 name of the source. Run after merge-data.py (scripts/add-words.sh does). Running it twice changes nothing.
 The two GISCO files are downloaded once into .cache/current-regions/.
 
@@ -49,7 +49,7 @@ GISCO = 'https://gisco-services.ec.europa.eu/distribution/v2/'
 FILES = {'nuts3': 'nuts/topojson/NUTS_RG_01M_2024_4326_LEVL_3.json', 'lau': 'lau/topojson/LAU_RG_01M_2024_4326.json'}
 
 # today.json code: (source, the source's country code, kind of region, only the units whose id starts with this,
-#                   whether an unchanged region keeps its English / German names from today.json)
+#                   whether an unchanged region keeps its English name from today.json)
 # Names are kept only where today.json has the established English names (Geneva, Grisons); where the whole level is new
 # (municipalities, Kosovo's districts) every region takes the official name, so a country never mixes two styles.
 REPLACE = {
@@ -78,39 +78,38 @@ MERGE = [
 ]
 # Wrong names or kinds in the old data (checked against geoBoundaries / OSM, README "Regions"): (code, name, kind) -> fix
 RENAME = {
-    ('RUS', 'Altai Republic', 'Territory'): {'n': 'Altai Krai', 'nd': 'Region Altai'},   # had the Republic's name and census row
-    ('RUS', 'Jewish', 'Autonomous Region'): {'n': 'Jewish Autonomous Oblast', 'nd': 'Jüdische Autonome Oblast'},
+    ('RUS', 'Altai Republic', 'Territory'): {'n': 'Altai Krai'},   # had the Republic's name and census row
+    ('RUS', 'Jewish', 'Autonomous Region'): {'n': 'Jewish Autonomous Oblast'},
     ('RUS', 'Sakha Republic', 'Autonomous Province'): {'t': 'Republic'},
     ('RUS', 'Kamchatka Krai', 'Region'): {'t': 'Territory'},
     ('RUS', 'Zabaykalsky Krai', 'Region'): {'t': 'Territory'},
-    # Ukraine's official romanization, as the country's other regions already have (Kyiv, Kharkiv); German keeps Odessa
+    # Ukraine's official romanization, as the country's other regions already have (Kyiv, Kharkiv)
     ('UKR', 'Odessa', 'Region'): {'n': 'Odesa'},
     ('UKR', 'Kherson', ''): {'t': 'Region'},
     # the only Belarusian region in Łacinka; the others have their English forms (Gomel, Vitebsk, Grodno)
-    ('BLR', 'Mahilioŭ', 'Region'): {'n': 'Mogilev', 'nd': 'Mogiljow'},
-    ('TJK', 'Khujand', 'Region'): {'n': 'Sughd', 'nd': 'Sughd'},          # the region's name since 2000; Khujand is its seat
-    ('CZE', 'Plzeň-', 'Region'): {'n': 'Plzeň', 'nd': 'Pilsen'},           # the name was cut off in the source data
-    ('TJK', 'districts of Republican Subordination', 'Region'): {'n': 'Districts of Republican Subordination',
-                                                                 'nd': 'Districts of Republican Subordination'},
+    ('BLR', 'Mahilioŭ', 'Region'): {'n': 'Mogilev'},
+    ('TJK', 'Khujand', 'Region'): {'n': 'Sughd'},          # the region's name since 2000; Khujand is its seat
+    ('CZE', 'Plzeň-', 'Region'): {'n': 'Plzeň'},           # the name was cut off in the source data
+    ('TJK', 'districts of Republican Subordination', 'Region'): {'n': 'Districts of Republican Subordination'},
     ('UZB', 'Karakalpakstan', 'Automonous Region'): {'t': 'Autonomous Republic'},
-    ('MDA', 'Comrat', 'Autonomous Territory'): {'n': 'Gagauzia', 'nd': 'Gagausien', 't': 'Autonomous Territorial Unit'},
+    ('MDA', 'Comrat', 'Autonomous Territory'): {'n': 'Gagauzia', 't': 'Autonomous Territorial Unit'},
 }
 # Provinces created in 2004 that the old data still called by the province they were taken from: (code, old name, a
 # point inside) -> fix. Panjshir (seat Bazarak) from Parwan, Daykundi (seat Nili) from Urozgan.
 RENAME_AT = {
-    ('AFG', 'Parwan', 69.52, 35.31): {'n': 'Panjshir', 'nd': 'Pandschschir'},
-    ('AFG', 'Urozgan', 66.13, 33.72): {'n': 'Daykundi', 'nd': 'Daikundi'},
+    ('AFG', 'Parwan', 69.52, 35.31): {'n': 'Panjshir'},
+    ('AFG', 'Urozgan', 66.13, 33.72): {'n': 'Daykundi'},
 }
 # A city and the region around it with one name could not be told apart in the place list: the larger one, the region,
-# takes its full name (English, German); the city keeps the short name (and, where both had one kind, becomes a city).
+# takes its full name; the city keeps the short name (and, where both had one kind, becomes a city).
 SAME_NAME = {
-    ('RUS', 'Moscow'): ('Moscow Oblast', 'Oblast Moskau', None, None, None),
-    ('UKR', 'Kyiv'): ('Kyiv Oblast', 'Oblast Kyjiw', None, None, None),
-    ('BLR', 'Minsk'): ('Minsk Region', 'Gebiet Minsk', None, None, None),
-    ('UZB', 'Tashkent'): ('Tashkent Region', 'Provinz Taschkent', 'Tashkent', 'Taschkent', 'City'),
-    ('BGR', 'Sofia'): ('Sofia Province', 'Oblast Sofia', 'Sofia City', 'Sofia-Stadt', None),
-    ('HRV', 'Zagreb'): ('Zagreb County', 'Gespanschaft Zagreb', None, None, None),
-    ('HUN', 'Veszprém'): ('Veszprém County', 'Komitat Veszprém', None, None, None),
+    ('RUS', 'Moscow'): ('Moscow Oblast', None, None),
+    ('UKR', 'Kyiv'): ('Kyiv Oblast', None, None),
+    ('BLR', 'Minsk'): ('Minsk Region', None, None),
+    ('UZB', 'Tashkent'): ('Tashkent Region', 'Tashkent', 'City'),
+    ('BGR', 'Sofia'): ('Sofia Province', 'Sofia City', None),
+    ('HRV', 'Zagreb'): ('Zagreb County', None, None),
+    ('HUN', 'Veszprém'): ('Veszprém County', None, None),
 }
 # Kosovo's official languages are Albanian and Serbian; NUTS gives the Albanian names only. Both, as today.json did ("Viti/Vitina").
 BOTH = {'Prishtinë': 'Prishtinë/Priština', 'Mitrovicë': 'Mitrovicë/Mitrovica', 'Pejë': 'Pejë/Peć', 'Prizren': 'Prizren',
@@ -200,8 +199,7 @@ def main():
         geoms_out = []
         for j, ((g, name, sid), _) in enumerate(new):
             prev = oshapes[match[j]][0]['properties'] if j in match else None
-            de = g['properties']['de'] if kind == 'osm' else name
-            props = {'n': prev['n'] if prev else name, 'nd': prev.get('nd', prev['n']) if prev else de, 'c': c,
+            props = {'n': prev['n'] if prev else name, 'c': c,
                      't': g['properties']['t'] if kind == 'osm' else label, 'src': sid}
             geoms_out.append({'type': g['type'], 'arcs': rm(g['arcs']), 'properties': props})
         if kind == 'osm':   # two regions of one name (a city and the region around it): the region keeps its full name
@@ -209,7 +207,6 @@ def main():
             for ((g, _, _), _), out in zip(new, geoms_out):
                 if names.count(out['properties']['n']) > 1 and out['properties']['t'] != 'City':
                     out['properties']['n'] = g['properties']['full']
-                    out['properties']['nd'] = g['properties']['de_full']
         added.append({'c': c, '_arcs': [rnd(darcs[i]) for i in used], 'geoms': geoms_out, 'gone': gone,
                       'carried': len(match), 'before': len(oshapes)})
     for a in added:
@@ -236,13 +233,13 @@ def main():
             if g['properties']['c'] == c and g['properties']['n'] == n and shp(g, arcs).contains(Point(lon, lat)):
                 g['properties'].update(fix)
                 fixed.append(f"{c} {fix['n']}")
-    for (c, n), (big, big_de, small, small_de, small_t) in SAME_NAME.items():
+    for (c, n), (big, small, small_t) in SAME_NAME.items():
         two = sorted((g for g in regs if g['properties']['c'] == c and g['properties']['n'] == n),
                      key=lambda g: shp(g, arcs).area)
         if len(two) == 2:
-            two[1]['properties'].update({'n': big, 'nd': big_de})
+            two[1]['properties']['n'] = big
             if small:
-                two[0]['properties'].update({'n': small, 'nd': small_de})
+                two[0]['properties']['n'] = small
             if small_t:
                 two[0]['properties']['t'] = small_t
             fixed.append(f'{c} {big}')

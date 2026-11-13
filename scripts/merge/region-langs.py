@@ -125,7 +125,7 @@ def main():
         mine = by_country[c]
         index = {}
         for p in mine:
-            for key in {norm(p['n']), norm(p.get('nd'))} - {''}:
+            for key in {norm(p['n'])} - {''}:
                 index.setdefault(key, p['n'])
 
         def match(name):

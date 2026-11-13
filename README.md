@@ -27,6 +27,7 @@ Cloudflare serves the `site/` folder as it is. Nothing is built on Cloudflare's 
 | `reference/` | Untouched originals of the two apps the site was merged from | never |
 | `site/` | The website that gets published | no (see the table below) |
 | `docs/` | Merge spec, QA notes, screenshots | notes only |
+| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`) | when reusing them |
 
 What produces each part of `site/`:
 
@@ -37,7 +38,7 @@ What produces each part of `site/`:
 | `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
-| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json`, `data/athos.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
+| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
@@ -87,8 +88,8 @@ scripts/
 
 site/                         the published website (Cloudflare serves this folder as it is)
   index.html                  built from src/
-  regional-layer.js           by hand: the detailed layers on the map (Albanian dialects, Vlach, Serbia,
-                              Montenegro, Greece), country borders and coast, municipality labels
+  regional-layer.js           by hand: the rules the map engine and its data build share (which areas the
+                              detailed layers stand for, how strong areas are drawn, each country's main language)
   country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources
   search-key.js               by hand: turns any script into Latin search keys (also part of the page)
   _headers                    by hand: caching rules for Cloudflare
@@ -108,6 +109,7 @@ site/                         the published website (Cloudflare serves this fold
 reference/                    untouched originals of the two apps the site was merged from; the build still
                               reads their data files, and the colour check compares against them
 docs/                         merge spec, QA notes, screenshots (history, not needed to build)
+archive/                      kept from retired parts (German words, old-map files); not published, not built
 ```
 
 ## Everyday tasks
@@ -262,9 +264,8 @@ sizes with these two queries, and is checked at phone size (390 x 844) and deskt
 
 At this width the language card changes from a sheet at the bottom (phone) to a panel down the left side (desktop).
 Older rules also use finer steps inside the phone size (36rem, 48rem). Three older checks in the code use widths of
-their own and do not follow this split yet: city names on phones (`max-width: 768px`, in the page code and
-`site/regional-layer.js`) and the smaller relief picture (`max-width:820px`, or a touch screen up to 1180px, in
-`site/map-gl.js` and the old map). They choose what is shown, not the layout, and are left as they are until it is
+their own and do not follow this split yet: city names on phones (`max-width: 768px`, in the page code) and the smaller relief
+picture (`max-width:820px`, or a touch screen up to 1180px, in `site/map-gl.js`). They choose what is shown, not the layout, and are left as they are until it is
 decided that they should follow 64rem.
 
 ## How the page is built
@@ -422,8 +423,31 @@ Command line: `wrangler deployments list --name etimo` shows recent deploys.
 
 ## The map engine
 The map is drawn by MapLibre GL since 2026-11-12: `site/map-gl.js` (engine side) and the `GL` parts of the map code in
-`src/app/6-app-screens-and-startup.js` (page side). Data: `scripts/map-next/build.py`. The old map is one switch away
-(`?map=svg`). Everything about it is in `scripts/map-next/README.md`.
+`src/app/6-app-screens-and-startup.js` (page side). Data: `scripts/map-next/build.py`. Everything about it is in
+`scripts/map-next/README.md`.
+
+## Old map retired, 2026-11-13
+The SVG map the page used to draw itself (`?map=svg`, `localStorage["etimo-map"]`, and the fallback when the engine could
+not start) is gone. The engine is the only map. When it cannot start (no WebGL 2, or its files fail or stall for 20 s) the map
+box shows a short note in the interface language with two ways on: the Languages wheel and "try again" (`kNoMap` in
+`src/app/6-app-screens-and-startup.js`, styles block `v74` part 7 in `src/styles/v66.css`); the rest of the site never
+needed the map. `site/regional-layer.js` keeps only the shared rules (its drawing code is in git history, commit 05bafd0).
+The two hand-made files only the old map used (`athos.json`, `regional-sources.json`) moved to `archive/old-map/`. The
+colour check (`scripts/merge/probe-colors.mjs`) now reads the colours the engine paints (headless Chrome with software
+WebGL); it still reads the reference copy, an old snapshot, from its SVG drawing. Some `!GL` branches remain in the
+minified page code; with `GL` always on they never run.
+
+## Interface languages
+English, Shqip, Srpski (latinica) and Српски (ћирилица). The Cyrillic interface is made from the Latin one as it is shown
+(`Ea` / `ba` in `src/app/2-app-text-and-tables.js`), so a Serbian text is written once, in Latin. The German interface was
+removed on 2026-11-13 (texts, the menu entry, the German region names `nd` in `site/data/today.json` and the scripts
+that made them). Its German words were kept for when German is added as a language of the Germanic family:
+`archive/german/` (`words.csv` in the word-list format, `names.csv`, a README); unreviewed, not published, not read by any
+build. Country names in Serbian and Albanian come from Unicode CLDR (the 104 that were missing were added on 2026-11-13;
+8 areas CLDR does not list were translated by hand: the two sovereign base areas, the UN buffer zone and Northern Cyprus
+in Cyprus, Baikonur, Bir Tawil, the Siachen Glacier, Somaliland). A check that finds texts still in English in the sq and sr
+interfaces: load the same screens in en / sq / sr and list texts identical to English (method in this README's history;
+on 2026-11-13 only proper names and the map's licence line were left).
 
 ## Phone redesign, 2026-11-12
 

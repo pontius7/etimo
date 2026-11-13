@@ -178,7 +178,7 @@ function FDresults({q, fam = 'all'}) {
 /* phones: one light/dark button on every page (top-left, beside the back arrow) */
 (function FDtheme() {
   const b = document.createElement('button');
-  b.type = 'button'; b.className = 'fdtheme'; b.setAttribute('aria-label', 'Light / dark mode');
+  b.type = 'button'; b.className = 'fdtheme'; b.setAttribute('aria-label', Ea(({sq: 'Ndriçim i çelët / i errët', sr: 'Svetli / tamni prikaz'})[ya()] || 'Light / dark mode'));
   const isDark = () => {
     const t = document.documentElement.getAttribute('data-theme');
     return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;

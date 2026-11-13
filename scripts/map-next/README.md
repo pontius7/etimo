@@ -7,7 +7,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 |---|---|
 | The engine's side: layers, colours of sea / land / lines, how strong each area is when a language or family is chosen, census view, legend | `site/map-gl.js` |
 | The page's side: what pins and names show and where (the engine draws them, see below), search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
-| Lists and strengths shared by both maps (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace; how strong a detailed area or a census region is drawn: `restOp`, `dialOp`, `vlachOp`, `censusOp`, `hatchOp`) | top of `site/regional-layer.js` (the only copy) |
+| Lists and strengths the engine and the data build share (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace; how strong a detailed area or a census region is drawn: `restOp`, `dialOp`, `vlachOp`, `censusOp`, `hatchOp`) | top of `site/regional-layer.js` (the only copy) |
 | The map data | `scripts/map-next/build.py` writes `site/map-next/data/` |
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
@@ -17,10 +17,9 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 - What feeds the data: the same files as the site. The list is at the top of `build.py`.
 - How precise the outlines are, and what counts as a drawing error at a border: the constants at the top of `build.py`.
 
-## Going back to the old map
-Open the site with `?map=svg` in the address (or set `localStorage["etimo-map"] = "svg"`). The old drawing code is
-still in place and is also used on its own when the engine cannot start (no WebGL2). To remove the engine for good:
-delete `site/map-gl.js`, `site/map-next/`, `scripts/map-next/`, `src/styles/v64.css` and the `GL` parts of the map code.
+## No old map any more
+The old SVG map was retired on 2026-11-13 (main README, "Old map retired"). When the engine cannot start, the map box shows
+a short note instead (`kNoMap` in the page code).
 
 ## What the engine draws
 Sea, land, coast, country borders, region lines, district lines (deep zoom), a tint of each country in its main
@@ -81,7 +80,6 @@ Liechtenstein, Montenegro, North Macedonia, Romania, Serbia, Slovakia; 9,924 reg
   North Macedonia) there is no colour for it, and the region shows the chosen language's share as everywhere else.
 - Both files are written by `build.py` (`census-names.json`, `census-top.json`); after a change to the census tables
   or to `NAME_FIX` alone: `.venv/bin/python scripts/map-next/build.py --census`.
-- The old map (`?map=svg`) still has names and stripes for Montenegro only.
 
 One set of outlines: coast, borders, the edge of every language area and every census region come from the same
 country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.

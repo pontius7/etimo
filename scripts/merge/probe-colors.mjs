@@ -5,7 +5,8 @@ import fs from 'node:fs';
 const [, , url, theme, out, port, prof, shot] = process.argv;
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const p = spawn(CHROME, ['--headless=new', '--disable-gpu', `--user-data-dir=${prof}`, `--remote-debugging-port=${port}`,
+const p = spawn(CHROME, ['--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',   // software WebGL2: the map engine needs it (the old SVG map was retired 2026-11-13)
+  `--user-data-dir=${prof}`, `--remote-debugging-port=${port}`,
   '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
 const die = (m) => { try { p.kill(); } catch {} console.error(m); process.exit(2); };
 let tabs;
@@ -26,7 +27,9 @@ if (!await click('(Map|Explore)')) die('no Map tab');   // the tab was called Ex
 let zones = null;
 for (let i = 0; i < 40 && !zones; i++) {
   await sleep(1000);
-  zones = await ev(`(()=>{const o={};document.querySelectorAll('path.zone').forEach(p=>{const d=p.__data__;if(d&&d.lang)o[d.lang]=p.style.fill||getComputedStyle(p).fill});return Object.keys(o).length>20?o:null})()`);
+  // the colours the map engine paints each language's area with (site/map-gl.js: one name -> colour table for every area layer)
+  // the reference copy (an old snapshot of the site) has only the SVG map: its zones are read from the drawing
+  zones = await ev(`(()=>{const m=window.__kgl;if(!m){const o={};document.querySelectorAll('path.zone').forEach(p=>{const d=p.__data__;if(d&&d.lang)o[d.lang]=p.style.fill||getComputedStyle(p).fill});return Object.keys(o).length>20?o:null}if(!m.loaded())return null;let e=m.getPaintProperty('detail-b','fill-color');e=e&&e[0]==='to-color'?e[1]:e;if(!e||e[0]!=='match')return null;const o={};for(let i=2;i<e.length-1;i+=2)o[e[i]]=e[i+1];return Object.keys(o).length>20?o:null})()`);
 }
 if (!zones) die('map zones never appeared');
 const FAMS = (process.env.ETIMO_FAM_VARS || 'slav,iran,alba,gree,roma,cauc,turk,ural,mong').split(',');
@@ -34,7 +37,7 @@ const vars = await ev(`(()=>{const c=getComputedStyle(document.documentElement);
 // dialect / minority areas drawn over the zones (Serbia, Vlach): must be the same colour as the language itself
 let areas = {};
 for (let i = 0; i < 15; i++) {
-  areas = await ev(`(()=>{const o={};document.querySelectorAll('g.serbia-areas path, g.vlach-areas path').forEach(p=>{const d=p.__data__;if(d&&d.name)o[d.name]=p.getAttribute('fill')||getComputedStyle(p).fill});return o})()`) || {};
+  areas = await ev(`(()=>{const m=window.__kgl;if(!m){const o={};document.querySelectorAll('g.serbia-areas path, g.vlach-areas path').forEach(p=>{const d=p.__data__;if(d&&d.name)o[d.name]=p.getAttribute('fill')||getComputedStyle(p).fill});return o}let e=m.getPaintProperty('detail-b','fill-color');e=e&&e[0]==='to-color'?e[1]:e;const t={};if(e&&e[0]==='match')for(let i=2;i<e.length-1;i+=2)t[e[i]]=e[i+1];const o={};m.querySourceFeatures('areas').forEach(f=>{const p=f.properties;if(['vlach','meg','area','me','dial'].includes(p.kind)&&p.name)o[p.name]=t[p.name]||p.color});return o})()`) || {};
   if (Object.keys(areas).length) break;
   await sleep(1000);
 }

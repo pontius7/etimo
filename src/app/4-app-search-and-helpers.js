@@ -453,14 +453,7 @@ find:"Gjej gjuhë ose familje",
 clear:"Pastro",
 fams:"Familje",
 langs:"Gjuhë",
-none:"Asnjë rezultat"},
-de:{dia:"Auch gesprochen",
-home:"Kerngebiet",
-find:"Sprache oder Familie suchen",
-clear:"Löschen",
-fams:"Familien",
-langs:"Sprachen",
-none:"Keine Treffer"}};
+none:"Asnjë rezultat"}};
 return ka((t[ya()]||t.en)[e])}
 function ep(e){e&&e.info;
 return!1}

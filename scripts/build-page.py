@@ -298,12 +298,12 @@ def tables(text):
             groups = get('GROUPS')
             assert c['region'] in groups, f'{c["name"]}: region must be one of {sorted(groups)}'
             groups[c['region']] = groups[c['region']] + [c['name']]
-        get('LANG_NAMES')[c['name']] = [c.get('name_sr') or '', c.get('name_sq') or '', '']
+        get('LANG_NAMES')[c['name']] = [c.get('name_sr') or '', c.get('name_sq') or '']
         if c.get('place_sr') or c.get('place_sq'):
-            get('PLACE_NAMES').setdefault(c['place'], [c.get('place_sr') or c['place'], c.get('place_sq') or c['place'], ''])
+            get('PLACE_NAMES').setdefault(c['place'], [c.get('place_sr') or c['place'], c.get('place_sq') or c['place']])
     # your families: display names
     if EXTRA:
-        get('FAMILY_NAMES').update({k: {'en': k, 'sr': d['sr'], 'sq': d['sq'], 'de': d['de']} for k, d in EXTRA.items()})
+        get('FAMILY_NAMES').update({k: {'en': k, 'sr': d['sr'], 'sq': d['sq']} for k, d in EXTRA.items()})
     # your meanings: content/meanings.csv (meaning, subcategory[, sr, sq]) -> taxonomy, labels, synonyms
     rows, mpath = [], os.path.join(ROOT, 'content', 'meanings.csv')
     if os.path.exists(mpath):
