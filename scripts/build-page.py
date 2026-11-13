@@ -309,7 +309,7 @@ def preloads(H):
     The engine addresses are read from the import lines themselves, so a new ?v= there is never missed here."""
     app = open(os.path.join(SRC, 'app', '6-app-screens-and-startup.js'), encoding='utf-8').read()
     eng = open(os.path.join(ROOT, 'site', 'map-gl.js'), encoding='utf-8').read()
-    mapjs = re.search(r'import\("\./(map-gl\.js\?v=\d+)"\)', app).group(1)
+    mapjs = re.search(r'import\(new URL\("(map-gl\.js\?v=\d+)",document\.baseURI\)\.href\)', app).group(1)
     mlib, mver = re.search(r"from '\./(map-next/vendor/maplibre-gl\.mjs\?v=([\d.]+))'", eng).groups()
     rl = re.search(r"from '\./(regional-layer\.js\?v=\d+)'", eng).group(1)      # the engine's own rules (map-gl.js imports them)
     worker = f'map-next/vendor/maplibre-gl-worker.mjs?v={mver}'     # MapLibre adds ?v=<its version> to its worker itself
@@ -325,7 +325,24 @@ def preloads(H):
           f'if(!/^#(map|map-.+|languages|tree)$/.test(h))a("preload","{H["lexicon.json"]}",1);'
           f'if(!map)addEventListener("etimo:lex",function(){{setTimeout(function(){{["{mapjs}","{mlib}","{worker}"].forEach(function(u){{a("prefetch",u)}})}},1500)}},{{once:true}})'
           '})()')
-    return (''.join(f'<link rel="preload" href="{H[n]}" as="fetch" crossorigin>' for n in ('languages.json', 'world-50s.json', 'terr.json'))
+    # the one font file every screen draws with from the start: Manrope, latin (src/styles/fonts.css, scripts/fonts/self-host.py)
+    fcss = open(os.path.join(SRC, 'styles', 'fonts.css'), encoding='utf-8').read()
+    m = re.search(r"/\* latin \*/\s*@font-face \{\s*font-family: 'Manrope';[^}]*?url\((fonts/[^)]+\.woff2)\)", fcss)
+    mx = re.search(r"/\* latin-ext \*/\s*@font-face \{\s*font-family: 'Manrope';[^}]*?url\((fonts/[^)]+\.woff2)\)", fcss)
+    first = [H[n] for n in ('languages.json', 'world-50s.json', 'terr.json')]
+    # on a map screen these (with the page's code, split_app()) come after the engine's own files: fetchpriority low, so the
+    # engine, its worker and the first tiles arrive first and the engine starts while the page's code is still on its way.
+    # The fonts (Manrope latin and latin-ext, 39 KB) stay at full priority: the cards measure their names with them as they are drawn.
+    boot = ('<script>(function(){var low=/^#(map|mm-)/.test(location.hash),d=document,a=function(r,u,as,t){var l=d.createElement("link");'
+            'l.rel=r;l.href=u;if(as)l.as=as;if(t)l.type=t;if(r==="preload")l.crossOrigin="anonymous";if(low&&as!=="font")l.fetchPriority="low";d.head.appendChild(l)};'
+            + (f'a("preload",{json.dumps(m.group(1))},"font","font/woff2");' if m else '')
+            + (f'a("preload",{json.dumps(mx.group(1))},"font","font/woff2");' if mx else '')
+            # both Manrope parts (latin, latin-ext) in use from the start, in the weights the wheels and cards measure with:
+            # a name is then always measured in Manrope (a letter like the ž of Sandžak lives in latin-ext), never in a fallback
+            + 'try{["400","500","600"].forEach(function(w){d.fonts.load(w+" 16px Manrope","a\\u017e")})}catch(e){}'
+            + ''.join(f'a("preload",{json.dumps(u)},"fetch");' for u in first)
+            + '})()</script>')
+    return (boot
             + '<script>' + js + '</script>')
 
 
@@ -446,6 +463,24 @@ def tables(text):
 
 
 # ---------------------------------------------------------------- main
+def split_app(text):
+    """The page's code (src/app/, one module) goes to its own file, h/app.<hash>.js, cached for a year: the browser compiles
+    it while it downloads, keeps it between visits, and a new build that leaves the code alone leaves it cached. The page asks
+    for it from its first lines (modulepreload) and runs it where the inline module was, so the order is unchanged. Tools that
+    read the page's tables (check-colors.py, map-next/build.py, words-report.py) read both files (scripts/page_code.py)."""
+    m = re.search(r'<script type="module">(.*?)</script>', text, re.S)
+    assert m and len(m.group(1)) > 500000, 'the page module was not found'
+    code = m.group(1).encode('utf-8')
+    name = f'h/app.{hashlib.sha1(code).hexdigest()[:10]}.js'
+    with open(os.path.join(ROOT, 'site', name), 'wb') as f:
+        f.write(code)
+    text = text[:m.start()] + f'<script type="module" src="{name}"></script>' + text[m.end():]
+    i = text.index('<script>(function(){var low=')
+    text = (text[:i] + '<script>(function(){var l=document.createElement("link");l.rel="modulepreload";l.href=' + json.dumps(name)
+            + ';if(/^#(map|mm-)/.test(location.hash))l.fetchPriority="low";document.head.appendChild(l)})()</script>' + text[i:])
+    return text, name
+
+
 def build(out=OUT):
     text = assemble()
     notes = []
@@ -457,6 +492,8 @@ def build(out=OUT):
     text, tnotes = tables(text)
     left = re.search(r'<!--@|/\*@|__ETIMO_', text)
     assert not left, f'unreplaced marker in the page: {text[left.start():left.start() + 60]!r}'
+    text, app = split_app(text)
+    notes.append(f'app code {app}')
     with open(out, 'w', encoding='utf-8', newline='') as f:
         f.write(text)
     print(f'wrote {os.path.relpath(out, ROOT)} ({len(text):,} chars) from src/; families {len(OLD) + len(NEW)}, '

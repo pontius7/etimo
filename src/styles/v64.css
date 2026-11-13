@@ -43,3 +43,9 @@
 
 /* the engine made early, in its hidden box (prewarm() in site/map-gl.js): the map fills it, as it fills .mapbox. Both sizes. */
 [data-kpre]>.kgl{position:absolute;inset:0}
+
+/* The page's unseen copies of the map's names (svg[data-kl]: the engine draws the visible ones, in Manrope with the system font
+   for a letter Manrope lacks). They use that same list, so a rare letter in a city name (İzmir, Łódź, Chișinău) no longer
+   makes the browser download a 160 KB Noto Sans file before the first view, and the measures the engine copies match what
+   it draws. Both sizes. */
+.mapbox svg[data-kl] text{font-family:Manrope,system-ui,sans-serif}

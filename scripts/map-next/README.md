@@ -49,6 +49,9 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   once the map has drawn (`terr_split()` in `scripts/build-page.py`, `kTerrD()` in the page code). Everything that reads an
   outline (place card, a language's home places and cities) waits for the region shapes; the cities of a language chosen
   before then are laid out again when they come (`lt(nt)`).
+- **Page code, fonts (2026-11-13).** The page's code is its own cached file and the fonts are the site's own (main README,
+  "Speed"); the unseen copies of the map's names use Manrope with the system font, as the engine does, so a rare letter does
+  not pull in a 160 KB fallback font before the first view.
 - **A tap on the map** finds its region with a flat test on the shapes' points (`kHitIn`, `kHitBox`), not d3's test on the sphere.
 - **Style rules and the map.** The map holds about 6,000 page elements (the unseen copies of names and dots, the keyboard
   list). A `:has()` rule on an element that contains them (`body`, `#root`, `.wrap`, `.mapbox`) whose styled element lies

@@ -204,7 +204,9 @@ def world(area_tree):
 # ------------------------------------------------------------------ languages
 def colour_table():
     """The language colour table from the built page (one palette for the whole site)."""
-    html = open(os.path.join(ROOT, 'site', 'index.html'), encoding='utf-8').read()
+    sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+    import page_code  # noqa: E402  (index.html and its code file, h/app.<hash>.js)
+    html = page_code.read(ROOT)
     m = re.search(r'\(function\(\)\{var P=(\{[^}]*\})', html)
     if not m:
         sys.exit('map-next: colour table not found in site/index.html (run scripts/build-page.py first)')

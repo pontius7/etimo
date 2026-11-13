@@ -273,6 +273,12 @@ Measured and fixed on 2026-11-13 (details: `scripts/map-next/README.md`, "Tiles 
 - Map shapes go to the engine as tiles (`site/map-next/tiles/`, cut by `scripts/map-next/build.py`; needs `brew install tippecanoe`).
 - A map screen loads the map first and the lexicon after it; other screens the other way round (`preloads()` in `scripts/build-page.py`).
 - The map engine starts from the page's first lines (`prewarm()`); the home page shows from a small starter file (`home_starters()`).
+- The page's code is its own file, `h/app.<hash>.js` (`split_app()` in `scripts/build-page.py`), cached for a year; tools that
+  read its tables use `scripts/page_code.py`. On a map screen it, the start-up data and the language list come at low priority,
+  after the engine's own files.
+- Fonts are served from the site (`site/fonts/`, `src/styles/fonts.css`, made by `scripts/fonts/self-host.py` from Google
+  Fonts, same files): no other server before the page can show. Manrope (latin and latin-ext) is fetched and put in use from
+  the first lines, so wheels and cards always measure their names in it.
 - No `:has()` rule on `body`, `#root`, `.wrap` or `.mapbox` that styles something inside it: such a rule makes the browser
   restyle the whole map (about 6,000 elements) after every change. Use a small neighbour or a class the page sets.
 

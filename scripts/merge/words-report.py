@@ -10,9 +10,13 @@ import csv, difflib, glob, json, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 SITE = os.path.join(ROOT, 'site')
+import sys
+sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+import page_code  # noqa: E402  (the tables are in the page's code file, h/app.<hash>.js)
+APP = page_code.app_path(ROOT)
 lit = json.loads(subprocess.run(['node', os.path.join(HERE, 'jslit.js'), json.dumps([
-    {'key': 'ra', 'file': os.path.join(SITE, 'index.html'), 'marker': 'let ra=', 'from': 490000},
-    {'key': 'sa', 'file': os.path.join(SITE, 'index.html'), 'marker': 'let sa=', 'from': 490000}])],
+    {'key': 'ra', 'file': APP, 'marker': 'let ra=', 'from': 0},
+    {'key': 'sa', 'file': APP, 'marker': 'let sa=', 'from': 0}])],
     check=True, capture_output=True, text=True).stdout)
 where = {m: (cat, sub) for cat, subs in lit['ra']['val'].items() for sub, ms in subs for m in ms}
 syn = lit['sa']['val']
