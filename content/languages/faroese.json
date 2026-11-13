@@ -1,0 +1,23 @@
+{
+ "name": "Faroese",
+ "name_sr": "Farski",
+ "name_sq": "Faroisht",
+ "family": "Germanic",
+ "lat": 62.07,
+ "lon": -6.88,
+ "place": "Faroe Islands",
+ "place_sr": "Farska Ostrva",
+ "place_sq": "Ishujt Faroe",
+ "path": [
+  "Germanic",
+  "North Germanic",
+  "West Scandinavian"
+ ],
+ "region": "nord",
+ "self_name": "føroyskt",
+ "glottocode": "faro1244",
+ "countries": [
+  "FO"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode faro1244 (classification and pin). Placeholder: speakers, area and words to come."
+}

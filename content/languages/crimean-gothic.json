@@ -1,0 +1,22 @@
+{
+ "name": "Crimean Gothic",
+ "name_sr": "Krimski gotski",
+ "name_sq": "Gotishtja e Krimesë",
+ "family": "Germanic",
+ "lat": 44.75,
+ "lon": 34.0,
+ "place": "Crimea (until the 18th century)",
+ "place_sr": "Krim (do 18. veka)",
+ "place_sq": "Krime (deri në shek. XVIII)",
+ "path": [
+  "Germanic",
+  "East Germanic"
+ ],
+ "region": "east",
+ "glottocode": "crim1255",
+ "countries": [
+  "UA"
+ ],
+ "status": "historical",
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode crim1255 (classification and pin). Placeholder: speakers, area and words to come."
+}

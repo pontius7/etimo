@@ -1,0 +1,27 @@
+{
+ "name": "Yiddish",
+ "name_sr": "Jidiš",
+ "name_sq": "Jidisht",
+ "family": "Germanic",
+ "lat": 51.75,
+ "lon": 19.42,
+ "place": "Central and Eastern Europe (historical home)",
+ "place_sr": "Srednja i Istočna Evropa (istorijski zavičaj)",
+ "place_sq": "Europa Qendrore dhe Lindore (atdheu historik)",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "High German"
+ ],
+ "region": "cee",
+ "self_name": "ייִדיש",
+ "glottocode": "east2295",
+ "countries": [
+  "PL",
+  "LT",
+  "UA",
+  "BY"
+ ],
+ "status": "endangered",
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode east2295 (classification and pin). Placeholder: speakers, area and words to come."
+}

@@ -1,0 +1,23 @@
+{
+ "name": "Low German",
+ "name_sr": "Niskonemački",
+ "name_sq": "Gjermanishte e vendeve të ulëta",
+ "family": "Germanic",
+ "lat": 53.3,
+ "lon": 10.5,
+ "place": "Northern Germany and the eastern Netherlands",
+ "place_sr": "Severna Nemačka i istočna Holandija",
+ "place_sq": "Gjermania veriore dhe Holanda lindore",
+ "path": [
+  "Germanic",
+  "West Germanic"
+ ],
+ "region": "west",
+ "self_name": "Plattdüütsch",
+ "glottocode": "nort2627",
+ "countries": [
+  "DE",
+  "NL"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode nort2627 (classification and pin); pin at the centre of the Low German area. Placeholder: speakers, area and words to come."
+}

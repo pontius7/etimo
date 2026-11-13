@@ -1,0 +1,25 @@
+{
+ "name": "Saterland Frisian",
+ "name_sr": "Saterlandski frizijski",
+ "name_sq": "Frizianishte e Saterlandit",
+ "family": "Germanic",
+ "lat": 53.08,
+ "lon": 7.72,
+ "place": "Saterland (Germany)",
+ "place_sr": "Saterland (Nemačka)",
+ "place_sq": "Saterland (Gjermani)",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "Anglo-Frisian",
+  "Frisian"
+ ],
+ "region": "west",
+ "self_name": "Seeltersk",
+ "glottocode": "sate1242",
+ "countries": [
+  "DE"
+ ],
+ "status": "severely endangered",
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode sate1242 (classification and pin). Placeholder: speakers, area and words to come."
+}

@@ -1,0 +1,22 @@
+{
+ "name": "Latgalian",
+ "name_sr": "Latgalski",
+ "name_sq": "Latgalisht",
+ "family": "Baltic",
+ "lat": 56.5,
+ "lon": 27.3,
+ "place": "Latgale (Latvia)",
+ "place_sr": "Latgalija (Letonija)",
+ "place_sq": "Latgale (Letoni)",
+ "path": [
+  "Baltic",
+  "East Baltic"
+ ],
+ "region": "nord",
+ "self_name": "latgalīšu",
+ "glottocode": "east2282",
+ "countries": [
+  "LV"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode east2282 (classification and pin); East Latvian dialect in Glottolog; pin at Rēzekne, the centre of Latgale. Placeholder: speakers, area and words to come."
+}

@@ -1,0 +1,22 @@
+{
+ "name": "Lithuanian",
+ "name_sr": "Litvanski",
+ "name_sq": "Lituanisht",
+ "family": "Baltic",
+ "lat": 55.14,
+ "lon": 23.96,
+ "place": "Lithuania",
+ "place_sr": "Litvanija",
+ "place_sq": "Lituani",
+ "path": [
+  "Baltic",
+  "East Baltic"
+ ],
+ "region": "nord",
+ "self_name": "lietuvių",
+ "glottocode": "lith1251",
+ "countries": [
+  "LT"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode lith1251 (classification and pin). Placeholder: speakers, area and words to come."
+}

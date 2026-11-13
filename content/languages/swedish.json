@@ -1,0 +1,24 @@
+{
+ "name": "Swedish",
+ "name_sr": "Švedski",
+ "name_sq": "Suedisht",
+ "family": "Germanic",
+ "lat": 59.8,
+ "lon": 15.6,
+ "place": "Sweden (and Finland)",
+ "place_sr": "Švedska (i Finska)",
+ "place_sq": "Suedi (dhe Finlandë)",
+ "path": [
+  "Germanic",
+  "North Germanic",
+  "East Scandinavian"
+ ],
+ "region": "nord",
+ "self_name": "svenska",
+ "glottocode": "swed1254",
+ "countries": [
+  "SE",
+  "FI"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode swed1254 (classification and pin). Placeholder: speakers, area and words to come."
+}

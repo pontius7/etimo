@@ -1,0 +1,24 @@
+{
+ "name": "Limburgish",
+ "name_sr": "Limburški",
+ "name_sq": "Limburgisht",
+ "family": "Germanic",
+ "lat": 51.0,
+ "lon": 5.88,
+ "place": "Limburg (Netherlands and Belgium)",
+ "place_sr": "Limburg (Holandija i Belgija)",
+ "place_sq": "Limburg (Holandë dhe Belgjikë)",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "Low Franconian"
+ ],
+ "region": "west",
+ "self_name": "Limburgs",
+ "glottocode": "limb1263",
+ "countries": [
+  "NL",
+  "BE"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode limb1263 (classification and pin). Placeholder: speakers, area and words to come."
+}

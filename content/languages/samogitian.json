@@ -1,0 +1,22 @@
+{
+ "name": "Samogitian",
+ "name_sr": "Žemaitijski",
+ "name_sq": "Samogitisht",
+ "family": "Baltic",
+ "lat": 55.85,
+ "lon": 22.2,
+ "place": "Samogitia (Lithuania)",
+ "place_sr": "Žemaitija (Litvanija)",
+ "place_sq": "Samogitia (Lituani)",
+ "path": [
+  "Baltic",
+  "East Baltic"
+ ],
+ "region": "nord",
+ "self_name": "žemaitiu",
+ "glottocode": "samo1265",
+ "countries": [
+  "LT"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode samo1265 (classification and pin); dialect of Lithuanian in Glottolog; pin at Telšiai, the centre of Samogitia. Placeholder: speakers, area and words to come."
+}

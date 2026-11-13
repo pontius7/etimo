@@ -1,0 +1,23 @@
+{
+ "name": "Swiss German",
+ "name_sr": "Švajcarski nemački",
+ "name_sq": "Gjermanishte zvicerane",
+ "family": "Germanic",
+ "lat": 47.05,
+ "lon": 8.46,
+ "place": "German-speaking Switzerland",
+ "place_sr": "Nemačka Švajcarska",
+ "place_sq": "Zvicra gjermanofone",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "High German"
+ ],
+ "region": "west",
+ "self_name": "Schwiizerdütsch",
+ "glottocode": "swis1247",
+ "countries": [
+  "CH"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode swis1247 (classification and pin). Placeholder: speakers, area and words to come."
+}

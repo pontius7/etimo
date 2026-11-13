@@ -1,0 +1,23 @@
+{
+ "name": "Scots",
+ "name_sr": "Škotski",
+ "name_sq": "Skotisht",
+ "family": "Germanic",
+ "lat": 55.9,
+ "lon": -3.7,
+ "place": "Lowland Scotland",
+ "place_sr": "Škotska nizija",
+ "place_sq": "Ultësira e Skocisë",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "Anglo-Frisian"
+ ],
+ "region": "west",
+ "self_name": "Scots",
+ "glottocode": "scot1243",
+ "countries": [
+  "GB"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode scot1243 (classification and pin). Placeholder: speakers, area and words to come."
+}

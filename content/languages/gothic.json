@@ -1,0 +1,19 @@
+{
+ "name": "Gothic",
+ "name_sr": "Gotski",
+ "name_sq": "Gotisht",
+ "family": "Germanic",
+ "lat": 46.93,
+ "lon": 29.98,
+ "place": "Lower Danube and Black Sea (4th–6th century)",
+ "place_sr": "Donje Podunavlje i Crno more (4–6. vek)",
+ "place_sq": "Danubi i Poshtëm dhe Deti i Zi (shek. IV–VI)",
+ "path": [
+  "Germanic",
+  "East Germanic"
+ ],
+ "self_name": "gutisk",
+ "glottocode": "goth1244",
+ "status": "historical",
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode goth1244 (classification and pin). Placeholder: speakers, area and words to come."
+}

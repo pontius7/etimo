@@ -1,0 +1,23 @@
+{
+ "name": "Icelandic",
+ "name_sr": "Islandski",
+ "name_sq": "Islandisht",
+ "family": "Germanic",
+ "lat": 64.6,
+ "lon": -18.6,
+ "place": "Iceland",
+ "place_sr": "Island",
+ "place_sq": "Islandë",
+ "path": [
+  "Germanic",
+  "North Germanic",
+  "West Scandinavian"
+ ],
+ "region": "nord",
+ "self_name": "íslenska",
+ "glottocode": "icel1247",
+ "countries": [
+  "IS"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode icel1247 (classification and pin). Placeholder: speakers, area and words to come."
+}

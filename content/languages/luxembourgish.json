@@ -1,0 +1,23 @@
+{
+ "name": "Luxembourgish",
+ "name_sr": "Luksemburški",
+ "name_sq": "Luksemburgisht",
+ "family": "Germanic",
+ "lat": 49.68,
+ "lon": 6.15,
+ "place": "Luxembourg",
+ "place_sr": "Luksemburg",
+ "place_sq": "Luksemburg",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "High German"
+ ],
+ "region": "west",
+ "self_name": "Lëtzebuergesch",
+ "glottocode": "luxe1241",
+ "countries": [
+  "LU"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode luxe1241 (classification and pin). Placeholder: speakers, area and words to come."
+}

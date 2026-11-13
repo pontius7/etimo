@@ -1,13 +1,29 @@
 {
-  "_help": "One entry per extra language family. Entries whose name starts with _ are ignored. See content/README.md, section 'Add a family'.",
-  "_Baltic": {
-    "key": "balt",
-    "light": "#819808",
-    "dark": "#879f18",
-    "label": [24.5, 56.2],
-    "sr": "baltički",
-    "sq": "baltike",
-    "sr_of": "baltičkih",
-    "sq_of": "baltike"
-  }
+ "_help": "One entry per extra language family. Entries whose name starts with _ are ignored. See content/README.md, section 'Add a family'.",
+ "Germanic": {
+  "key": "germ",
+  "light": "#e25275",
+  "dark": "#de3a49",
+  "label": [
+   10.0,
+   55.6
+  ],
+  "sr": "germanski",
+  "sq": "gjermanike",
+  "sr_of": "germanskih",
+  "sq_of": "gjermanike"
+ },
+ "Baltic": {
+  "key": "balt",
+  "light": "#1a5249",
+  "dark": "#2b937d",
+  "label": [
+   24.5,
+   56.2
+  ],
+  "sr": "baltički",
+  "sq": "baltike",
+  "sr_of": "baltičkih",
+  "sq_of": "baltike"
+ }
 }

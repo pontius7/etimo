@@ -223,6 +223,9 @@ duplicates-report.txt) / skipped (label left out on purpose in content/language-
   Uzbek (Latin) -> Uzbek | core 5 / dictionary 115 / duplicate 26 / skipped 0
   Uzbek (Turkic Swadesh) -> Uzbek | core 5 / dictionary 2 / duplicate 14 / skipped 0
 
+== content/words/german.csv: core 1,369 / dictionary 1 / duplicate 0 / skipped 0
+  German -> German | core 1369 / dictionary 1 / duplicate 0 / skipped 0
+
 == Labels left out (SKIP) ==
   Classical Mongolian (Swadesh source form): classical written form; re-spelling of Mongolian
   Karakhanid (historical): historical language with no site language
@@ -230,8 +233,8 @@ duplicates-report.txt) / skipped (label left out on purpose in content/language-
   Montenegrin (regional CLDR proxy): CLDR proxy list, re-spelling of Serbo-Croatian forms
   Proto-Turkic (reconstructed): reconstructed proto-language, not a living site language
 
-data/lexicon.json: 7,878,070 bytes
-dictionary files: 55 languages, 26,696,724 bytes
+data/lexicon.json: 8,078,473 bytes
+dictionary files: 56 languages, 26,696,826 bytes
   Romanian: 6,062,929 bytes
   Hungarian: 3,958,112 bytes
   Macedonian: 3,663,605 bytes
@@ -287,4 +290,5 @@ dictionary files: 55 languages, 26,696,724 bytes
   Northern Altai: 115 bytes
   Southern Altai: 115 bytes
   Gheg Albanian: 113 bytes
-search index: 2314 files, 57,469,296 bytes, largest 299,622 bytes, 389,239 keys (site/h/search/442c98c61a/)
+  German: 102 bytes
+search index: 2314 files, 57,469,365 bytes, largest 299,622 bytes, 389,239 keys (site/h/search/c4e86cade7/)

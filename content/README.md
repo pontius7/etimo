@@ -68,7 +68,7 @@ was kept.
 
 Copy `content/languages/_example.json.txt` to `content/languages/<name>.json` and fill it in.
 `family` must be one of: Slavic, Iranian, Albanian, Greek, Romance, Caucasian, Turkic, Uralic,
-Mongolic, or a family you added in `content/families.json` (section 3). That gives it its colour. `lat`/`lon` place the pin. `area` is optional: a ring of
+Mongolic, Germanic, Baltic, or a family you added in `content/families.json` (section 3). That gives it its colour. `lat`/`lon` place the pin. `area` is optional: a ring of
 `[lon, lat]` points for its home region; without it the map draws an approximate circle sized by
 speakers. `path` builds its branch in the wheel and tree.
 
@@ -97,8 +97,8 @@ Two ways, depending on what you have:
 
 ## 3. Add a language family (optional)
 
-Add one entry to `content/families.json`. The file ships with a Baltic example that is switched off
-by the `_` in front of its name; remove the `_` to use it, or copy it.
+Add one entry to `content/families.json` (it holds Germanic and Baltic, added 2026-11-13; copy one of them).
+An entry whose name starts with `_` is ignored.
 
 ```json
 "Baltic": {

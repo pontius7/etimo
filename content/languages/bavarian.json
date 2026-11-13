@@ -1,0 +1,25 @@
+{
+ "name": "Bavarian",
+ "name_sr": "Bavarski",
+ "name_sq": "Bavarisht",
+ "family": "Germanic",
+ "lat": 47.92,
+ "lon": 13.25,
+ "place": "Bavaria (Germany) and Austria",
+ "place_sr": "Bavarska (Nemačka) i Austrija",
+ "place_sq": "Bavari (Gjermani) dhe Austri",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "High German"
+ ],
+ "region": "west",
+ "self_name": "Boarisch",
+ "glottocode": "bava1246",
+ "countries": [
+  "DE",
+  "AT",
+  "IT"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode bava1246 (classification and pin). Placeholder: speakers, area and words to come."
+}

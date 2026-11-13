@@ -1,0 +1,23 @@
+{
+ "name": "Norwegian",
+ "name_sr": "Norveški",
+ "name_sq": "Norvegjisht",
+ "family": "Germanic",
+ "lat": 61.2,
+ "lon": 9.3,
+ "place": "Norway",
+ "place_sr": "Norveška",
+ "place_sq": "Norvegji",
+ "path": [
+  "Germanic",
+  "North Germanic",
+  "West Scandinavian"
+ ],
+ "region": "nord",
+ "self_name": "norsk",
+ "glottocode": "norw1258",
+ "countries": [
+  "NO"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode norw1258 (classification and pin); pin moved from Oslo to central Norway. Placeholder: speakers, area and words to come."
+}

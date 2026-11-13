@@ -1,0 +1,23 @@
+{
+ "name": "Old Prussian",
+ "name_sr": "Staropruski",
+ "name_sq": "Prusishtja e vjetër",
+ "family": "Baltic",
+ "lat": 54.7,
+ "lon": 20.8,
+ "place": "Prussia, today Kaliningrad Oblast and northern Poland (until the 17th–18th century)",
+ "place_sr": "Prusija, danas Kalinjingradska oblast i severna Poljska (do 17–18. veka)",
+ "place_sq": "Prusia, sot Oblasti i Kaliningradit dhe Polonia veriore (deri në shek. XVII–XVIII)",
+ "path": [
+  "Baltic",
+  "West Baltic"
+ ],
+ "self_name": "prūsiskan",
+ "glottocode": "prus1238",
+ "countries": [
+  "RU",
+  "PL"
+ ],
+ "status": "historical",
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode prus1238 (classification and pin); Glottolog point is in Brandenburg; pin moved to Sambia, the historical centre of Old Prussian. Placeholder: speakers, area and words to come."
+}

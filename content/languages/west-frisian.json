@@ -1,0 +1,24 @@
+{
+ "name": "West Frisian",
+ "name_sr": "Zapadnofrizijski",
+ "name_sq": "Frizianishte perëndimore",
+ "family": "Germanic",
+ "lat": 53.14,
+ "lon": 5.86,
+ "place": "Friesland (Netherlands)",
+ "place_sr": "Frizija (Holandija)",
+ "place_sq": "Frizia (Holandë)",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "Anglo-Frisian",
+  "Frisian"
+ ],
+ "region": "west",
+ "self_name": "Frysk",
+ "glottocode": "west2354",
+ "countries": [
+  "NL"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode west2354 (classification and pin). Placeholder: speakers, area and words to come."
+}

@@ -1,0 +1,23 @@
+{
+ "name": "Danish",
+ "name_sr": "Danski",
+ "name_sq": "Danisht",
+ "family": "Germanic",
+ "lat": 55.9,
+ "lon": 9.6,
+ "place": "Denmark",
+ "place_sr": "Danska",
+ "place_sq": "Danimarkë",
+ "path": [
+  "Germanic",
+  "North Germanic",
+  "East Scandinavian"
+ ],
+ "region": "nord",
+ "self_name": "dansk",
+ "glottocode": "dani1285",
+ "countries": [
+  "DK"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode dani1285 (classification and pin); pin moved from the border to central Jutland. Placeholder: speakers, area and words to come."
+}

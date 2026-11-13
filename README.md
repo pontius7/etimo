@@ -437,6 +437,28 @@ colour check (`scripts/merge/probe-colors.mjs`) now reads the colours the engine
 WebGL); it still reads the reference copy, an old snapshot, from its SVG drawing. Some `!GL` branches remain in the
 minified page code; with `GL` always on they never run.
 
+## Germanic and Baltic, 2026-11-13 (placeholders)
+Two families added through `content/` only (no code): `content/families.json` (colours chosen by search to stay clearly
+apart from the other nine: Germanic rose `#e25275` / `#de3a49`, Baltic pine `#1a5249` / `#2b937d`, minimum CIEDE2000 22.2
+light, 20.2 dark) and 25 files in `content/languages/` (pin, branch, names in sr/sq, glottocode). Branch names in Serbian
+and Albanian are in the `Jr` table of `src/app/2-app-text-and-tables.js`. They are placeholders: no speaker numbers (so
+their map circles are the smallest size), no traced areas, no words except German (`content/words/german.csv`, the 1,370
+unreviewed glosses kept from the retired German interface). Add numbers, areas and words later as for any language.
+
+Classification follows Glottolog 5 (glottolog.org, literature-referenced), simplified to the levels the wheel shows:
+
+| Family | Branches (languages) |
+|---|---|
+| Germanic | North Germanic: West Scandinavian (Icelandic, Faroese, Norwegian), East Scandinavian (Danish, Swedish) · West Germanic: Anglo-Frisian (English, Scots; Frisian: West, North, Saterland), Low German, Low Franconian (Dutch, Limburgish), High German (German, Luxembourgish, Swiss German, Bavarian, Yiddish) · East Germanic (Gothic, Crimean Gothic; both historical) |
+| Baltic | East Baltic (Lithuanian with Samogitian, Latvian with Latgalian) · West Baltic (Old Prussian, historical) |
+
+Where sources differ (recorded, not resolved): Glottolog has no single Baltic node (East Baltic and Old Prussian sit
+directly under Balto-Slavic); the site keeps the handbook grouping "Baltic". Glottolog splits Scandinavian three ways
+(Swedish, Danish, Icelandic-Faroese-Norwegian) and puts Low German with Anglo-Frisian ("North Sea Germanic") and Limburgish
+under Middle German; the site uses the common handbook levels above. Left out on purpose: Afrikaans, Pennsylvania German,
+creoles (outside the map's Europe-Asia area) and the many dialects Glottolog lists. Pins moved from Glottolog's point are
+said in each file's `source`. Full notes: `~/Projects/Claude/knowledge/findings/` (Germanic and Baltic classification).
+
 ## Interface languages
 English, Shqip, Srpski (latinica) and Српски (ћирилица). The Cyrillic interface is made from the Latin one as it is shown
 (`Ea` / `ba` in `src/app/2-app-text-and-tables.js`), so a Serbian text is written once, in Latin. The German interface was

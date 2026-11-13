@@ -1,0 +1,25 @@
+{
+ "name": "North Frisian",
+ "name_sr": "Severnofrizijski",
+ "name_sq": "Frizianishte veriore",
+ "family": "Germanic",
+ "lat": 54.64,
+ "lon": 8.58,
+ "place": "North Frisia (Germany)",
+ "place_sr": "Severna Frizija (Nemačka)",
+ "place_sq": "Frizia Veriore (Gjermani)",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "Anglo-Frisian",
+  "Frisian"
+ ],
+ "region": "west",
+ "self_name": "Nordfriisk",
+ "glottocode": "nort2626",
+ "countries": [
+  "DE"
+ ],
+ "status": "severely endangered",
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode nort2626 (classification and pin). Placeholder: speakers, area and words to come."
+}

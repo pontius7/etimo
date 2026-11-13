@@ -1,0 +1,22 @@
+{
+ "name": "Latvian",
+ "name_sr": "Letonski",
+ "name_sq": "Letonisht",
+ "family": "Baltic",
+ "lat": 56.83,
+ "lon": 24.31,
+ "place": "Latvia",
+ "place_sr": "Letonija",
+ "place_sq": "Letoni",
+ "path": [
+  "Baltic",
+  "East Baltic"
+ ],
+ "region": "nord",
+ "self_name": "latviešu",
+ "glottocode": "latv1249",
+ "countries": [
+  "LV"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode latv1249 (classification and pin). Placeholder: speakers, area and words to come."
+}

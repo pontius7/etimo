@@ -1,0 +1,29 @@
+{
+ "name": "German",
+ "name_sr": "Nemački",
+ "name_sq": "Gjermanisht",
+ "family": "Germanic",
+ "lat": 51.0,
+ "lon": 10.4,
+ "place": "Germany, Austria and Switzerland",
+ "place_sr": "Nemačka, Austrija i Švajcarska",
+ "place_sq": "Gjermani, Austri dhe Zvicër",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "High German"
+ ],
+ "region": "west",
+ "self_name": "Deutsch",
+ "glottocode": "stan1295",
+ "countries": [
+  "DE",
+  "AT",
+  "CH",
+  "LI",
+  "LU",
+  "BE",
+  "IT"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode stan1295 (classification and pin); pin moved from Bavaria to the centre of Germany. Placeholder: speakers, area and words to come."
+}

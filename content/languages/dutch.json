@@ -1,0 +1,24 @@
+{
+ "name": "Dutch",
+ "name_sr": "Holandski",
+ "name_sq": "Holandisht",
+ "family": "Germanic",
+ "lat": 52.0,
+ "lon": 5.0,
+ "place": "Netherlands and Flanders (Belgium)",
+ "place_sr": "Holandija i Flandrija (Belgija)",
+ "place_sq": "Holandë dhe Flandër (Belgjikë)",
+ "path": [
+  "Germanic",
+  "West Germanic",
+  "Low Franconian"
+ ],
+ "region": "west",
+ "self_name": "Nederlands",
+ "glottocode": "dutc1256",
+ "countries": [
+  "NL",
+  "BE"
+ ],
+ "source": "Glottolog 5 (Hammarström, Forkel, Haspelmath, Bank), glottocode dutc1256 (classification and pin). Placeholder: speakers, area and words to come."
+}
