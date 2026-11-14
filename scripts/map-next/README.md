@@ -14,7 +14,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 - Rebuild after any content or colour change: `python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py`
   (needs tippecanoe for the tiles: `brew install tippecanoe`)
   (about 45 seconds; the census regions are only cut again when their source changed. Delete
-  `site/map-next/data/regions/` to cut them all again).
+  `site/map-next/data/regions/` to cut them all again; their tiles, `site/map-next/census-tiles/`, are cut from them on every run).
 - What feeds the data: the same files as the site. The list is at the top of `build.py`.
 - How precise the outlines are, and what counts as a drawing error at a border: the constants at the top of `build.py`.
 
@@ -86,8 +86,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   site's own setting) every fade lasts at most 100 ms.
 - **Camera.** A flight to a language, a region, a family or a pin, and back home, takes 400 to 700 ms by how far it goes
   (zoom steps plus screens panned: `kFly` in the page code), with the site's easing.
-- The census view is unchanged (it still sends its shapes on every choice); it is built once the fade's first frame is
-  drawn, so its work does not hold that frame back.
+- The census view: see "Census view as tiles plus state" below.
 - Tried and dropped: the strengths as a few numbers in the engine's global state (`setGlobalStateProperty`) read by a
   per-area rule. MapLibre re-processes every tile whenever global state that a per-area rule reads changes: 14 times in
   one 200 ms fade. Per-area values set each frame cost under 1 ms of script a frame and no tile.
@@ -98,6 +97,30 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   Albanian or Vlach legend (one frame of about 30 ms). The map at rest is pixel for pixel as before for 23 choices
   (languages on every part of the map, a circle, a historical language, minority areas, the detailed layers, families,
   the word view) on phone and desktop, light and dark. Map ready: about 50 ms later on the slowed phone (2.08 -> 2.13 s).
+
+## Census view as tiles plus state (2026-11-14)
+- **Tiles.** `build.py` (`census_tiles()`) cuts each country's census regions (`data/regions/<CC>.json`) into tiles of their
+  own, `site/map-next/census-tiles/<CC>/{z}/{x}/{y}.pbf` (layer `census`, zoom 0 to 10, about 380 files): two zooms deeper
+  than the other tiles because the regions are small and were drawn to zoom 12 before. A region keeps only its id, its place
+  in the census rows (`i`). Version and each country's box: `meta.json` `census`.
+- **A choice sends numbers.** `census()` in `map-gl.js` works out each region's colour (`c`), strength (`o`) and stripes (`h`)
+  as before (`censusOp`, `hatchOp`) and gives them to the region as its own state (`setFeatureState`), only where they
+  changed; a region no longer drawn loses its state. No shape is sent, no GeoJSON is cut again.
+- **Only the countries drawn.** Each country is two engine sources over the same tiles (`census-<CC>` for the fill,
+  `census-h-<CC>` for the stripes). A country's fill layer is on the map only while the choice draws a region there, its stripe
+  layer only while it draws stripes there, so a choice fetches and reads the tiles of its own countries only (as the old way
+  sent only theirs); taking a layer off costs nothing. Fills stay under stripes, between the detailed layers, as before.
+- **Stripes.** One picture per colour (`hatch-<colour>`), never redrawn in place: MapLibre's `updateImage` leaves the old
+  colour in the picture's one-pixel frame in the engine's picture sheet, which showed as seams in the stripes. A new colour is
+  a new picture for the stripe layers, which reads only the stripe sources again.
+- **Hit testing**: the tiles hold every region, so a region counts as census only where the choice draws it (`hit()`).
+- **Montenegro** keeps its own table (`regional/ME.json`, every language for every municipality, so every municipality is
+  drawn); its largest language per municipality and its region ids now come from `census-top.json` (`ids`), as the other
+  countries' largest language does.
+- Checked against the old way (24 views: every census country with a language that has rows there, stripes, the Albanian
+  view, a far language, light and dark; phone and desktop): the same picture except single pixels along region borders
+  (0.001 to 0.18% of the screen; the old cut simplified borders by up to a quarter pixel and left one-pixel slivers between
+  neighbours), and the same hit test except at those slivers and on the coast line.
 
 ## No old map any more
 The old SVG map was retired on 2026-11-13 (main README, "Old map retired"). When the engine cannot start, the map box shows

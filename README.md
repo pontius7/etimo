@@ -288,6 +288,8 @@ decided that they should follow 64rem.
 ## Speed: rules that keep the phone fast
 Measured and fixed on 2026-11-13 (details: `scripts/map-next/README.md`, "Tiles and loading order").
 - Map shapes go to the engine as tiles (`site/map-next/tiles/`, cut by `scripts/map-next/build.py`; needs `brew install tippecanoe`).
+  The census regions too, per country (`site/map-next/census-tiles/<CC>/`): a choice sends each region's colour and strength
+  as numbers, never its shape (`scripts/map-next/README.md`, "Census view as tiles plus state").
 - A map screen loads the map first and the lexicon after it; other screens the other way round (`preloads()` in `scripts/build-page.py`).
 - The map engine starts from the page's first lines (`prewarm()`); the home page shows from a small starter file (`home_starters()`).
 - The page's code is its own file, `h/app.<hash>.js` (`split_app()` in `scripts/build-page.py`), cached for a year; tools that
