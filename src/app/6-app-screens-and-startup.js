@@ -1091,16 +1091,19 @@ a.push([n.left-t.left-4,n.top-t.top-4,n.right-t.left+4,n.bottom-t.top+4])}
 Qe.selectAll("g.city").each(e=>{let n=t.applyX(e.x),r=t.applyY(e.y);
 a.push([n-6,r-9,n+9+6.2*e.n.length,r+9])});
 let c=e=>a.some(t=>e[0]+1<t[2]&&e[2]-1>t[0]&&e[1]+1<t[3]&&e[3]-1>t[1]),d=e=>e[0]>=2&&e[2]<=b-2&&e[1]>=2&&e[3]<=y-2;
-let kOk=kOrd(l,e=>(e.__data__===nt?tt:et).node());
+let kPW=kPh()&&!!p,kOk=kOrd(l,e=>(e.__data__===nt?tt:et).node());
 if(l.forEach(e=>{let n=e.__data__;
 if(kOk||(n===nt?tt:et).node().appendChild(e),!i||!n.cl&&ft.has(n.id)||rt&&!n.cl&&n.family!==rt&&n!==nt||!Xe&&!rt&&!n.cl&&n!==nt&&t.k<3.4||kn&&!n.cl&&n!==nt&&!kn.has(n))return void(e.style.opacity=0);
-let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
+let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=kPW?kTw(e,r):e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
 /* phones without pins (kpho): the name is the marker, centred on its language's point, with room around it; a name that would
    touch one already placed (larger languages are placed first) waits for a closer zoom. The chosen language keeps its pin. */
 if(n!==nt&&!n.cl&&q.node().classList.contains("kpho")){let g=f/2+8,v=u+.36*r;p=[["middle",l,v,[l-g,v-r-4,l+g,v+6]]]}
+/* D5, phone word view: the width is measured (the estimate was too short, so names ran off the edge), and every name keeps 5 px at the sides and 3 px above and below,
+   so fewer fit and none touches another or the screen edge. Desktop is unchanged. */
+kPW&&p.forEach(z=>{z[3]=[z[3][0]-5,z[3][1]-3,z[3][2]+5,z[3][3]+3]});
 for(let e=0;e<p.length;e++)if(d(p[e][3])&&!c(p[e][3])){m=p[e];
 break}
-m||n!==nt||(m=p[0]),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),e.__o=[m[1]-l,m[2]-u],a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=Q2.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
+m||n!==nt||(m=p[0],kPW&&(m=kClamp(m))),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),e.__o=[m[1]-l,m[2]-u],a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=Q2.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
 return r.width?[r.left-t.left-n,r.top-t.top-n,r.right-t.left+n,r.bottom-t.top+n]:null},i=(e,t)=>t.some(t=>e[0]<t[2]&&e[2]>t[0]&&e[1]<t[3]&&e[3]>t[1]);
 Q2.selectAll("text.plabel").each(function(){if("0"===this.style.opacity)return;
 let e=a(this,1);
@@ -1166,6 +1169,13 @@ W[1]>W[0]&&(cy=(W[0]+W[1])/2,
    80%), so a few in the Arctic or in southern Arabia do not pull the view away from Europe, the Caucasus and Iran */
 me()&&W[1]-W[0]>2*hh&&(cy=kMid(x.filter(e=>T(e)&&Math.abs(e._xy[0]-cx)<=hw).map(e=>e._xy[1]))))}
 return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-cx,-cy)}
+/* the chosen name has no free place: slide it sideways until it is inside the screen */
+function kClamp(m){let R=m[3],dx=R[0]<4?4-R[0]:R[2]>b-4?b-4-R[2]:0;
+return dx?[m[0],m[1]+dx,m[2],[R[0]+dx,R[1],R[2]+dx,R[3]]]:m}
+/* a phone (<64rem); me() cannot say it: it is false in the word view on every screen */
+function kPh(){return!window.matchMedia||!matchMedia("(min-width: 64rem)").matches}
+function kTw(e,r){let k=r+"|"+e.textContent,c=e.__tw;
+return c&&c[0]===k?c[1]:(e.__tw=[k,(e.getComputedTextLength?e.getComputedTextLength():0)||e.textContent.length*r*.56])[1]}
 function kMid(v){v=v.slice().sort((a,b)=>a-b);let q=f=>v[Math.min(v.length-1,Math.floor(f*v.length))];return v.length?(q(.1)+q(.9))/2:0}
 function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k;
 kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
