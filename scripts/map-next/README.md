@@ -27,8 +27,8 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   The three JSON files stay: they are the tiles' source and the checks read them. One engine source, `base`, with the
   layers `land`, `areas`, `lines` (`'source-layer'` in `map-gl.js`); a check that reads features asks for
   `querySourceFeatures('base', {sourceLayer: 'areas'})`. The tile address carries `?v=` (a hash of the three files, in
-  `meta.json`), so tiles are cached for a year (`site/_headers`); MapLibre too (`?v=6.18.0` on its import: a new MapLibre
-  needs a new `?v=` there). Cloudflare serves whole files only (no byte ranges), so a one-file tile archive (PMTiles) would
+  `meta.json`), so tiles are cached for a year (`site/_headers`); MapLibre too (`?v=6.18.0` on its import in `site/map-gl.js`: a new MapLibre
+  needs a new `?v=` there). `map-gl.js` and `regional-layer.js` are served as hashed copies in `site/h/` (build-page.py `own_files()`). Cloudflare serves whole files only (no byte ranges), so a one-file tile archive (PMTiles) would
   need extra storage; the folder of tiles needs none. Measured on a phone-sized Chrome, processor slowed 4 times, 4G:
   the first view loads 4 tiles (230 KB) instead of 3.1 MB of shapes.
 - **What loads first.** `scripts/build-page.py` (`preloads()`) writes a few lines at the top of the page: on a map screen the
