@@ -212,6 +212,10 @@ async function create(host, id, early) {
     zoom: early ? (innerWidth >= 1024 ? 4.4 : 3.6) : 3,      // early: about the zoom of the page's first view, so its tiles are the ones loaded
     maxBounds: [at(cx - 2700, cy + 2000), at(cx + 2700, cy - 2100)],
     renderWorldCopies: false, attributionControl: false, fadeDuration: 0,
+    /* Past the tiles' deepest zoom the engine enlarges the deepest tile as it is (its older, plain way). Its newer default
+       (zoomLevelsToOverscale: 4) cuts new smaller tiles out of it in the worker, and those lose step with the per-area state
+       (setFeatureState then throws "feature index out of bounds" on a deep view). */
+    zoomLevelsToOverscale: undefined,
     dragRotate: false, pitchWithRotate: false, touchPitch: false, rollEnabled: false, maxPitch: 0,
     style: {
       version: 8,
@@ -264,7 +268,7 @@ async function create(host, id, early) {
            hands each one over as it stands, in screen pixels and in the look its style sheet gives it (labels() below): a name keeps
            its size on screen and its distance from its point while the map zooms, as in the leading map products. */
         {id: 'lab-dot', type: 'circle', source: 'labs', filter: ['==', ['get', 'k'], 'c'], paint: {'circle-radius': ['get', 'r'], 'circle-color': ['get', 'c'], 'circle-stroke-color': ['get', 'h'], 'circle-stroke-width': ['get', 'hw'], 'circle-opacity': LAB_O, 'circle-stroke-opacity': LAB_O}},
-        {id: 'lab-text', type: 'symbol', source: 'labs', filter: ['==', ['get', 'k'], 't'], layout: {'text-field': ['get', 't'], 'text-font': LAB_FONT, 'text-size': ['get', 's'], 'text-letter-spacing': ['get', 'ls'], 'text-anchor': 'center', 'text-max-width': 400, 'text-padding': 0, 'text-allow-overlap': true, 'text-ignore-placement': true, 'symbol-sort-key': ['get', 'i']}, paint: {'text-color': ['get', 'c'], 'text-halo-color': ['get', 'h'], 'text-halo-width': ['get', 'hw'], 'text-opacity': LAB_O}},
+        {id: 'lab-text', type: 'symbol', source: 'labs', filter: ['==', ['get', 'k'], 't'], layout: {'text-field': ['get', 't'], 'text-font': LAB_FONT, 'text-size': ['get', 's'], 'text-letter-spacing': ['get', 'ls'], 'text-offset': ['get', 'off'], 'text-anchor': 'center', 'text-max-width': 400, 'text-padding': 0, 'text-allow-overlap': true, 'text-ignore-placement': true, 'symbol-sort-key': ['get', 'i']}, paint: {'text-color': ['get', 'c'], 'text-halo-color': ['get', 'h'], 'text-halo-width': ['get', 'hw'], 'text-opacity': LAB_O}},
       ],
     },
   });
@@ -557,19 +561,19 @@ async function create(host, id, early) {
        in pixels of the window; text: t, s size, w weight, ls letter spacing (em), off offset from the point (em); dot: r radius;
        outline: pts its lines, lw width; c colour, h halo or edge colour, hw its width, o how visible}]. Replaces what was there. */
     labels(list) {
-      const R = map.getCanvas().getBoundingClientRect(), offs = [];
+      const R = map.getCanvas().getBoundingClientRect(), NO = [0, 0];
       const ll = (x, y) => { const p = map.unproject([x - R.left, y - R.top]); return [p.lng, p.lat]; };
       const features = list.map((p, i) => {
         const {x, y, off, pts, ...props} = p;
-        if (off && (off[0] || off[1])) offs.push(i, ['literal', off]);
         /* an outline: pts = its lines, each a flat list of x, y in pixels of the window */
         const geometry = pts ? {type: 'MultiLineString', coordinates: pts.map(a => { const c = []; for (let j = 0; j < a.length; j += 2) c.push(ll(a[j], a[j + 1])); return c; })}
           : {type: 'Point', coordinates: ll(x, y)};
-        return {type: 'Feature', id: i, properties: {...props, i}, geometry};
+        return {type: 'Feature', id: i, properties: {...props, i, off: off || NO}, geometry};
       });
-      /* a feature's properties reach the engine's tiles as plain values only (a pair would arrive as text), so each name's
-         offset is set on the layer, by its number in this list */
-      map.setLayoutProperty('lab-text', 'text-offset', offs.length ? ['match', ['get', 'i'], ...offs, ['literal', [0, 0]]] : ['literal', [0, 0]]);
+      /* Each name's offset travels with it, as a pair in its properties (layer lab-text reads it). It used to be set on the
+         layer on every call; that made the engine redo these tiles twice per call (once for the layer, once for the data), and
+         when both landed during a tile's first load the engine paired the new shapes with the old tile contents: the next fade
+         then threw "feature index out of bounds". One request per call now. */
       map.removeFeatureState({source: 'labs'});
       map.getSource('labs').setData({type: 'FeatureCollection', features});
     },
