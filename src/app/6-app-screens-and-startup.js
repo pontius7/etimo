@@ -515,8 +515,7 @@ t();
 let n=null;
 try{n=document.fonts,n.ready.then(t),n.addEventListener("loadingdone",t)}catch{}
 return()=>{try{n&&n.removeEventListener("loadingdone",t)}catch{}}},[]),
-(0,m.useEffect)(()=>{try{document.title="Etimo"}catch{}
-if(Ya())return;
+(0,m.useEffect)(()=>{if(Ya())return;
 let e=0,n=null,r=null,a=()=>{if(document.hidden)return void(r=setTimeout(a,1500));
 let s=Ip[e=(e+1)%Ip.length],o=s.length,l=performance.now(),u=s.split("").map((e,t)=>0===t||t===o-1?0:360+170*(t-1)+130*Math.random());
 n=setInterval(()=>{let e=performance.now()-l,c=!0,d=i.current,h=s.split("").map((t,n)=>{if(0===n||n===o-1||e>=u[n])return[t,1,t];
@@ -1636,6 +1635,11 @@ if(gap<=0)return[[-180,s],[180,n]];
 let W=gi<0?m[0][0]:m[gi][0],E=gi<0?m[m.length-1][1]:m[gi-1][1],nm=v=>((v+180)%360+360)%360-180;
 return[[nm(W),s],[E>180?nm(E):E,n]]}
 let kHN=0;
+/* the page's title and description for the screen (the tags in the page's head are the start page's) */
+function kMeta(b,y){let v=b.v,L=b.L||b.sel&&fa["l-"+b.sel],t,k;
+"lang"===v?(t=Na(L),k="lang"):"word"===v?(t=b.e.word,k="word"):"cat"===v?(t=y.cat[b.cat],k="cat"):"concept"===v?(t=La(b.c),k="concept"):"map"===v?b.conc?(t=La(b.conc),k="mapword"):L?(t=Na(L),k="maplang"):(t=y.explore,k="map"):"langs"===v?(t=y.nav.lang,k="langs"):"az"===v?(t=y.nav.all,k="az"):"search"===v?(t=y.searchT,k="search"):k="home";
+document.title="home"===k?y.title:t+" \u00b7 "+y.title;
+document.querySelector('meta[name=description]').content=y.meta(k,t,L&&("word"===k?Na(L):Ca(L.family)))}
 function Up(){var e,
 t;
 let[n,r]=(0,m.useState)(location.hash.replace("#","")),
@@ -1682,7 +1686,7 @@ try{localStorage.setItem("khl-theme",e?"dark":"light")}catch{}
 o(e?"dark":"light")}
 function x(e,t){try{localStorage.setItem(e,t)}catch{}
 d(Kp())}(0,m.useEffect)(()=>{document.documentElement.lang=Ia()},[a]);
-"home"===b.v||"cat"===b.v?y.title:"langs"===b.v?y.nav.lang:"map"===b.v?b.conc?La(b.conc):y.explore:"az"===b.v||"search"===b.v&&y.searchT;
+(0,m.useEffect)(()=>kMeta(b,y),[n,a]);
 let j="cat"===b.v||"concept"===b.v||"lang"===b.v||"word"===b.v||"langs"===b.v||"map"===b.v&&(b.sel||b.conc),
 S="concept"===b.v?(e=b.c,()=>ha[e].slice().sort((e,t)=>Na(e.L).localeCompare(Na(t.L),Ia())).map(e=>Oa(e.L,e.e)).join("\n\n")):"lang"===b.v?(t=b.L,()=>t.entries.filter(e=>"all"===mi.cat||e.cats[mi.cat]).map(e=>Oa(t,e)).join("\n\n")):null,
 _="langs"===b.v||"lang"===b.v?"lang":"map"!==b.v||b.conc?"search"===b.v?"search":"words":"map",

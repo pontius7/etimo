@@ -49,7 +49,7 @@ STAGES = {
         'skip': lambda rel: rel.startswith('site/data/') and rel.count('/') == 2 and os.path.basename(rel) in DATA_BUILT,
     },
     'page': {
-        'roots': ['content', 'src', 'scripts/build-page.py', 'scripts/page_code.py', 'scripts/merge/palette.py',
+        'roots': ['content', 'src', 'scripts/build-page.py', 'scripts/site_pages.py', 'scripts/page_code.py', 'scripts/merge/palette.py',
                   'scripts/merge/families.py', 'site/data', 'site/h/dict', 'site/h/search', 'site/fonts',
                   'site/map-gl.js', 'site/regional-layer.js', 'site/search-key.js', 'site/_headers',
                   'site/country-data.js', 'site/country-sources.js', 'site/country-sources.css',
