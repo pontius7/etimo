@@ -82,11 +82,9 @@ const kSp = (k, h) => (0, f.jsx)('div', {key: k, 'aria-hidden': true, style: {he
 /* "Details" fold in the language page's hero (census and dialect list): closed by default, a real button (keyboard), the open state
    is kept per language in mi so a re-render or a return to the page keeps it. Opening is a short fade/rise (CSS .kdet-b). */
 function kDet({id, lbl, kids}) {
-  let [o, so] = (0, m.useState)(mi.kdetL === id && !!mi.kdet), has = kids.some(Boolean);
-  (0, m.useEffect)(() => { mi.kdet = o; mi.kdetL = id; }, [o, id]);
-  (0, m.useEffect)(() => { so(mi.kdetL === id && !!mi.kdet); }, [id]);
-  if (!has) return null;
-  return (0, f.jsxs)('div', {className: 'kdet' + (o ? ' open' : ''), children: [(0, f.jsxs)('button', {type: 'button', className: 'kdet-t', 'aria-expanded': o, 'aria-controls': 'kdet-b', onClick: () => so(!o), children: [lbl, (0, f.jsx)('i', {className: 'kdet-c', 'aria-hidden': true})]}), o ? (0, f.jsx)('div', {id: 'kdet-b', className: 'kdet-b', children: kids}) : null]});
+  let [, re] = (0, m.useState)(0), open = mi.kdet || (mi.kdet = {}), o = !!open[id];
+  if (!kids.some(Boolean)) return null;
+  return (0, f.jsxs)('div', {className: 'kdet' + (o ? ' open' : ''), children: [(0, f.jsxs)('button', {type: 'button', className: 'kdet-t', 'aria-expanded': o, 'aria-controls': 'kdet-b', onClick: () => { open[id] = !o; re(n => n + 1); }, children: [lbl, (0, f.jsx)('i', {className: 'kdet-c', 'aria-hidden': true})]}), o ? (0, f.jsx)('div', {id: 'kdet-b', className: 'kdet-b', children: kids}) : null]});
 }
 const FDnum = n => n.toLocaleString(Ia());
 /* one language's dictionary file -> {s, e, k (keys, built on first search)} */
