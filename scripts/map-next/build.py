@@ -7,9 +7,9 @@ Run after the normal site build, with the project's Python (it has the geometry 
 Nothing here is typed in by hand. Everything the map shows comes from the files the site already uses:
   language areas     site/data/terr.json         (made by scripts/merge/merge-data.py from the sources and content/)
   language list      site/data/languages.json    (pin position, family, own name, census rows)
-  language colours   site/index.html             (the one colour table build-page.py writes from the palette and content/)
+  language colours   site/data/palette.json   (the one palette build-page.py writes from scripts/merge/palette.py and content/)
   main language of a country   the census rows above, plus the short list in site/regional-layer.js (same rule as the site)
-  family names       site/index.html (where each name sits) and scripts/merge/palette.py (its colour, light and dark)
+  family names       site/index.html (where each name sits); their colours: site/data/palette.json
   lighter tint       content/minority-areas.csv  (min / plu rows)
   detailed areas     site/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
                      montenegro-areas.json, and the census countries of CENSUS_AREAS (croatia-, bosnia-areas.json); which generic pins and zones they replace: the lists in site/regional-layer.js
@@ -50,7 +50,6 @@ OUT = os.path.join(ROOT, 'site', 'map-next', 'data')
 CACHE = os.path.join(ROOT, '.cache', 'map-next')
 WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-10m.json'
 sys.path.insert(0, os.path.join(ROOT, 'scripts', 'merge'))
-import palette  # noqa: E402
 import topo  # noqa: E402
 
 RELIEF = (-1490, -1670, 3150, 1660)      # x, y, width, height of the relief image in map units
@@ -202,15 +201,18 @@ def world(area_tree):
 
 
 # ------------------------------------------------------------------ languages
+def load_palette():
+    with open(os.path.join(ROOT, 'site', 'data', 'palette.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
 def colour_table():
-    """The language colour table from the built page (one palette for the whole site)."""
-    sys.path.insert(0, os.path.join(ROOT, 'scripts'))
-    import page_code  # noqa: E402  (index.html and its code file, h/app.<hash>.js)
-    html = page_code.read(ROOT)
-    m = re.search(r'\(function\(\)\{var P=(\{[^}]*\})', html)
-    if not m:
-        sys.exit('map-next: colour table not found in site/index.html (run scripts/build-page.py first)')
-    return json.loads(m.group(1))
+    """The language colour table: site/data/palette.json, written by scripts/build-page.py (one palette for the whole site)."""
+    path = os.path.join(ROOT, 'site', 'data', 'palette.json')
+    if not os.path.exists(path):
+        sys.exit('map-next: site/data/palette.json not found (run scripts/build-page.py first)')
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)['light']
 
 
 def main_languages(langs):
@@ -606,7 +608,8 @@ def main():
     own = unary_union([c['shape'] for c in countries if c['name'] in ('Montenegro', 'Greece')])
     fitted = {n: g for n, g in ((n, solid(g.difference(own))) for n, g in fitted.items()) if not g.is_empty}
     # where a family's speakers live outside its home areas (site/data/dia.json), one shape per family
-    fam_col = lambda fam: {th: palette.ETIMO[th].get(fam) or palette.FAM[th].get(fam) or '#8a93a3' for th in ('light', 'dark')}
+    fam_cols = load_palette()['families']
+    fam_col = lambda fam: {th: fam_cols.get(fam, {}).get(th) or '#8a93a3' for th in ('light', 'dark')}
     dia, _, _ = fit_areas({fam: g for fam, g in ((fam, area_shape(d)) for fam, d in load('dia.json')['fam'].items()) if g is not None}, countries)
 
     def props(name):
@@ -616,11 +619,14 @@ def main():
 
     feat = lambda p, typ, coords: {'type': 'Feature', 'properties': p, 'geometry': {'type': typ, 'coordinates': coords}}
     fc = lambda feats: {'type': 'FeatureCollection', 'features': feats}
-    zone = lambda n: {**props(n), **({'tint': tint[n]} if n in tint else {}), **({'hist': 1} if (langs.get(n) or {}).get('hist') else {}),
+    hist = lambda n: bool((langs.get(n) or {}).get('hist'))
+    # id: each area's own name for the engine's per-area state (promoteId in site/map-gl.js): the language for a broad
+    # area, kind:language for a detailed one, dia:family for a family's area outside its home areas
+    zone = lambda n: {**props(n), 'id': n, **({'tint': tint[n]} if n in tint else {}), **({'hist': 1} if hist(n) else {}),
                       **({'round': 1} if n in round_areas else {})}
     areas = [feat(zone(n), 'MultiPolygon', gj_polygons(g)) for n, g in sorted(fitted.items(), key=lambda kv: -kv[1].area)]
-    areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
-    areas += [feat({'kind': 'dia', 'fam': fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
+    areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n, 'id': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
+    areas += [feat({'kind': 'dia', 'fam': fam, 'id': 'dia:' + fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
     drawn_whole = {cname for _, cname in CENSUS_AREAS}     # covered by their census areas: no country tint under them
     land = [feat({'name': c['name'], **({'base': colours.get(c['lang'], '#8a93a3'), 'lang': c['lang'], 'bfam': props(c['lang'])['fam']} if c['lang'] and c['name'] not in drawn_whole else {})},
                  'MultiPolygon', gj_polygons(c['shape'])) for c in countries]
@@ -639,6 +645,13 @@ def main():
         'home': [min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs)],
         # the detailed areas, for the rules the page applies when a language or a family is chosen: [kind, language, family]
         'detail': sorted([k, n, props(n)['fam']] for k, n in detail),
+        # every other area by its id, so the engine can give each its strength when a language or a family is chosen:
+        # the broad areas by family, the historical ones, the families' areas outside their home areas, and the
+        # countries tinted with their main language [country, language, its family]
+        'zones': {f: sorted(n for n in fitted if props(n)['fam'] == f) for f in sorted({props(n)['fam'] for n in fitted})},
+        'hist': sorted(n for n in fitted if hist(n)),
+        'dia': sorted(dia),
+        'tint': sorted([c['name'], c['lang'], props(c['lang'])['fam']] for c in countries if c['lang'] and c['name'] not in drawn_whole),
     }
     sizes = {n: write(n, o) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
     meta['tiles'] = tiles()      # what the map loads: the tiles cut from the three files above (they stay for the checks)

@@ -1,0 +1,56 @@
+name: check
+
+# Builds the site from content/ and src/ with every check, and fails if the committed site/ is not what the build makes.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: scripts/merge/requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # the only Python packages the build scripts import (shapely, and numpy under it), pinned
+      - name: Set up the build's Python
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r scripts/merge/requirements.txt
+
+      # --offline: nothing is fetched and no tiles are cut here. The data and map stages are verified by their committed
+      # fingerprints (site/data/inputs.sha256, site/map-next/inputs.sha256): the check fails if their inputs changed since
+      # site/ was built. The page is rebuilt and every check (search keys, overlaps, words report, colours in Chrome) runs.
+      - name: Build with every check
+        env:
+          CHROME: /usr/bin/google-chrome
+          ETIMO_CHROME_ARGS: --no-sandbox --disable-dev-shm-usage
+        run: ./build --check --offline
+
+      - name: Show what differs from the committed site/
+        if: failure()
+        run: |
+          git status --porcelain site | head -50
+          git diff --stat -- site | tail -30
+
+      - name: Fail if site/ differs from the commit
+        run: |
+          if [ -n "$(git status --porcelain site)" ]; then
+            echo "site/ differs from what is committed:"
+            git status --porcelain site | head -50
+            git diff --stat -- site | tail -30
+            exit 1
+          fi

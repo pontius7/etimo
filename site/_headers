@@ -2,7 +2,8 @@
   Cache-Control: public, max-age=86400
   Access-Control-Allow-Origin: *
 
-# content-hashed files (name changes whenever the content does): cache for a year
+# content-hashed files (name changes whenever the content does): cache for a year. Includes the map engine, its rules and the
+# country files (copies of site/map-gl.js, regional-layer.js, country-*.js/css, written by scripts/build-page.py)
 /h/*
   Cache-Control: public, max-age=31536000, immutable
   Access-Control-Allow-Origin: *

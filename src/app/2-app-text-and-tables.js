@@ -5306,7 +5306,14 @@ function Ra(e){let t=ya();
 return ka(e+" "+("en"===t?1===e?"language":"languages":"sr"===t?Vr(e,"jezik","jezika","jezika"):"sq"===t?"gjuhë":1===e?"Sprache":"Sprachen"))}
 function Oa(e,t){let n=ai(t);
 return Na(e)+", "+Ma(e)+" – "+t.word+(n?" ("+n+")":"")+" – "+Ta(t.meaning)}
-function Da(e){let t=String(e||"").toLowerCase().replace(/ß/g,"ss").replace(/[æǣǽ]/g,"ae").replace(/œ/g,"oe").replace(/[łƚɬ]/g,"l").replace(/[đðɖ]/g,"d").replace(/[øǿɵ]/g,"o").replace(/þ/g,"th").replace(/[ħɦ]/g,"h").replace(/[ŋɲɳ]/g,"n").replace(/[ɣɡ]/g,"g").replace(/ı/g,"i").replace(/[əǝɛ]/g,"e").replace(/[ʁʀɾɹ]/g,"r").replace(/χ/g,"x").replace(/[үұ]/g,"у").replace(/ө/g,"о").replace(/ң/g,"н").replace(/[қҝ]/g,"к").replace(/[ғҕ]/g,"г").replace(/[ҳһ]/g,"х").replace(/ә/g,"а").replace(/ҙ/g,"з").replace(/ҫ/g,"с").replace(/җ/g,"ж").replace(/ӏ/g,"i").replace(/[ɨɩɪ]/g,"i").replace(/[ɑɐ]/g,"a").replace(/[ɔɒ]/g,"o").replace(/β/g,"b").replace(/[ɯʉʊ]/g,"u").replace(/[эё]/g,"е").replace(/[ҥӈӊ]/g,"н").replace(/[ӄҡҟ]/g,"к").replace(/[ӆԓ]/g,"л").replace(/ӎ/g,"м").replace(/[ҷҹӌ]/g,"ч").replace(/ў/g,"у").replace(/[іїӣ]/g,"и").replace(/[ʃɕʂ]/g,"sh").replace(/[ʒʑʐ]/g,"zh").replace(/ɟ/g,"j").replace(/[ɫɭ]/g,"l").replace(/[ɽɻ]/g,"r").replace(/ʋ/g,"v").replace(/ɸ/g,"f").replace(/θ/g,"th");
+/* Da: the same result as the old chain of 46 replacements, in one pass (each of those letters maps to a fixed text and no
+   result is itself replaced later); text made only of plain letters, digits and spaces skips the rest, and text that is plain
+   ASCII after the map skips the accent steps (they cannot change it). Search runs this on every word. */
+const DaM={"ß":"ss","æ":"ae","ǣ":"ae","ǽ":"ae","œ":"oe","ł":"l","ƚ":"l","ɬ":"l","đ":"d","ð":"d","ɖ":"d","ø":"o","ǿ":"o","ɵ":"o","þ":"th","ħ":"h","ɦ":"h","ŋ":"n","ɲ":"n","ɳ":"n","ɣ":"g","ɡ":"g","ı":"i","ə":"e","ǝ":"e","ɛ":"e","ʁ":"r","ʀ":"r","ɾ":"r","ɹ":"r","χ":"x","ү":"у","ұ":"у","ө":"о","ң":"н","қ":"к","ҝ":"к","ғ":"г","ҕ":"г","ҳ":"х","һ":"х","ә":"а","ҙ":"з","ҫ":"с","җ":"ж","ӏ":"i","ɨ":"i","ɩ":"i","ɪ":"i","ɑ":"a","ɐ":"a","ɔ":"o","ɒ":"o","β":"b","ɯ":"u","ʉ":"u","ʊ":"u","э":"е","ё":"е","ҥ":"н","ӈ":"н","ӊ":"н","ӄ":"к","ҡ":"к","ҟ":"к","ӆ":"л","ԓ":"л","ӎ":"м","ҷ":"ч","ҹ":"ч","ӌ":"ч","ў":"у","і":"и","ї":"и","ӣ":"и","ʃ":"sh","ɕ":"sh","ʂ":"sh","ʒ":"zh","ʑ":"zh","ʐ":"zh","ɟ":"j","ɫ":"l","ɭ":"l","ɽ":"r","ɻ":"r","ʋ":"v","ɸ":"f","θ":"th"},DaR=/[ßæǣǽœłƚɬđðɖøǿɵþħɦŋɲɳɣɡıəǝɛʁʀɾɹχүұөңқҝғҕҳһәҙҫҗӏɨɩɪɑɐɔɒβɯʉʊэёҥӈӊӄҡҟӆԓӎҷҹӌўіїӣʃɕʂʒʑʐɟɫɭɽɻʋɸθ]/g,DaP=/^[a-z0-9 ]*$/,DaN=/[^\x00-\x7f]/;
+function Da(e){let t=String(e||"").toLowerCase();
+if(DaP.test(t))return t.replace(/ +/g," ").trim();
+t=t.replace(DaR,e=>DaM[e]);
+if(!DaN.test(t))return t.replace(/['"`]/g,"").replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
 return t.normalize("NFD").replace(/\p{M}/gu,"").replace(/[\u02b0-\u02ff\u1d2c-\u1dbf\u2018-\u201f'"`´ʼʻˮʔʕʿʾꞌ]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim()}
 function Fa(e){return(e=String(e||"").split(/[,;\/(]/)[0].toLowerCase().replace(/[łɬ]/g,"l").replace(/[øœ]/g,"o").replace(/[đð]/g,"d").replace(/æ/g,"ae").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"")).replace(/ə/g,"e").replace(/ı/g,"i").replace(/ŋ/g,"n").replace(/ħ/g,"h").replace(/ɣ/g,"g").replace(/[^a-z]/g,"")}
 function Ba(e,t){let n,
@@ -5335,6 +5342,26 @@ EK.keys(e.e.word).concat(e.e.lat?EK.keys(e.e.lat):[]).forEach(e=>t.add(e)),
 e._k=Array.from(t)}
 return e._k}
 let Ua=e=>e<=3||e<=6?1:e<=9?2:3;
+/* Search text of a word (its forms, its meaning and the meaning in the interface language, then its keys) and its meanings
+   one by one: worked out once per word and interface language, by the search itself or by the warm-up below. */
+function kSrT(e){return e._u!==ga.ui&&(e._u=ga.ui,e._f=Da(e.e.word+" "+(e.e.lat||"")+" "+(e.e.orig||"")+" "+e.e.meaning+" "+Ta(e.e.meaning)),e._s=e._f+" "+Ga(e).join(" ")),e._s}
+function kSrM(e){return e._mu!==ga.ui&&(e._mu=ga.ui,e._m=Array.from(new Set((e.e.meaning+", "+Ta(e.e.meaning)).split(/,\s*/).map(e=>Da(e.replace(/\(.*?\)/g,"")).trim()).filter(Boolean)))),e._m}
+/* Search warm-up. The first search needs the search text of every word (about 79,000); done in one go that froze the page
+   for seconds on a phone. kSrW() prepares it in the background, a few ms at a time, and answers whether all of it is ready;
+   kSrW(f) also calls f once it is. It starts over when the word list or the interface language changes. */
+let kSrS={p:null,u:null,n:0,on:0,f:[]};
+function kSrW(f){let S=kSrS,fresh=()=>{(S.p!==pa||S.u!==ga.ui)&&(S.p=pa,S.u=ga.ui,S.n=0)};
+fresh();
+if(S.n>=pa.length)return!0;
+f&&S.f.push(f);
+if(!S.on){S.on=1;
+let step=()=>{fresh();
+let t=performance.now();
+for(;S.n<pa.length&&performance.now()-t<8;){let e=pa[S.n++];kSrT(e),kSrM(e)}
+if(S.n<pa.length)setTimeout(step,0);
+else{S.on=0;let c=S.f;S.f=[];c.forEach(e=>e())}};
+setTimeout(step,0)}
+return!1}
 function Ha(e){let t=/\s$/.test(String(e)),
 n=String(e).trim(),
 r=Da(e=n.replace(/([а-яёА-ЯЁ])[IӀӏ1lІі|](?=[а-яёА-ЯЁ]|$)/g,"$1ӏ")),
@@ -5347,12 +5374,14 @@ sim:[],
 dym:[]};
 let o=Object.keys(ia).filter(e=>ha[e].length&&s.some(n=>(" "+Da(e+" "+La(e)).replace(/[()]/g," ")+" ").indexOf(" "+n+(t?" ":""))>-1)).sort((e,t)=>(Da(La(e))!==r)-(Da(La(t))!==r)||Da(La(e)).length-Da(La(t)).length),
 l=[];
-if(pa.forEach(e=>{let t=(e._u!==ga.ui&&(e._u=ga.ui,e._f=Da(e.e.word+" "+(e.e.lat||"")+" "+(e.e.orig||"")+" "+e.e.meaning+" "+Ta(e.e.meaning))),e._f+" "+Ga(e).join(" "));
+if(pa.forEach(e=>{let t=kSrT(e);
 if(!s.some(e=>t.indexOf(e)>-1))return;
-let n=Ga(e),r=(e._mu!==ga.ui&&(e._mu=ga.ui,e._m=Array.from(new Set((e.e.meaning+", "+Ta(e.e.meaning)).split(/,\s*/).map(e=>Da(e.replace(/\(.*?\)/g,"")).trim()).filter(Boolean)))),e._m),a=6;
+let n=Ga(e),r=kSrM(e),a=6;
 for(let e of s)a=n.some(t=>t===e)?Math.min(a,0):r.some(t=>t===e)?Math.min(a,1):n.some(t=>t.startsWith(e))?Math.min(a,2):r.some(t=>t.split(" ").some(t=>t===e))?Math.min(a,3):r.some(t=>t.split(" ").some(t=>t.startsWith(e)))?Math.min(a,4):Math.min(a,5);
 l.push([a,e])}),(()=>{let t=e.toLowerCase(),n=e=>String(e.e.word).replace(/[IӀ1]/g,"ӏ").toLowerCase().split(/[,;]\s*/).includes(t)?0:Da(e.e.lat||"").split(" ").includes(r)?1:2;
-l.sort((e,t)=>e[0]-t[0]||n(e[1])-n(t[1])||String(e[1].e.word).length-String(t[1].e.word).length||Na(e[1].L).localeCompare(Na(t[1].L),Ia()))})(),t){let e=l.filter(e=>0===e[0]||1===e[0]||3===e[0]);
+/* same order as before; each hit's keys are worked out once (not on every comparison), names compared by one collator */
+let k=e=>void 0===e[2]?e[2]=n(e[1]):e[2],w=e=>void 0===e[3]?e[3]=Na(e[1].L):e[3],c=new Intl.Collator(Ia());
+l.sort((e,t)=>e[0]-t[0]||k(e)-k(t)||String(e[1].e.word).length-String(t[1].e.word).length||c.compare(w(e),w(t)))})(),t){let e=l.filter(e=>0===e[0]||1===e[0]||3===e[0]);
 e.length&&(l=e)}
 let u=l.map(e=>e[1]),
 c=[];
@@ -5533,7 +5562,7 @@ function di({s:e,q:t}){if(!t)return(0,f.jsx)(f.Fragment,{children:e});
 let n=e.toLowerCase().indexOf(t.toLowerCase());
 return n<0?(0,f.jsx)(f.Fragment,{children:e}):(0,f.jsxs)(f.Fragment,{children:[e.slice(0,n),(0,f.jsx)("mark",{children:e.slice(n,n+t.length)}),e.slice(n+t.length)]})}
 function hi(e,t){return"w"+e.entries.indexOf(t)+"-"+e.id.slice(2)}
-function fi({x:e,q:t=""}){return(0,f.jsx)("button",{type:"button",className:"row",onClick:()=>{Qa(mi.q||""),Ja(hi(e.L,e.e))},children:(0,f.jsxs)("span",{className:"m",children:[(0,f.jsxs)("span",{className:"t",children:[(0,f.jsx)("span",{className:"dot "+e.L.family}),(0,f.jsx)("span",{children:(0,f.jsx)(di,{s:e.e.word,q:t})}),ai(e.e)?(0,f.jsxs)(f.Fragment,{children:[" ",(0,f.jsx)("span",{className:"pr pri",children:(0,f.jsx)(di,{s:ai(e.e),q:t})})]}):null]}),(0,f.jsxs)("span",{className:"s",children:[(0,f.jsx)(di,{s:Ta(e.e.meaning),q:t})," · ",Na(e.L)]})]})})}
+function fi({x:e,q:t="",di:DI}){return(0,f.jsx)("button",{type:"button",className:"row","data-i":DI,onClick:()=>{Qa(mi.q||""),Ja(hi(e.L,e.e))},children:(0,f.jsxs)("span",{className:"m",children:[(0,f.jsxs)("span",{className:"t",children:[(0,f.jsx)("span",{className:"dot "+e.L.family}),(0,f.jsx)("span",{children:(0,f.jsx)(di,{s:e.e.word,q:t})}),ai(e.e)?(0,f.jsxs)(f.Fragment,{children:[" ",(0,f.jsx)("span",{className:"pr pri",children:(0,f.jsx)(di,{s:ai(e.e),q:t})})]}):null]}),(0,f.jsxs)("span",{className:"s",children:[(0,f.jsx)(di,{s:Ta(e.e.meaning),q:t})," · ",Na(e.L)]})]})})}
 function pi(){let[e,t]=(0,m.useState)(!1);
 return{done:e,
 copy:function(e){let n=()=>{t(!0),

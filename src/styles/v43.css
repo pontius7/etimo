@@ -7,9 +7,9 @@
 .brand .bm{display:inline-flex;justify-content:center;flex:none}
 /* header: theme left, language right */
 .bar h1{max-width:calc(100% - 12rem)}
-.lgi{display:inline-flex;align-items:flex-end;gap:3px;height:20px;flex:none}
-.lgi i{display:block;width:4px;border-radius:2px}
-.lgi i:nth-child(1){height:11px;background:var(--f-slav)}
-.lgi i:nth-child(2){height:19px;background:var(--f-iran)}
-.lgi i:nth-child(3){height:14px;background:var(--f-gree)}
-.lgi i:nth-child(4){height:8px;background:var(--f-alba)}
+
+
+
+
+
+

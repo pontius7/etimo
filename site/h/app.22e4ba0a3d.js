@@ -8993,7 +8993,14 @@ function Ra(e){let t=ya();
 return ka(e+" "+("en"===t?1===e?"language":"languages":"sr"===t?Vr(e,"jezik","jezika","jezika"):"sq"===t?"gjuhë":1===e?"Sprache":"Sprachen"))}
 function Oa(e,t){let n=ai(t);
 return Na(e)+", "+Ma(e)+" – "+t.word+(n?" ("+n+")":"")+" – "+Ta(t.meaning)}
-function Da(e){let t=String(e||"").toLowerCase().replace(/ß/g,"ss").replace(/[æǣǽ]/g,"ae").replace(/œ/g,"oe").replace(/[łƚɬ]/g,"l").replace(/[đðɖ]/g,"d").replace(/[øǿɵ]/g,"o").replace(/þ/g,"th").replace(/[ħɦ]/g,"h").replace(/[ŋɲɳ]/g,"n").replace(/[ɣɡ]/g,"g").replace(/ı/g,"i").replace(/[əǝɛ]/g,"e").replace(/[ʁʀɾɹ]/g,"r").replace(/χ/g,"x").replace(/[үұ]/g,"у").replace(/ө/g,"о").replace(/ң/g,"н").replace(/[қҝ]/g,"к").replace(/[ғҕ]/g,"г").replace(/[ҳһ]/g,"х").replace(/ә/g,"а").replace(/ҙ/g,"з").replace(/ҫ/g,"с").replace(/җ/g,"ж").replace(/ӏ/g,"i").replace(/[ɨɩɪ]/g,"i").replace(/[ɑɐ]/g,"a").replace(/[ɔɒ]/g,"o").replace(/β/g,"b").replace(/[ɯʉʊ]/g,"u").replace(/[эё]/g,"е").replace(/[ҥӈӊ]/g,"н").replace(/[ӄҡҟ]/g,"к").replace(/[ӆԓ]/g,"л").replace(/ӎ/g,"м").replace(/[ҷҹӌ]/g,"ч").replace(/ў/g,"у").replace(/[іїӣ]/g,"и").replace(/[ʃɕʂ]/g,"sh").replace(/[ʒʑʐ]/g,"zh").replace(/ɟ/g,"j").replace(/[ɫɭ]/g,"l").replace(/[ɽɻ]/g,"r").replace(/ʋ/g,"v").replace(/ɸ/g,"f").replace(/θ/g,"th");
+/* Da: the same result as the old chain of 46 replacements, in one pass (each of those letters maps to a fixed text and no
+   result is itself replaced later); text made only of plain letters, digits and spaces skips the rest, and text that is plain
+   ASCII after the map skips the accent steps (they cannot change it). Search runs this on every word. */
+const DaM={"ß":"ss","æ":"ae","ǣ":"ae","ǽ":"ae","œ":"oe","ł":"l","ƚ":"l","ɬ":"l","đ":"d","ð":"d","ɖ":"d","ø":"o","ǿ":"o","ɵ":"o","þ":"th","ħ":"h","ɦ":"h","ŋ":"n","ɲ":"n","ɳ":"n","ɣ":"g","ɡ":"g","ı":"i","ə":"e","ǝ":"e","ɛ":"e","ʁ":"r","ʀ":"r","ɾ":"r","ɹ":"r","χ":"x","ү":"у","ұ":"у","ө":"о","ң":"н","қ":"к","ҝ":"к","ғ":"г","ҕ":"г","ҳ":"х","һ":"х","ә":"а","ҙ":"з","ҫ":"с","җ":"ж","ӏ":"i","ɨ":"i","ɩ":"i","ɪ":"i","ɑ":"a","ɐ":"a","ɔ":"o","ɒ":"o","β":"b","ɯ":"u","ʉ":"u","ʊ":"u","э":"е","ё":"е","ҥ":"н","ӈ":"н","ӊ":"н","ӄ":"к","ҡ":"к","ҟ":"к","ӆ":"л","ԓ":"л","ӎ":"м","ҷ":"ч","ҹ":"ч","ӌ":"ч","ў":"у","і":"и","ї":"и","ӣ":"и","ʃ":"sh","ɕ":"sh","ʂ":"sh","ʒ":"zh","ʑ":"zh","ʐ":"zh","ɟ":"j","ɫ":"l","ɭ":"l","ɽ":"r","ɻ":"r","ʋ":"v","ɸ":"f","θ":"th"},DaR=/[ßæǣǽœłƚɬđðɖøǿɵþħɦŋɲɳɣɡıəǝɛʁʀɾɹχүұөңқҝғҕҳһәҙҫҗӏɨɩɪɑɐɔɒβɯʉʊэёҥӈӊӄҡҟӆԓӎҷҹӌўіїӣʃɕʂʒʑʐɟɫɭɽɻʋɸθ]/g,DaP=/^[a-z0-9 ]*$/,DaN=/[^\x00-\x7f]/;
+function Da(e){let t=String(e||"").toLowerCase();
+if(DaP.test(t))return t.replace(/ +/g," ").trim();
+t=t.replace(DaR,e=>DaM[e]);
+if(!DaN.test(t))return t.replace(/['"`]/g,"").replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
 return t.normalize("NFD").replace(/\p{M}/gu,"").replace(/[\u02b0-\u02ff\u1d2c-\u1dbf\u2018-\u201f'"`´ʼʻˮʔʕʿʾꞌ]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim()}
 function Fa(e){return(e=String(e||"").split(/[,;\/(]/)[0].toLowerCase().replace(/[łɬ]/g,"l").replace(/[øœ]/g,"o").replace(/[đð]/g,"d").replace(/æ/g,"ae").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"")).replace(/ə/g,"e").replace(/ı/g,"i").replace(/ŋ/g,"n").replace(/ħ/g,"h").replace(/ɣ/g,"g").replace(/[^a-z]/g,"")}
 function Ba(e,t){let n,
@@ -9022,6 +9029,26 @@ EK.keys(e.e.word).concat(e.e.lat?EK.keys(e.e.lat):[]).forEach(e=>t.add(e)),
 e._k=Array.from(t)}
 return e._k}
 let Ua=e=>e<=3||e<=6?1:e<=9?2:3;
+/* Search text of a word (its forms, its meaning and the meaning in the interface language, then its keys) and its meanings
+   one by one: worked out once per word and interface language, by the search itself or by the warm-up below. */
+function kSrT(e){return e._u!==ga.ui&&(e._u=ga.ui,e._f=Da(e.e.word+" "+(e.e.lat||"")+" "+(e.e.orig||"")+" "+e.e.meaning+" "+Ta(e.e.meaning)),e._s=e._f+" "+Ga(e).join(" ")),e._s}
+function kSrM(e){return e._mu!==ga.ui&&(e._mu=ga.ui,e._m=Array.from(new Set((e.e.meaning+", "+Ta(e.e.meaning)).split(/,\s*/).map(e=>Da(e.replace(/\(.*?\)/g,"")).trim()).filter(Boolean)))),e._m}
+/* Search warm-up. The first search needs the search text of every word (about 79,000); done in one go that froze the page
+   for seconds on a phone. kSrW() prepares it in the background, a few ms at a time, and answers whether all of it is ready;
+   kSrW(f) also calls f once it is. It starts over when the word list or the interface language changes. */
+let kSrS={p:null,u:null,n:0,on:0,f:[]};
+function kSrW(f){let S=kSrS,fresh=()=>{(S.p!==pa||S.u!==ga.ui)&&(S.p=pa,S.u=ga.ui,S.n=0)};
+fresh();
+if(S.n>=pa.length)return!0;
+f&&S.f.push(f);
+if(!S.on){S.on=1;
+let step=()=>{fresh();
+let t=performance.now();
+for(;S.n<pa.length&&performance.now()-t<8;){let e=pa[S.n++];kSrT(e),kSrM(e)}
+if(S.n<pa.length)setTimeout(step,0);
+else{S.on=0;let c=S.f;S.f=[];c.forEach(e=>e())}};
+setTimeout(step,0)}
+return!1}
 function Ha(e){let t=/\s$/.test(String(e)),
 n=String(e).trim(),
 r=Da(e=n.replace(/([а-яёА-ЯЁ])[IӀӏ1lІі|](?=[а-яёА-ЯЁ]|$)/g,"$1ӏ")),
@@ -9034,12 +9061,14 @@ sim:[],
 dym:[]};
 let o=Object.keys(ia).filter(e=>ha[e].length&&s.some(n=>(" "+Da(e+" "+La(e)).replace(/[()]/g," ")+" ").indexOf(" "+n+(t?" ":""))>-1)).sort((e,t)=>(Da(La(e))!==r)-(Da(La(t))!==r)||Da(La(e)).length-Da(La(t)).length),
 l=[];
-if(pa.forEach(e=>{let t=(e._u!==ga.ui&&(e._u=ga.ui,e._f=Da(e.e.word+" "+(e.e.lat||"")+" "+(e.e.orig||"")+" "+e.e.meaning+" "+Ta(e.e.meaning))),e._f+" "+Ga(e).join(" "));
+if(pa.forEach(e=>{let t=kSrT(e);
 if(!s.some(e=>t.indexOf(e)>-1))return;
-let n=Ga(e),r=(e._mu!==ga.ui&&(e._mu=ga.ui,e._m=Array.from(new Set((e.e.meaning+", "+Ta(e.e.meaning)).split(/,\s*/).map(e=>Da(e.replace(/\(.*?\)/g,"")).trim()).filter(Boolean)))),e._m),a=6;
+let n=Ga(e),r=kSrM(e),a=6;
 for(let e of s)a=n.some(t=>t===e)?Math.min(a,0):r.some(t=>t===e)?Math.min(a,1):n.some(t=>t.startsWith(e))?Math.min(a,2):r.some(t=>t.split(" ").some(t=>t===e))?Math.min(a,3):r.some(t=>t.split(" ").some(t=>t.startsWith(e)))?Math.min(a,4):Math.min(a,5);
 l.push([a,e])}),(()=>{let t=e.toLowerCase(),n=e=>String(e.e.word).replace(/[IӀ1]/g,"ӏ").toLowerCase().split(/[,;]\s*/).includes(t)?0:Da(e.e.lat||"").split(" ").includes(r)?1:2;
-l.sort((e,t)=>e[0]-t[0]||n(e[1])-n(t[1])||String(e[1].e.word).length-String(t[1].e.word).length||Na(e[1].L).localeCompare(Na(t[1].L),Ia()))})(),t){let e=l.filter(e=>0===e[0]||1===e[0]||3===e[0]);
+/* same order as before; each hit's keys are worked out once (not on every comparison), names compared by one collator */
+let k=e=>void 0===e[2]?e[2]=n(e[1]):e[2],w=e=>void 0===e[3]?e[3]=Na(e[1].L):e[3],c=new Intl.Collator(Ia());
+l.sort((e,t)=>e[0]-t[0]||k(e)-k(t)||String(e[1].e.word).length-String(t[1].e.word).length||c.compare(w(e),w(t)))})(),t){let e=l.filter(e=>0===e[0]||1===e[0]||3===e[0]);
 e.length&&(l=e)}
 let u=l.map(e=>e[1]),
 c=[];
@@ -9207,7 +9236,7 @@ function di({s:e,q:t}){if(!t)return(0,f.jsx)(f.Fragment,{children:e});
 let n=e.toLowerCase().indexOf(t.toLowerCase());
 return n<0?(0,f.jsx)(f.Fragment,{children:e}):(0,f.jsxs)(f.Fragment,{children:[e.slice(0,n),(0,f.jsx)("mark",{children:e.slice(n,n+t.length)}),e.slice(n+t.length)]})}
 function hi(e,t){return"w"+e.entries.indexOf(t)+"-"+e.id.slice(2)}
-function fi({x:e,q:t=""}){return(0,f.jsx)("button",{type:"button",className:"row",onClick:()=>{Qa(mi.q||""),Ja(hi(e.L,e.e))},children:(0,f.jsxs)("span",{className:"m",children:[(0,f.jsxs)("span",{className:"t",children:[(0,f.jsx)("span",{className:"dot "+e.L.family}),(0,f.jsx)("span",{children:(0,f.jsx)(di,{s:e.e.word,q:t})}),ai(e.e)?(0,f.jsxs)(f.Fragment,{children:[" ",(0,f.jsx)("span",{className:"pr pri",children:(0,f.jsx)(di,{s:ai(e.e),q:t})})]}):null]}),(0,f.jsxs)("span",{className:"s",children:[(0,f.jsx)(di,{s:Ta(e.e.meaning),q:t})," · ",Na(e.L)]})]})})}
+function fi({x:e,q:t="",di:DI}){return(0,f.jsx)("button",{type:"button",className:"row","data-i":DI,onClick:()=>{Qa(mi.q||""),Ja(hi(e.L,e.e))},children:(0,f.jsxs)("span",{className:"m",children:[(0,f.jsxs)("span",{className:"t",children:[(0,f.jsx)("span",{className:"dot "+e.L.family}),(0,f.jsx)("span",{children:(0,f.jsx)(di,{s:e.e.word,q:t})}),ai(e.e)?(0,f.jsxs)(f.Fragment,{children:[" ",(0,f.jsx)("span",{className:"pr pri",children:(0,f.jsx)(di,{s:ai(e.e),q:t})})]}):null]}),(0,f.jsxs)("span",{className:"s",children:[(0,f.jsx)(di,{s:Ta(e.e.meaning),q:t})," · ",Na(e.L)]})]})})}
 function pi(){let[e,t]=(0,m.useState)(!1);
 return{done:e,
 copy:function(e){let n=()=>{t(!0),
@@ -12592,10 +12621,15 @@ m=d("aIIwE");
 function Yh(e){return(0,f.jsxs)("div",{className:"fdw",children:[(0,f.jsx)(FDYh,e),(0,f.jsx)(FDresults,{q:e.q,fam:e.fam})]})}
 function FDYh({q:e,fam:t="all",onPick:n}){let r=ja(),
 [a,i]=(0,m.useState)(80),
-s=(0,m.useMemo)(()=>Ha(e),[e,r]),
-o=!s.hits.length&&s.dym.length?s.dym[0]:null,
+w=kSrW(),
+[,wk]=(0,m.useState)(0);
+/* results wait for the search warm-up (kSrW) instead of freezing the page while every word is prepared */
+(0,m.useEffect)(()=>{if(w)return;let live=1;kSrW(()=>live&&wk(e=>e+1));return()=>{live=0}},[w,r]);
+let s=(0,m.useMemo)(()=>w?Ha(e):null,[e,r,w]),
+o=s&&!s.hits.length&&s.dym.length?s.dym[0]:null,
 l=(0,m.useMemo)(()=>o?Object.assign({},s,{ms:[o],hits:Ha(La(o)).hits}):s,[s,o]);
 (0,m.useEffect)(()=>i(80),[e,t]);
+if(!l)return null;
 let u=e=>"all"===t?e:e.filter(e=>e.L.family===t),
 c=u(l.hits),
 d=u(l.sim);
@@ -12607,6 +12641,7 @@ function Jh(){let e=ja(),
 [i,s]=(0,m.useState)("all"),
 o=(0,m.useDeferredValue)(r.replace(/^\s+/,"").replace(/\s+$/," "));
 (0,m.useEffect)(()=>{mi.sq=r},[r]);
+(0,m.useEffect)(()=>{kSrW()},[]);
 let l=Za();
 return(0,f.jsxs)("div",{className:"view srch",children:[(0,f.jsx)(ui,{id:"sq",value:r,onChange:a,ph:"l"===t?e.ph.lang:e.ph.all,recent:"l"!==t,autoFocus:!0}),(0,f.jsx)(Tp,{v:t,on:e=>{mi.sm=e,n(e)}}),"l"===t?(0,f.jsx)(Ap,{q:o}):o?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"chips fchips",children:["all"].concat(la).map(t=>(0,f.jsx)("button",{type:"button","aria-pressed":i===t,onClick:()=>s(t),children:"all"===t?e.allF:(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("i",{className:"dot "+t}),Ca(t)]})},t))}),(0,f.jsx)(Yh,{q:o,fam:i,onPick:a})]}):(0,f.jsxs)("div",{className:"sidle",children:[l.length?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("p",{className:"gh",children:e.recent}),(0,f.jsx)("div",{className:"chipsc",children:l.map(e=>(0,f.jsx)("button",{type:"button",className:"qchip",onClick:()=>a(e),children:e},e))})]}):null,(0,f.jsx)("div",{className:"sbg",children:aa.map(t=>(0,f.jsxs)("button",{type:"button",className:"kt sbt",onClick:e=>li(e,"c-"+t),children:[(0,f.jsx)("span",{className:"kn",children:e.cat[t]}),(0,f.jsx)("span",{className:"kb",children:rp(t)})]},t))})]})]})}
 function Xh(e){return e}
@@ -12720,42 +12755,13 @@ r}(t,n);
 else for(a=0,r=Array(i=e.arcs.length);a<i;++a)r[a]=a;
 return{type:"MultiLineString",
 arcs:rf(e,r)}}
-function of(e,t){var n={},
-r=[],
-a=[];
-function i(e){e.forEach(function(t){t.forEach(function(t){(n[t=t<0?~t:t]||(n[t]=[])).push(e)})}),
-r.push(e)}
-function s(t){return function(e){for(var t,n=-1,r=e.length,a=e[r-1],i=0;++n<r;)t=a,
-a=e[n],
-i+=t[0]*a[1]-t[1]*a[0];
-return Math.abs(i)}(nf(e,{type:"Polygon",arcs:[t]}).coordinates[0])}
-return t.forEach(function e(t){switch(t.type){case"GeometryCollection":t.geometries.forEach(e);
-break;
-case"Polygon":i(t.arcs);
-break;
-case"MultiPolygon":t.arcs.forEach(i)}}),
-r.forEach(function(e){if(!e._){var t=[],r=[e];
-for(e._=1,a.push(t);e=r.pop();)t.push(e),e.forEach(function(e){e.forEach(function(e){n[e<0?~e:e].forEach(function(e){e._||(e._=1,r.push(e))})})})}}),
-r.forEach(function(e){delete e._}),
-{type:"MultiPolygon",
-arcs:a.map(function(t){var r,a=[];
-if(t.forEach(function(e){e.forEach(function(e){e.forEach(function(e){n[e<0?~e:e].length<2&&a.push(e)})})}),(r=(a=rf(e,a)).length)>1)for(var i,o,l=1,u=s(a[0]);l<r;++l)(i=s(a[l]))>u&&(o=a[0],a[0]=a[l],a[l]=o,u=i);
-return a}).filter(function(e){return e.length>0})}}
 var lf;
 lf=JSON.parse('{"S0":1000,"x0":-1473.9417365861548,"y0":-1753.165358505492,"x1":1481.629643755751,"y1":-278.6023872109487,"W":3400,"H":1696,"R":1.1503697804810527}');
 let uf=null,
-cf=null,
-df=null,
 hf=null,
 ff=null,
 pf=(e,t)=>{let n=e.bb;
 return t[1]>=n[0][1]-.01&&t[1]<=n[1][1]+.01&&(n[0][0]<=n[1][0]?t[0]>=n[0][0]-.01&&t[0]<=n[1][0]+.01:t[0]>=n[0][0]||t[0]<=n[1][0])};
-function mf(){return cf||(cf=ca.objects.land?ef(ca,ca.objects.land):function(e){return nf(e,of.apply(this,arguments))}(ca,ca.objects.countries.geometries)),
-cf}
-var gf={draw(e,t){let n=Math.sqrt(t/2.378);
-for(let t=0;t<5;t++){let r=-Math.PI/2+2*t*Math.PI/5;
-t?e.lineTo(n*Math.cos(r),n*Math.sin(r)):e.moveTo(n*Math.cos(r),n*Math.sin(r))}
-e.closePath()}};
 let vf={},
 bf={};
 function yf(e){let t=e.append("defs");
@@ -13021,8 +13027,6 @@ function Zf(){return Gf||(Gf=Promise.all([fetch("data/adm2.json").then(e=>e.json
 let F=ef(t,t.objects.d).features;
 F.forEach((f,i)=>{f.bb=pu(f),f._i=i,f.properties.n=(f.properties.n||"").replace(/^(городской округ|город|городской)\s+/i,"")});
 return Kf={F,M:m,topo:t,E}}).catch(()=>null))}
-let Qf=null;
-function Yf(e){(Qf||(Qf=fetch("data/dia.json").then(e=>e.ok?e.json():null).catch(()=>null))).then(t=>{t&&e.node().isConnected&&(e.selectAll("path").data(Object.keys(t.fam)).join("path").attr("class",e=>"dia "+e).attr("fill-rule","evenodd").attr("d",e=>t.fam[e]),Object.keys(t.lang).forEach(e=>{da[e]&&(da[e].x=t.lang[e])}))})}
 const Jf=[["Delhi",28.67,77.23,15926,"IN"],["Karachi",24.87,66.99,12130,"PK"],["Cairo",30.05,31.25,11893,"EG"],["Moscow",55.75,37.61,10452,"RU"],["Istanbul",41.02,28.97,10061,"TR"],["Paris",48.86,2.35,9904,"FR"],["London",51.5,-0.12,8567,"GB"],["Tehran",35.67,51.42,7873,"IR"],["Lahore",31.56,74.35,6577,"PK"],["Madrid",40.4,-3.69,5567,"ES"],["Ahmedabad",23.03,72.58,5375,"IN"],["Baghdad",33.34,44.39,5054,"IQ"],["Barcelona",41.39,2.18,4920,"ES"],["St.  Petersburg",59.94,30.31,4553,"RU"],["Riyadh",24.63,46.72,4465,"SA"],["Alexandria",31.2,29.95,4165,"EG"],["Ankara",39.93,32.86,3716,"TR"],["Berlin",52.52,13.4,3406,"DE"],["Algiers",36.77,3.05,3354,"DZ"],["Rome",41.9,12.48,3339,"IT"],["Kabul",34.52,69.18,3277,"AF"],["Athens",37.99,23.73,3242,"GR"],["Casablanca",33.6,-7.62,3181,"MA"],["Tel Aviv",32.08,34.77,3112,"IL"],["Stuttgart",48.78,9.2,2945,"DE"],["Milan",45.47,9.2,2945,"IT"],["Jaipur",26.92,75.81,2917,"IN"],["Frankfurt",50.1,8.68,2895,"DE"],["Lisbon",38.72,-9.15,2812,"PT"],["Katowice",50.26,19.02,2746,"PL"],["Aleppo",36.23,37.17,2738,"SY"],["Kyiv",50.44,30.51,2709,"UA"],["Giza",30.01,31.19,2682,"EG"],["Faisalabad",31.41,73.11,2617,"PK"],["İzmir",38.44,27.15,2587,"TR"],["Mashhad",36.27,59.57,2469,"IR"],["Damascus",33.5,36.3,2466,"SY"],["Tunis",36.8,10.18,2412,"TN"],["Vienna",48.2,16.36,2400,"AT"],["Mannheim",49.5,8.47,2362,"DE"],["Birmingham",52.48,-1.92,2285,"GB"],["Naples",40.84,14.24,2250,"IT"],["Manchester",53.48,-2.25,2230,"GB"],["Tripoli",32.89,13.18,2189,"LY"],["Tashkent",41.3,69.27,2184,"UZ"],["Baku",40.4,49.86,2122,"AZ"],["Kuwait City",29.37,47.98,2063,"KW"],["Dammam",26.43,50.1,2055,"SA"],["Indore",22.72,75.86,2026,"IN"],["Bucharest",44.44,26.1,1942,"RO"],["Saidu",34.75,72.35,1860,"PK"],["Rawalpindi",33.59,73.07,1858,"PK"],["Beirut",33.87,35.51,1846,"LB"],["Minsk",53.9,27.56,1805,"BY"],["Hamburg",53.55,10,1757,"DE"],["Vadodara",22.31,73.18,1756,"IN"],["Brussels",50.84,4.33,1743,"BE"],["Essen",51.45,7.02,1742,"DE"],["Bhopal",23.25,77.41,1727,"IN"],["Warsaw",52.23,21.01,1707,"PL"],["Rabat",34.03,-6.84,1705,"MA"],["Budapest",47.5,19.08,1679,"HU"],["Turin",45.07,7.67,1652,"IT"],["Ludhiana",30.93,75.87,1649,"IN"],["Isfahan",32.7,51.7,1628,"IR"],["Agra",27.17,78.01,1592,"IN"],["Leeds",53.79,-1.55,1529,"GB"],["Multan",30.2,71.45,1522,"PK"],["Gujranwala",32.16,74.18,1513,"PK"],["Florence",43.78,11.25,1500,"IT"],["Bursa",40.2,29.07,1492,"TR"],["Kharkiv",50,36.25,1461,"UA"],["Hyderabad",25.38,68.37,1459,"PK"],["Doha",25.29,51.53,1450,"QA"],["Karaj",35.8,50.97,1423,"IR"],["Lyon",45.77,4.83,1423,"FR"],["Tabriz",38.09,46.3,1413,"IR"],["The Hague",52.08,4.27,1406,"NL"],["Marseille",43.29,5.37,1400,"FR"],["Meerut",29,77.7,1398,"IN"],["Faridabad",28.44,77.31,1394,"IN"],["Dubai",25.21,55.29,1379,"AE"],["Ghaziabad",28.66,77.41,1341,"IN"],["Porto",41.15,-8.62,1337,"PT"],["Mosul",36.35,43.14,1316,"IQ"],["Yekaterinburg",56.85,60.6,1313,"RU"],["Peshawar",34.01,71.53,1303,"PK"],["Sheffield",53.37,-1.5,1293,"GB"],["Adana",37,35.32,1293,"TR"],["Jabalpur",23.18,79.95,1285,"IN"],["Nizhny Novgorod",56.33,44,1278,"RU"],["Duisburg",51.43,6.75,1277,"DE"],["Munich",48.13,11.57,1275,"DE"],["Stockholm",59.32,18.07,1264,"SE"],["Rajkot",22.31,70.8,1260,"IN"],["Shiraz",29.63,52.57,1240,"IR"],["Geneva",46.21,6.14,1240,"CH"],["Düsseldorf",51.22,6.78,1220,"DE"],["Seville",37.41,-5.98,1212,"ES"],["Amritsar",31.64,74.87,1212,"IN"],["Almaty",43.33,76.91,1209,"KZ"],["Sofia",42.69,23.31,1185,"BG"],["Abbottabad",34.15,73.2,1184,"PK"],["Banghazi",32.12,20.06,1180,"LY"],["Prague",50.09,14.42,1162,"CZ"],["Glasgow",55.86,-4.24,1160,"GB"],["Srinagar",34.07,74.83,1140,"IN"],["Samara",53.2,50.15,1137,"RU"],["Omsk",54.99,73.4,1135,"RU"],["Kazan",55.75,49.12,1115,"RU"],["Helsinki",60.16,24.93,1115,"FI"],["Zürich",47.38,8.55,1108,"CH"],["Sharjah",25.37,55.41,1103,"AE"],["Yerevan",40.18,44.51,1102,"AM"],["Tbilisi",41.73,44.79,1100,"GE"],["Belgrade",44.82,20.47,1099,"RS"],["Chelyabinsk",55.16,61.44,1091,"RU"],["Dushanbe",38.56,68.77,1086,"TJ"],["København",55.68,12.56,1085,"DK"],["Amman",31.95,35.93,1060,"JO"],["Dublin",53.35,-6.26,1059,"IE"],["Rostov",47.24,39.71,1052,"RU"],["Dnipro",48.48,35,1050,"UA"],["Lille",50.65,3.08,1044,"FR"],["Gaziantep",37.08,37.38,1044,"TR"],["Amsterdam",52.35,4.91,1031,"NL"],["Jerusalem",31.78,35.21,1029,"IL"],["Ufa",54.79,56.04,1018,"RU"],["Haifa",32.82,34.98,1011,"IL"],["Medina",24.5,39.58,1010,"SA"],["Rotterdam",51.92,4.48,1005,"NL"],["Homs",34.73,36.72,1005,"SY"],["Cologne",50.93,6.95,1004,"DE"],["Fez",34.06,-5,1002,"MA"],["Perm",58,56.25,997,"RU"],["Ahvaz",31.28,48.72,996,"IR"],["Jodhpur",26.29,73.01,995,"IN"],["Odessa",46.49,30.71,991,"UA"],["Donetsk",48,37.83,988,"UA"],["Duhok",36.87,43,986,"IQ"],["Volgograd",48.71,44.5,984,"RU"],["Chandigarh",30.72,76.78,979,"IN"],["Gwalior",26.2,78.17,978,"IN"],["Qom",34.65,50.95,973,"IR"],["Salerno",40.68,14.77,954,"IT"],["Nice",43.72,7.26,927,"FR"],["Irbil",36.18,44.01,926,"IQ"],["Antwerpen",51.22,4.41,920,"BE"],["Konya",37.88,32.47,919,"TR"],["Az Zarqa",32.07,36.1,895,"JO"],["Tirana",41.33,19.82,895,"AL"],["Tarsus",36.92,34.88,894,"TR"],["Newcastle",54.99,-1.61,882,"GB"],["Bilbao",43.25,-2.93,876,"ES"],["Marrakesh",31.63,-8,872,"MA"],["Basra",30.52,47.81,870,"IQ"],["Palermo",38.13,13.35,863,"IT"],["Cardiff",51.48,-3.17,861,"GB"],["Jullundur",31.34,75.57,855,"IN"],["Shache",38.43,77.25,851,"CN"],["Toulouse",43.62,1.45,847,"FR"],["Voronezh",51.67,39.19,844,"RU"],["Saratov",51.58,46.03,843,"RU"],["Bishkek",42.88,74.58,837,"KG"],["Oslo",59.92,10.75,835,"NO"],["Basel",47.58,7.59,830,"CH"],["Kermanshah",34.38,47.06,828,"IR"],["Thessaloniki",40.7,22.88,828,"GR"],["Braga",41.55,-8.42,827,"PT"],["Kota",25.18,75.83,827,"IN"],["Nottingham",52.94,-1.17,826,"GB"],["Jhansi",25.45,78.56,826,"IN"],["Agadir",30.44,-9.62,825,"MA"],["Bareilly",28.35,79.42,817,"IN"],["Liverpool",53.41,-2.96,811,"GB"],["Valencia",39.49,-0.4,808,"ES"],["Aligarh",27.89,78.06,805,"IN"],["Lviv",49.83,24.03,804,"UA"],["Bordeaux",44.85,-0.6,803,"FR"],["Oran",35.71,-0.62,798,"DZ"],["Jammu",32.71,74.84,791,"IN"],["Zaporizhzhya",47.86,35.17,788,"UA"],["Moradabad",28.84,78.75,787,"IN"],["Antalya",36.89,30.7,783,"TR"],["Islamabad",33.69,73.08,780,"PK"],["Wuppertal",51.25,7.17,777,"DE"],["Saarbrücken",49.25,6.97,770,"DE"],["Quetta",30.22,67.02,768,"PK"],["Trabzon",40.98,39.72,765,"TR"],["Łódź",51.77,19.46,758,"PL"],["Kraków",50.06,19.96,756,"PL"],["Fargona",40.39,71.78,750,"UZ"],["Namangan",41,71.67,750,"UZ"],["Tangier",35.78,-5.81,750,"MA"],["Liège",50.63,5.58,749,"BE"],["Riga",56.95,24.1,743,"LV"],["Gdańsk",54.36,18.64,740,"PL"],["Nürnberg",49.45,11.08,737,"DE"],["Muscat",23.59,58.38,735,"OM"],["Ashgabat",37.95,58.38,728,"TM"],["Bremen",53.08,8.8,725,"DE"],["As Sulaymaniyah",35.56,45.43,723,"IQ"],["Zagreb",45.8,16,723,"HR"],["Hanover",52.37,9.72,722,"DE"],["Kandahar",31.61,65.69,716,"AF"],["Dehra Dun",30.32,78.05,714,"IN"],["Samarkand",39.67,66.94,708,"UZ"],["Tolyatti",53.51,49.42,703,"RU"],["Meknes",33.9,-5.56,698,"MA"],["Sarajevo",43.85,18.38,697,"BA"],["Chișinău",47.01,28.86,688,"MD"],["Bonn",50.72,7.08,681,"DE"],["Catania",37.5,15.08,675,"IT"],["Najaf",32,44.34,666,"IQ"],["Bytom",50.35,18.91,662,"PL"],["Ismaïlia",30.59,32.26,656,"EG"],["Kryvyy Rih",47.93,33.34,652,"UA"],["Irbid",32.55,35.85,650,"JO"],["Andijan",40.79,72.34,650,"UZ"],["Krasnodar",45.02,39,650,"RU"],["Zaragoza",41.65,-0.89,649,"ES"],["Genoa",44.41,8.93,647,"IT"],["Diyarbakır",37.92,40.23,645,"TR"],["Ulyanovsk",54.33,48.41,641,"RU"],["Utrecht",52.1,5.12,640,"NL"],["Hofuf",25.35,49.59,637,"SA"],["Wrocław",51.11,17.03,635,"PL"],["Izhevsk",56.85,53.23,631,"RU"],["Poznań",52.41,16.9,624,"PL"],["Bur Said",31.26,32.29,624,"EG"],["Bannu",32.99,70.6,622,"PK"],["Southend-on-Sea",51.55,0.72,618,"GB"],["Dresden",51.05,13.75,618,"DE"],["Icel",36.8,34.62,617,"TR"],["Wiesbaden",50.08,8.25,617,"DE"],["Samsun",41.28,36.34,609,"TR"],["Luxor",25.7,32.65,609,"EG"],["Yaroslavl",57.62,39.87,607,"RU"],["Constantine",36.36,6.6,605,"DZ"],["Abu Dhabi",24.47,54.37,603,"AE"],["Kirkuk",35.47,44.39,601,"IQ"],["El Mansura",31.05,31.38,600,"EG"],["Sohag",26.55,31.7,600,"EG"],["Zahedan",29.5,60.83,599,"IR"],["Jalalabad",34.44,70.44,598,"AF"],["Al Hillah",23.49,46.76,595,"SA"],["Al Hillah",32.47,44.42,595,"IQ"],["Rasht",37.3,49.63,595,"IR"],["Kayseri",38.73,35.49,593,"TR"],["Ajmer",26.45,74.64,590,"IN"],["Dortmund",51.53,7.45,588,"DE"],["Kerman",30.3,57.08,578,"IR"],["Urmia",37.53,45,577,"IR"],["Bikaner",28.02,73.33,576,"IN"],["Manama",26.24,50.58,564,"BH"],["Makhachkala",42.98,47.5,555,"RU"],["Bristol",51.45,-2.58,554,"GB"],["Bahawalpur",29.39,71.67,553,"PK"],["Kenitra",34.27,-6.58,552,"MA"],["Málaga",36.72,-4.42,550,"ES"],["Orenburg",51.78,55.11,550,"RU"],["Tabuk",28.38,36.55,548,"SA"],["Hisar",29.17,75.73,545,"IN"],["Sargodha",32.09,72.67,543,"PK"],["Leipzig",51.34,12.41,543,"DE"],["Vilnius",54.68,25.32,542,"LT"],["Latakia",35.54,35.78,539,"SY"],["Göteborg",57.71,11.98,538,"SE"],["Rouen",49.43,1.08,533,"FR"],["Ṭarābulus",34.44,35.83,530,"LB"],["Hamadan",34.8,48.52,528,"IR"],["Ryazan",54.62,39.72,520,"RU"],["Tyumen",57.14,65.53,519,"RU"],["Lipetsk",52.62,39.64,516,"RU"],["Eskişehir",39.79,30.53,515,"TR"],["Ujjain",23.19,75.79,513,"IN"],["Penza",53.18,45,513,"RU"],["Mykolayiv",46.97,31.98,511,"UA"],["Karbala",32.61,44.02,511,"IQ"],["Blida",36.42,2.83,511,"DZ"],["Gliwice",50.33,18.67,508,"PL"],["Suez",30,32.55,508,"EG"],["Kashgar",39.48,75.97,507,"CN"],["Gaza City",31.53,34.45,506,"PS"],["Edinburgh",55.95,-3.22,505,"GB"],["Arak",34.08,49.7,504,"IR"],["Annaba",36.92,7.76,504,"DZ"],["Brighton",50.83,-0.17,503,"GB"],["Astrakhan",46.35,48.05,503,"RU"],["Bradford",53.79,-1.75,502,"GB"],["Bari",41.11,16.87,501,"IT"],["Damanhûr",31.05,30.47,500,"EG"],["El Minya",28.09,30.75,500,"EG"],["Shahrisabz",39.06,66.83,499,"UZ"],["Douma",33.58,36.4,496,"SY"],["Skopje",42,21.43,494,"MK"],["Beni Suef",29.08,31.09,489,"EG"],["Tula",54.2,37.63,489,"RU"],["Bologna",44.5,11.34,488,"IT"],["Saharanpur",29.97,77.55,485,"IN"],["Mariupol",47.1,37.56,482,"UA"],["Homyel",52.43,31,481,"BY"],["Herat",34.33,62.17,481,"AF"],["Ostrava",49.83,18.25,479,"CZ"],["Yazd",31.92,54.37,478,"IR"],["Sialkote",32.52,74.56,477,"PK"],["Udaipur",24.6,73.73,470,"IN"],["İzmit",40.78,29.93,467,"TR"],["Piraeus",37.95,23.7,466,"GR"],["Qazvin",36.27,50,465,"IR"],["Pristina",42.67,21.17,465,"-99"],["Shymkent",42.32,69.6,465,"KZ"],["Malatya",38.37,38.3,462,"TR"],["Naberezhnyye Chelny",55.73,52.39,461,"RU"],["Hamah",35.15,36.73,461,"SY"],["Bandar-e-Abbas",27.2,56.27,461,"IR"],["Leicester",52.63,-1.13,458,"GB"],["Mazar-i-Sharif",36.7,67.1,458,"AF"],["Kirov",58.59,49.67,457,"RU"],["Sunderland",54.9,-1.38,453,"GB"],["Sfax",34.75,10.72,453,"TN"],["Luhansk",48.57,39.33,452,"UA"],["An Nasiriyah",31.04,46.27,452,"IQ"],["Qaraghandy",49.88,73.12,452,"KZ"],["Şanlıurfa",37.17,38.79,450,"TR"],["Belfast",54.59,-5.93,450,"GB"],["Chlef",36.17,1.32,449,"DZ"],["Cheboksary",56.13,47.25,447,"RU"],["Gent",51.03,3.7,444,"BE"],["Portsmouth",50.8,-1.08,442,"GB"],["Strasbourg",48.58,7.75,440,"FR"],["Nantes",47.21,-1.59,439,"FR"],["Khujand",40.29,69.62,438,"TJ"],["Khomeini Shahr",32.7,51.47,437,"IR"],["Kaliningrad",54.7,20.5,435,"RU"],["Bournemouth",50.73,-1.9,427,"GB"],["Heidelberg",49.42,8.7,427,"DE"],["Bryansk",53.26,34.43,427,"RU"],["Bratislava",48.15,17.12,424,"SK"],["Arak",25.28,3.75,423,"DZ"],["Erzurum",39.92,41.29,421,"TR"],["Ivanovo",57.01,41.01,421,"RU"],["Asyut",27.19,31.18,421,"EG"],["Sukkur",27.71,68.85,418,"PK"],["Middlesbrough",54.58,-1.23,416,"GB"],["Ardabil",38.25,48.3,415,"IR"],["Magnitogorsk",53.42,58.98,413,"RU"],["Al Ayn",24.23,55.74,409,"AE"],["Metz",49.12,6.18,409,"FR"],["Kursk",51.74,36.19,409,"RU"],["Oujda",34.69,-1.91,409,"MA"],["Hotan",37.1,79.93,409,"CN"],["Szczecin",53.42,14.53,408,"PL"],["Murcia",37.98,-1.13,407,"ES"],["Tanta",30.79,31,405,"EG"],["Sikar",27.61,75.14,400,"IN"],["Tver",56.86,35.89,400,"RU"],["Surgut",61.26,73.43,400,"RU"],["Buraydah",26.37,43.96,399,"SA"],["Khmelnytskyy",49.42,27,398,"UA"],["Eindhoven",51.43,5.5,398,"NL"],["Horlivka",48.3,38.05,397,"UA"],["Tallinn",59.43,24.73,394,"EE"],["Stoke",53,-2.18,391,"GB"],["Osh",40.54,72.79,391,"KG"],["Bhilwara",25.35,74.64,390,"IN"],["Grenoble",45.18,5.72,389,"FR"],["Coventry",52.4,-1.5,388,"GB"],["Brno",49.2,16.61,388,"CZ"],["Granada‎",37.16,-3.59,388,"ES"],["Qarshi",38.87,65.8,386,"UZ"],["Misrata",32.38,15.1,386,"LY"],["Hail",27.52,41.7,385,"SA"],["Béjaïa",36.76,5.07,385,"DZ"],["Southampton",50.9,-1.4,384,"GB"],["Nizhny Tagil",57.92,59.97,381,"RU"],["Vigo",42.22,-8.73,379,"ES"],["Sevastopol",44.6,33.52,379,"RU"],["Makiyivka",48.03,37.97,377,"UA"],["Karlsruhe",49,8.4,377,"DE"],["Kahramanmaraş",37.61,36.95,376,"TR"],["Palma",39.57,2.65,376,"ES"],["Kaunas",54.95,23.88,375,"LT"],["Khorramabad",33.48,48.35,375,"IR"],["Denizli",37.77,29.08,372,"TR"],["Van",38.5,43.4,372,"TR"],["La Coruña",43.33,-8.42,371,"ES"],["Reading",51.47,-0.98,370,"GB"],["Abadan",30.33,48.28,370,"IR"],["Al-Qatif",26.52,50.01,369,"SA"],["Mahilyow",53.9,30.32,369,"BY"],["Valletta",35.9,14.51,368,"MT"],["Bydgoszcz",53.12,18.01,366,"PL"],["Vladikavkaz",43.05,44.67,365,"RU"],["Larkana",27.56,68.21,364,"PK"],["Stavropol",45.05,41.98,363,"RU"],["Sheikhu Pura",31.72,73.99,361,"PK"],["Lublin",51.25,22.57,360,"PL"],["Augsburg",48.35,10.9,359,"DE"],["Ad Diwaniyah",31.99,44.92,358,"IQ"],["Simferopol",44.95,34.1,358,"RU"],["Toulon",43.13,5.92,358,"FR"],["Taraz",42.9,71.36,358,"KZ"],["Zanjan",36.67,48.5,357,"IR"],["San Sebastián",43.32,-1.98,357,"ES"],["Mirpur Khas",25.53,69.01,356,"PK"],["Rahim Yar Khan",28.42,70.3,353,"PK"],["Safi",32.32,-9.24,353,"MA"],["Vinnytsya",49.23,28.48,352,"UA"],["Muzaffarnagar",29.49,77.7,350,"IN"],["Qoqon",40.54,70.94,350,"UZ"],["Haarlem",52.38,4.63,350,"NL"],["Sanandaj",35.3,47.02,349,"IR"],["Linz",48.32,14.29,349,"AT"],["Verona",45.44,10.99,347,"IT"],["Nur-Sultan",51.18,71.43,346,"KZ"],["Al Amarah",31.84,47.15,345,"IQ"],["Charleroi",50.42,4.45,345,"BE"],["Belgorod",50.63,36.6,345,"RU"],["Kohat",33.6,71.43,343,"PK"],["Kurgan",55.46,65.34,343,"RU"],["Vitsyebsk",55.19,30.19,343,"BY"],["Jhang",31.28,72.32,341,"PK"],["Plovdiv",42.15,24.75,340,"BG"],["Kaluga",54.52,36.27,339,"RU"],["Gijón",43.53,-5.67,336,"ES"],["Orel",52.97,36.07,335,"RU"],["Bielefeld",52.03,8.53,332,"DE"],["Mathura",27.5,77.67,331,"IN"],["Patiala",30.32,76.38,329,"IN"],["Pavlodar",52.3,76.95,329,"KZ"],["Sagar",23.85,78.75,328,"IN"],["Sochi",43.59,39.73,328,"RU"],["Montpellier",43.61,3.87,327,"FR"],["Sousse",35.83,10.63,327,"TN"],["Iași",47.17,27.57,326,"RO"],["Birjand",32.88,59.22,325,"IR"],["Yoshkar Ola",56.64,47.87,324,"RU"],["Volzhskiy",48.79,44.77,323,"RU"],["Al Kut",32.49,45.83,322,"IQ"],["Valladolid",41.65,-4.75,322,"ES"],["Podolsk",55.38,37.53,321,"RU"],["Córdoba",37.88,-4.77,321,"ES"],["Smolensk",54.78,32.05,321,"RU"],["Kherson",46.63,32.6,320,"UA"],["Shahjahanpur",27.88,79.91,320,"IN"],["Vladimir",56.13,40.41,319,"RU"],["Bukhara",39.78,64.43,319,"UZ"],["Poltava",49.57,34.57,318,"UA"],["New Delhi",28.6,77.2,318,"IN"],["Rohtak",28.9,76.58,317,"IN"],["Hrodna",53.68,23.83,317,"BY"],["Cluj-Napoca",46.79,23.6,317,"RO"],["El Faiyum",29.31,30.84,317,"EG"],["Alicante",38.35,-0.48,316,"ES"],["Timișoara",45.76,21.22,315,"RO"],["Gdynia",54.52,18.53,315,"PL"],["Pescara",42.46,14.22,315,"IT"],["Dezful",32.38,48.47,315,"IR"],["Ljubljana",46.06,14.51,315,"SI"],["Koblenz",50.35,7.6,313,"DE"],["Varna",43.22,27.9,313,"BG"],["Aswan",24.09,32.9,313,"EG"],["Qurghonteppa",37.84,68.77,312,"TJ"],["Cherepovets",59.14,37.91,312,"RU"],["Galați",45.46,28.05,311,"RO"],["Brașov",45.65,25.61,311,"RO"],["Dayr az Zawr",35.33,40.13,309,"SY"],["Chernihiv",51.5,31.3,308,"UA"],["Nalchik",43.5,43.62,308,"RU"],["Ksar El Kebir",35.02,-5.91,307,"MA"],["Ratlam",23.35,75.03,307,"IN"],["Firozabad",27.15,78.39,306,"IN"],["Craiova",44.33,23.83,304,"RO"],["Kom Ombo",24.47,32.95,304,"EG"],["Chemnitz",50.83,12.92,303,"DE"],["Ganca",40.68,46.35,303,"AZ"],["Saransk",54.17,45.18,303,"RU"],["Constanța",44.2,28.61,303,"RO"],["Gujrat",32.58,74.08,302,"PK"],["Kingston upon Hull",53.75,-0.33,302,"GB"],["Batman",37.89,41.14,302,"TR"],["Qena",26.15,32.72,302,"EG"],["Tambov",52.73,41.43,301,"RU"],["Brest",52.1,23.7,301,"BY"],["Mardan",34.2,72.04,300,"PK"],["Qyzylorda",44.8,65.46,300,"KZ"],["Al Mubarraz",25.43,49.57,299,"SA"],["Dumyat",31.42,31.82,299,"EG"],["Baqubah",33.75,44.66,299,"IQ"],["Chernivtsi",48.31,25.92,298,"UA"],["Cherkasy",49.43,32.07,298,"UA"],["İskenderun",36.58,36.17,298,"TR"],["Al Kharj",24.16,47.31,298,"SA"],["Rampur",28.82,79.02,296,"IN"],["Ar Ramadi",33.42,43.3,295,"IQ"],["Vologda",59.21,39.92,295,"RU"],["Swansea",51.63,-3.95,294,"GB"],["Sumy",50.92,34.78,294,"UA"],["Panipat",29.4,76.97,293,"IN"],["Białystok",53.13,23.18,292,"PL"],["Cagliari",39.22,9.1,292,"IT"],["Kasur",31.13,74.46,291,"PK"],["Kassel",51.3,9.5,290,"DE"],["Bhuj",23.23,69.67,289,"IN"],["Sakarya",40.77,30.4,287,"TR"],["Zagazig",30.58,31.52,285,"EG"],["Alwar",27.55,76.6,283,"IN"],["Cádiz",36.52,-6.29,283,"ES"],["Zhytomyr",50.25,28.66,282,"UA"],["Gorgan",36.83,54.48,281,"IR"],["Batna",35.57,6.17,281,"DZ"],["Al Khalil",31.54,35.1,280,"PS"],["Rize",41.02,40.52,279,"TR"],["Taganrog",47.23,38.92,279,"RU"],["Sumqayt",40.58,49.63,279,"AZ"],["Kostroma",57.77,40.94,278,"RU"],["Pamplona",42.82,-1.65,275,"ES"],["Sétif",36.18,5.4,275,"DZ"],["Bern",46.92,7.47,275,"CH"],["Blackpool",53.83,-3.05,273,"GB"],["Elâzığ",38.68,39.23,271,"TR"],["Sari",36.55,53.1,271,"IR"],["Venice",45.44,12.33,271,"IT"],["Münster",51.97,7.62,270,"DE"],["Kiel",54.33,10.13,269,"DE"],["Nancy",48.68,6.2,269,"FR"],["Malmö",55.6,13.02,269,"SE"],["Yanbu al Bahr",24.09,38.05,268,"SA"],["Sterlitamak",53.63,55.96,267,"RU"],["Lausanne",46.53,6.65,266,"CH"],["Saint-Étienne",45.43,4.38,266,"FR"],["Petrozavodsk",61.78,34.36,265,"RU"],["Sivas",39.75,37.03,264,"TR"],["Tubruq",32.08,23.96,264,"LY"],["Graz",47.08,15.41,263,"AT"],["Az Aubayr",30.39,47.71,262,"IQ"],["Balıkesir",39.65,27.89,262,"TR"],["Aqtobe",50.28,57.17,262,"KZ"],["Konibodom",40.29,70.43,260,"TJ"],["Kondoz",36.73,68.87,260,"AF"],["Adapazarı",40.8,30.42,260,"TR"],["Tampere",61.5,23.75,259,"FI"],["Dzerzhinsk",56.25,43.46,257,"RU"],["Etawah",26.79,79.01,257,"IN"],["Rivne",50.62,26.25,255,"UA"],["Freiburg",48,7.87,255,"DE"],["Pathankot",32.27,75.72,254,"IN"],["Borujerd",33.92,48.8,252,"IR"],["Messina",38.2,15.55,252,"IT"],["Sonipat",29,77.02,251,"IN"],["Caserta",41.06,14.34,250,"IT"],["Como",45.81,9.08,250,"IT"],["Luzern",47.05,8.28,250,"CH"],["Kashan",33.98,51.58,250,"IR"],["Niš",43.33,21.9,250,"RS"],["Melun",48.53,2.67,249,"FR"],["Kirovohrad",48.5,32.26,249,"UA"],["Hafar al Batin",28.43,45.96,249,"SA"],["Jalal Abad",40.94,73,249,"KG"],["Miskolc",48.1,20.78,248,"HU"],["Kattaqorgon",39.9,66.26,247,"UZ"],["Plymouth",50.39,-4.16,247,"GB"],["Orsk",51.21,58.63,247,"RU"],["Rzeszów",50.03,22,246,"PL"],["Braunschweig",52.25,10.5,245,"DE"],["Ternopil",49.54,25.58,245,"UA"],["Nizhenvartovsk",60.93,76.58,245,"RU"],["Manisa",38.63,27.44,244,"TR"],["Hapur",28.74,77.76,243,"IN"],["Novorossiysk",44.73,37.77,242,"RU"],["Le Havre",49.5,0.1,242,"FR"],["Ivano-Frankivsk",48.93,24.71,241,"UA"],["Fürth",49.47,11,238,"DE"],["Seeb",23.68,58.18,238,"OM"],["Århus",56.16,10.21,238,"DK"],["Košice",48.73,21.25,237,"SK"],["Al Jubayl",27,49.65,237,"SA"],["Oostanay",53.22,63.63,237,"KZ"],["Sahiwal",30.67,73.11,236,"PK"],["Oviedo",43.35,-5.83,236,"ES"],["Luton",51.88,-0.42,236,"GB"],["Dera Ghazi Khan",30.06,70.64,236,"PK"],["Tours",47.38,0.7,236,"FR"],["Jizzax",40.1,67.83,235,"UZ"],["Lübeck",53.87,10.67,235,"DE"],["Türkmenabat",39.11,63.58,235,"TM"],["Nizhnekamsk",55.64,51.82,234,"RU"],["Zabol",31.02,61.48,234,"IR"],["Clermont-Ferrand",45.78,3.08,233,"FR"],["Kremenchuk",49.08,33.43,233,"UA"],["Ploiești",44.95,26.04,233,"RO"],["Al Fallujah",33.35,43.78,232,"IQ"],["Debrecen",47.53,21.63,231,"HU"],["Osnabrück",52.28,8.05,231,"DE"],["Syktyvkar",61.66,50.82,231,"RU"],["Nawabshah",26.25,68.4,230,"PK"],["Noginsk",55.87,38.48,230,"RU"],["Magdeburg",52.13,11.62,230,"DE"],["Tlimcen",34.89,-1.32,230,"DZ"],["Nukus",42.47,59.62,230,"UZ"],["Bharatpur",27.21,77.51,229,"IN"],["Er Rachidia",31.94,-4.45,228,"MA"],["Petropavlovsk",54.88,69.22,228,"KZ"],["Starsy Oskol",51.3,37.84,227,"RU"],["Kolpino",59.73,30.65,226,"RU"],["Sabzewar",36.22,57.63,226,"IR"],["Grozny",43.32,45.7,226,"RU"],["Vitoria",42.85,-2.67,225,"ES"],["Karnal",29.68,76.97,225,"IN"],["Novi Sad",45.25,19.85,225,"RS"],["Skikda",36.88,6.9,225,"DZ"],["Adıyaman",37.77,38.28,224,"TR"],["Okara",30.81,73.45,224,"PK"],["Nicosia",35.17,33.37,224,"CY"],["Neyshabur",36.22,58.82,222,"IR"],["Arar",30.99,41.02,222,"SA"],["Amol",36.47,52.36,222,"IR"],["Banja Luka",44.78,17.18,222,"BA"],["Shakhty",47.72,40.27,221,"RU"],["Babruysk",53.13,29.19,221,"BY"],["Gabès",33.9,10.1,220,"TN"],["Velikiy Novgorod",58.5,31.33,219,"RU"],["Baghlan",36.14,68.7,219,"AF"],["Potsdam",52.4,13.07,218,"DE"],["Denow",38.28,67.89,217,"UZ"],["Groningen",53.22,6.58,217,"NL"],["Gilgit",35.92,74.3,217,"PK"],["Rybinsk",58.05,38.82,217,"RU"],["Mallawi",27.73,30.84,217,"EG"],["Orléans",47.9,1.9,217,"FR"],["Kielce",50.89,20.66,216,"PL"],["Trieste",45.65,13.8,216,"IT"],["Nablus",32.22,35.25,216,"PS"],["Navoi",40.11,65.35,215,"UZ"],["Split",43.52,16.47,215,"HR"],["Mulhouse",47.75,7.35,215,"FR"],["Brăila",45.29,27.97,214,"RO"],["Oradea",47.05,21.92,214,"RO"],["Lutsk",50.75,25.33,214,"UA"],["Bergen",60.39,5.32,214,"NO"],["Kırıkkale",39.85,33.53,211,"TR"],["Pali",25.79,73.33,210,"IN"],["Oral",51.27,51.33,210,"KZ"],["Bojnurd",37.47,57.32,209,"IR"],["Santander",43.38,-3.8,209,"ES"],["Sidi bel Abbes",35.19,-0.64,209,"DZ"],["Rennes",48.1,-1.67,209,"FR"],["Beer Sheva",31.25,34.83,206,"IL"],["Salzburg",47.81,13.04,206,"AT"],["Erfurt",50.97,11.03,203,"DE"],["Pisa",43.72,10.4,203,"IT"],["Rostock",54.07,12.15,203,"DE"],["Khvoy",38.53,44.97,203,"IR"],["Lashkar Gah",31.58,64.36,202,"AF"],["Chiniot",31.72,72.98,202,"PK"],["Angren",41.03,70.15,202,"UZ"],["Al Khums",32.66,14.26,202,"LY"],["Taranto",40.51,17.23,202,"IT"],["Biskra",34.86,5.73,202,"DZ"],["Pskov",57.83,28.33,202,"RU"],["Cartagena",37.6,-0.98,201,"ES"],["Daşoguz",41.84,59.96,201,"TM"],["Bacău",46.58,26.92,200,"RO"],["Taza",34.22,-4.02,200,"MA"],["Armavir",45,41.13,200,"RU"],["Az Zawiyah",32.76,12.72,200,"LY"],["Bergamo",45.7,9.67,200,"IT"],["Rashid",31.46,30.39,200,"EG"],["Meymaneh",35.93,64.77,200,"AF"],["Balakovo",52.03,47.8,200,"RU"],["Bila Tserkva",49.77,30.13,199,"UA"],["Aydın",37.85,27.85,199,"TR"],["Bulandshahr",28.41,77.85,199,"IN"],["Gurgaon",28.45,77.02,197,"IN"],["Reims",49.25,4.03,197,"FR"],["Iskandar",41.55,69.68,196,"UZ"],["Engels",51.5,46.12,196,"RU"],["Gandhinagar",23.22,72.64,196,"IN"],["Burgas",42.51,27.47,196,"BG"],["Al Jahra",29.34,47.66,194,"KW"],["Oxford",51.75,-1.25,193,"GB"],["Klaipėda",55.72,21.12,192,"LT"],["Bhiwani",28.81,76.13,191,"IN"],["Norwich",52.63,1.3,191,"GB"],["Zlatoust",55.17,59.65,191,"RU"],["Sadiqabad",28.3,70.13,190,"PK"],["Caen",49.18,-0.35,190,"FR"],["Syzran",53.17,48.48,189,"RU"],["Aberdeen",57.15,-2.11,189,"GB"],["Cork",51.89,-8.47,189,"IE"],["Angers",47.48,-0.53,188,"FR"],["Szeged",46.25,20.15,188,"HU"],["Mostaganem",35.94,0.09,188,"DZ"],["Olsztyn",53.77,20.49,187,"PL"],["Gibraltar",36.13,-5.35,187,"GI"],["Marbella",36.52,-4.88,186,"ES"],["Pécs",46.08,18.22,186,"HU"],["Mainz",49.98,8.27,185,"DE"],["Kütahya",39.42,29.93,185,"TR"],["Kramatorsk",48.72,37.53,184,"UA"],["Kutaisi",42.25,42.73,184,"GE"],["Tiarat",35.38,1.32,184,"DZ"],["Ruse",43.85,25.97,184,"BG"],["Shibin el Kom",30.55,31.01,183,"EG"],["Mataró",41.54,2.45,183,"ES"],["Corum",40.52,34.95,183,"TR"],["Atyrau",47.11,51.92,183,"KZ"],["Kamensk Uralskiy",56.42,61.94,182,"RU"],["Sirsa",29.49,75.03,182,"IN"],["Tonk",26.15,75.79,182,"IN"],["Castello",39.97,-0.05,181,"ES"],["Reggio di Calabria",38.11,15.64,180,"IT"],["Varamin",35.32,51.65,180,"IR"],["El Jadida",33.26,-8.51,180,"MA"],["Balkh",36.75,66.9,180,"AF"],["Zuwara",32.93,12.08,180,"LY"],["Almería",36.83,-2.43,179,"ES"],["El Arish",31.12,33.8,179,"EG"],["Mary",37.6,61.83,179,"TM"],["Ar Raqqah",35.93,39.02,178,"SY"],["Termiz",37.23,67.27,178,"UZ"],["Nyíregyháza",47.97,21.72,177,"HU"],["Treviso",45.67,12.24,177,"IT"],["Malayer",34.32,48.85,177,"IR"],["El Oued",33.37,6.86,177,"DZ"],["Modena",44.65,10.92,176,"IT"],["Saveh",35.02,50.33,176,"IR"],["Turku",60.45,22.25,176,"FI"],["Ouargla",31.97,5.34,176,"DZ"],["Sirjan",29.47,55.73,175,"IR"],["As Samawah",31.31,45.28,175,"IQ"],["Saida",33.56,35.37,174,"LB"],["Simla",31.1,77.17,174,"IN"],["Ulm",48.4,10,173,"DE"],["Stavanger",58.97,5.68,173,"NO"],["Isparta",37.77,30.53,172,"TR"],["Tébessa",35.41,8.12,172,"DZ"],["Prizren",42.23,20.75,171,"-99"],["Rijeka",45.33,14.45,171,"HR"],["Kragujevac",44.02,20.92,171,"RS"],["Pitești",44.86,24.88,171,"RO"],["Temirtau",50.07,72.96,171,"KZ"],["Djelfa",34.68,3.25,171,"DZ"],["Burgos",42.35,-3.68,170,"ES"],["Al Marj",32.5,20.83,170,"LY"],["Nîmes",43.83,4.35,170,"FR"],["Dijon",47.33,5.03,170,"FR"],["Čačak",43.89,20.33,170,"RS"],["Arad",46.17,21.32,169,"RO"],["Baranavichy",53.14,26.01,169,"BY"],["Würzburg",49.8,9.95,169,"DE"],["Bandar-e Bushehr",28.92,50.83,169,"IR"],["Chirchiq",41.45,69.56,168,"UZ"],["Miass",55,60.09,168,"RU"],["Baramula",34.2,74.35,168,"IN"],["Volgodonsk",47.51,42.16,168,"RU"],["Berezniki",59.42,56.76,168,"RU"],["Benha",30.47,31.18,167,"EG"],["Novocherkassk",47.42,40.08,167,"RU"],["Oldenburg",53.13,8.22,167,"DE"],["Parma",44.81,10.32,166,"IT"],["Elbasan",41.12,20.08,165,"AL"],["Hawalli",29.33,48,164,"KW"],["Zenica",44.22,17.92,164,"BA"],["Pizen",49.74,13.36,164,"CZ"],["Regensburg",49.02,12.12,164,"DE"],["Tartus",34.88,35.89,163,"SY"],["Lecce",40.36,18.15,163,"IT"],["Ingolstadt",48.77,11.45,163,"DE"],["Mostar",43.35,17.82,163,"BA"],["Patra",38.23,21.73,163,"GR"],["Ash Shatrah",31.42,46.18,162,"IQ"],["Budaun",28.03,79.09,162,"IN"],["Salamanca",40.97,-5.67,162,"ES"],["Settat",33.01,-7.62,162,"MA"],["Mahabad",36.77,45.72,162,"IR"],["Ras al Khaymah",25.79,55.94,161,"AE"],["Salavat",53.37,55.93,160,"RU"],["Gonbad-e Kavus",37.25,55.17,160,"IR"],["Samarra",34.19,43.88,159,"IQ"],["Zarzis",33.51,11.1,159,"TN"],["York",53.95,-1.07,159,"GB"],["Maykop",44.61,40.12,158,"RU"],["Hoshiarpur",31.52,75.98,158,"IN"],["Albacete",39,-1.87,158,"ES"],["Melitopol",46.84,35.38,158,"UA"],["Odense",55.4,10.38,158,"DK"],["Uroteppa",39.92,69,157,"TJ"],["Afyon",38.75,30.55,157,"TR"],["Zonguldak",41.43,31.78,157,"TR"],["Tiraspol",46.85,29.64,157,"MD"],["Rustavi",41.57,45.05,157,"GE"],["Kashmar",35.18,58.45,157,"IR"],["Hurghada",27.23,33.83,157,"EG"],["Sibiu",45.8,24.14,156,"RO"],["Livorno",43.55,10.3,156,"IT"],["Shkodër",42.07,19.52,156,"AL"],["Batumi",41.6,41.63,156,"GE"],["Antakya",36.23,36.12,155,"TR"],["Ordu",41,37.87,155,"TR"],["Foggia",41.46,15.56,155,"IT"],["Innsbruck",47.28,11.41,155,"AT"],["Barysaw",54.23,28.49,155,"BY"],["Masjed Soleyman",31.98,49.3,154,"IR"],["Kovrov",56.36,41.33,154,"RU"],["Lemosos",34.68,33.03,154,"CY"],["Nusaybin",37.07,41.22,153,"TR"],["Uşak",38.68,29.42,153,"TR"],["Ilam",33.63,46.43,153,"IR"],["Novokuybishevsk",53.12,49.92,152,"RU"],["Kerch",45.37,36.49,152,"RU"],["Dundee",56.47,-3,152,"GB"],["Samalut",28.3,30.71,152,"EG"],["Limoges",45.83,1.25,152,"FR"],["Uzhgorod",48.63,22.25,151,"UA"],["Bălți",47.76,27.91,151,"MD"],["Nazareth",32.7,35.3,151,"IL"],["Maragheh",37.42,46.22,151,"IR"],["Suhar",24.36,56.73,151,"OM"],["M'sila",35.7,4.55,150,"DZ"],["Urgentch",41.56,60.64,150,"UZ"],["Podgorica",42.47,19.27,146,"ME"],["Luxembourg",49.61,6.13,107,"LU"],["Andorra",42.51,1.53,54,"AD"],["Vaduz",47.13,9.52,36,"LI"],["Monaco",43.74,7.41,36,"MC"],["San Marino",43.94,12.44,30,"SM"],["Ganja",40.68,46.36,330,"AZ"],["Sumqayit",40.59,49.67,350,"AZ"],["Shaki",41.19,47.17,65,"AZ"],["Lankaran",38.75,48.85,85,"AZ"],["Nakhchivan",39.21,45.41,90,"AZ"],["Derbent",42.06,48.29,125,"RU"],["Nazran",43.23,44.77,120,"RU"],["Cherkessk",44.22,42.06,125,"RU"],["Elista",46.31,44.27,105,"RU"],["Urgench",41.55,60.63,140,"UZ"],["Termez",37.22,67.28,150,"UZ"],["Türkmenbaşy",40.02,52.97,90,"TM"],["Karakol",42.49,78.39,70,"KG"],["Naryn",41.43,75.99,40,"KG"],["Astana",51.17,71.43,1300,"KZ"],["Karaganda",49.8,73.1,500,"KZ"],["Aktobe",50.28,57.21,500,"KZ"],["Aktau",43.65,51.15,200,"KZ"],["Kostanay",53.21,63.62,250,"KZ"],["Semey",50.43,80.27,340,"KZ"],["Oskemen",49.95,82.6,330,"KZ"],["Kyzylorda",44.85,65.51,240,"KZ"],["Turkistan",43.3,68.25,190,"KZ"],["Petropavl",54.87,69.15,220,"KZ"],["Kunduz",36.73,68.87,370,"AF"],["Urumqi",43.83,87.62,4000,"CN"],["Ghulja",43.91,81.32,600,"CN"],["Altay",47.85,88.13,200,"CN"],["Ulaanbaatar",47.92,106.92,1600,"MN"],["Ölgii",48.97,89.96,35,"MN"],["Khovd",48,91.64,30,"MN"],["Mörön",49.64,100.16,40,"MN"],["Ulaangom",49.98,92.07,30,"MN"],["Choibalsan",48.07,114.5,40,"MN"],["Darkhan",49.49,105.92,75,"MN"],["Saint Petersburg",59.93,30.34,5600,"RU"],["Naberezhnye Chelny",55.74,52.41,530,"RU"],["Yoshkar-Ola",56.63,47.89,280,"RU"],["Ukhta",63.56,53.68,100,"RU"],["Vorkuta",67.5,64.03,70,"RU"],["Kudymkar",59.01,54.66,30,"RU"],["Novosibirsk",55.03,82.92,1600,"RU"],["Tomsk",56.5,84.97,570,"RU"],["Krasnoyarsk",56.01,92.85,1100,"RU"],["Khanty-Mansiysk",61,69,100,"RU"],["Nizhnevartovsk",60.94,76.56,280,"RU"],["Salekhard",66.53,66.6,50,"RU"],["Novy Urengoy",66.08,76.63,110,"RU"],["Naryan-Mar",67.64,53.01,25,"RU"],["Arkhangelsk",64.54,40.54,350,"RU"],["Dudinka",69.4,86.18,20,"RU"],["Norilsk",69.35,88.2,180,"RU"],["Khatanga",71.98,102.47,3,"RU"],["Yakutsk",62.03,129.73,350,"RU"],["Mirny",62.54,113.96,35,"RU"],["Neryungri",56.66,124.72,57,"RU"],["Tiksi",71.64,128.87,5,"RU"],["Verkhoyansk",67.55,133.4,1,"RU"],["Kyzyl",51.72,94.45,115,"RU"],["Abakan",53.72,91.43,185,"RU"],["Ulan-Ude",51.83,107.61,440,"RU"],["Irkutsk",52.29,104.3,620,"RU"],["Chita",52.03,113.5,350,"RU"],["Gorno-Altaysk",51.96,85.96,60,"RU"],["Khabarovsk",48.48,135.08,610,"RU"],["Magadan",59.56,150.8,90,"RU"],["Oulu",65.01,25.47,210,"FI"],["Rovaniemi",66.5,25.72,65,"FI"],["Ivalo",68.66,27.54,3,"FI"],["Utsjoki",69.9,27,1,"NO"],["Tromsø",69.65,18.96,77,"NO"],["Alta",69.97,23.27,21,"NO"],["Karasjok",69.47,25.51,3,"NO"],["Kautokeino",69,23.04,3,"NO"],["Kirkenes",69.73,30.05,3,"NO"],["Bodø",67.28,14.4,53,"NO"],["Narvik",68.44,17.43,14,"NO"],["Trondheim",63.43,10.4,210,"NO"],["Røros",62.57,11.39,6,"NO"],["Kiruna",67.86,20.23,23,"SE"],["Jokkmokk",66.6,19.83,3,"SE"],["Luleå",65.58,22.15,78,"SE"],["Umeå",63.83,20.26,130,"SE"],["Östersund",63.18,14.64,64,"SE"],["Murmansk",68.97,33.09,270,"RU"],["Lovozero",68,35,3,"RU"],["Olonets",60.98,32.97,8,"RU"],["Sortavala",61.7,30.7,18,"RU"],["Tartu",58.38,26.72,95,"EE"],["Pärnu",58.38,24.5,52,"EE"],["Ventspils",57.39,21.56,33,"LV"],["Győr",47.69,17.63,130,"HU"],["Târgu Mureș",46.54,24.56,135,"RO"],["Miercurea Ciuc",46.36,25.8,38,"RO"],["Satu Mare",47.79,22.88,100,"RO"],["Subotica",46.1,19.67,100,"RS"],["Uzhhorod",48.62,22.3,115,"UA"],["Bakhchysarai",44.75,33.86,26,"RU"]];
 function Xf(e){let t={en:{dia:"Also spoken",
 home:"home region",
@@ -13217,6 +13221,72 @@ const FDt = k => {
   }[k];
   return ka(t[ya()] || t.en);
 };
+/* Long lists draw only the rows near the screen. kWin(n, key, est) -> {ref, a, b, top, bot}:
+   ref goes on the list box; rows a..b-1 are drawn between two spacers (heights top, bot) that stand in for the others, so the page keeps
+   its length. The first element of every row carries data-i = row number (rows are measured from it). A row that is not measured
+   yet counts as the average measured row (est before any). key names the list: heights stay remembered while it stays the same.
+   A sticky heading (class letter) may be the first element of a row: its row starts where the next element starts minus its height.
+   An element with data-d is a repeated heading (A-Z); its height is subtracted from the top spacer by the caller (KWD).
+   When a measured height moves rows above the screen the scroll position is corrected by the shift, so nothing jumps. */
+let KWC = {k: '', w: 0, h: []}, KWD = 0;
+/* On a scroll the new rows are drawn at once, in the same frame (the browser sends one scroll event per frame, before it paints):
+   a fast drag of the scrollbar never shows an empty screen. React's flushSync; a plain call if it is ever missing. */
+const KWF = f => { let s = d("2b9p0").flushSync; s ? s(f) : f(); };
+function kWin(n, key, est) {
+  let ref = (0, m.useRef)(null), an = (0, m.useRef)(null), cur = (0, m.useRef)(null), [rg, setRg] = (0, m.useState)([0, 40, key]), [, tick] = (0, m.useState)(0);
+  if (KWC.k !== key || KWC.w !== innerWidth) KWC = {k: key, w: innerWidth, h: []};
+  let r = rg[2] === key ? rg : [0, 40, key], a = Math.min(r[0], n), b = Math.min(r[1], n), avg = () => { let s = 0, c = 0; for (let x of KWC.h) if (x > 0) { s += x; c++; } return c ? s / c : est; }, av = avg(), t = 0, u = 0;
+  for (let i = 0; i < n; i++) { let h = KWC.h[i] || av; if (i < a) t += h; else if (i >= b) u += h; }
+  cur.current = {r, n, key};
+  let cap = () => {
+    let el = ref.current;
+    if (!el) return;
+    for (let e of el.children) if (e.dataset.i != null && !e.classList.contains('letter')) { let q = e.getBoundingClientRect(); if (q.bottom > 0) { an.current = {i: e.dataset.i, y: q.top, s: scrollY}; return; } }
+  };
+  let calc = now => {
+    let el = ref.current, C = cur.current;
+    if (!el || !C) return;
+    let q = el.getBoundingClientRect(), vh = innerHeight, lo = -q.top - vh * 1.5, hi = -q.top + vh * 2.5, v = avg(), y = 0, x = -1, z = C.n;
+    for (let i = 0; i < C.n; i++) { let h = KWC.h[i] || v; if (x < 0 && y + h > lo) x = i; if (y > hi) { z = i; break; } y += h; }
+    if (x < 0) x = Math.max(0, C.n - 30);
+    x = Math.floor(x / 8) * 8; z = Math.min(C.n, Math.max(Math.ceil(z / 8) * 8, x + 8));
+    if (x !== Math.min(C.r[0], C.n) || z !== Math.min(C.r[1], C.n) || C.r[2] !== C.key) { cap(); now ? KWF(() => setRg([x, z, C.key])) : setRg([x, z, C.key]); }
+  };
+  (0, m.useLayoutEffect)(() => {
+    let el = ref.current;
+    if (!el) return;
+    let A = an.current;
+    an.current = null;
+    if (A) {
+      let e = el.querySelector('[data-i="' + A.i + '"]');
+      if (e) { let j = e.getBoundingClientRect().top - (A.y - (scrollY - A.s)); if (Math.abs(j) > 1) scrollTo({top: scrollY + j, behavior: 'instant'}); }
+    }
+    let rows = [], ch = false, dd = el.querySelector('[data-d]');
+    for (let e of el.children) if (e.dataset.i != null) rows.push([+e.dataset.i, e.classList.contains('letter') ? e.nextElementSibling.getBoundingClientRect().top - e.getBoundingClientRect().height : e.getBoundingClientRect().top]);
+    let end = el.lastElementChild ? el.lastElementChild.getBoundingClientRect().top : 0;
+    rows.forEach((x, j) => { let h = (j + 1 < rows.length ? rows[j + 1][1] : end) - x[1]; if (h > 0 && Math.abs((KWC.h[x[0]] || 0) - h) > .5) { KWC.h[x[0]] = h; ch = true; } });
+    if (dd && Math.abs(dd.offsetHeight - KWD) > .5) { KWD = dd.offsetHeight; ch = true; }
+    if (ch) { cap(); tick(x => x + 1); } else calc();
+  });
+  (0, m.useEffect)(() => {
+    let q = 0, go = () => { q || (q = requestAnimationFrame(() => { q = 0; calc(); })); }, sc = () => calc(1);
+    document.documentElement.style.overflowAnchor = 'none'; /* the browser's own scroll anchoring would correct a second time */
+    addEventListener('scroll', sc, {passive: true}); addEventListener('resize', go);
+    return () => { document.documentElement.style.overflowAnchor = ''; removeEventListener('scroll', sc); removeEventListener('resize', go); cancelAnimationFrame(q); };
+  }, []);
+  return {ref, a, b, top: t, bot: u};
+}
+/* the two spacers of a windowed list */
+const kSp = (k, h) => (0, f.jsx)('div', {key: k, 'aria-hidden': true, style: {height: Math.max(0, h), flexShrink: 0}});
+/* "Details" fold in the language page's hero (census and dialect list): closed by default, a real button (keyboard), the open state
+   is kept per language in mi so a re-render or a return to the page keeps it. Opening is a short fade/rise (CSS .kdet-b). */
+function kDet({id, lbl, kids}) {
+  let [o, so] = (0, m.useState)(mi.kdetL === id && !!mi.kdet), has = kids.some(Boolean);
+  (0, m.useEffect)(() => { mi.kdet = o; mi.kdetL = id; }, [o, id]);
+  (0, m.useEffect)(() => { so(mi.kdetL === id && !!mi.kdet); }, [id]);
+  if (!has) return null;
+  return (0, f.jsxs)('div', {className: 'kdet' + (o ? ' open' : ''), children: [(0, f.jsxs)('button', {type: 'button', className: 'kdet-t', 'aria-expanded': o, 'aria-controls': 'kdet-b', onClick: () => so(!o), children: [lbl, (0, f.jsx)('i', {className: 'kdet-c', 'aria-hidden': true})]}), o ? (0, f.jsx)('div', {id: 'kdet-b', className: 'kdet-b', children: kids}) : null]});
+}
 const FDnum = n => n.toLocaleString(Ia());
 /* one language's dictionary file -> {s, e, k (keys, built on first search)} */
 function FDload(L) {
@@ -13431,18 +13501,18 @@ let u="all"===a?e.entries:e.entries.filter(e=>e.cats[a]),
 c=Da(s.trim()),
 FQ=FDq(s),
 d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1||FDcoreMatch(e,FQ)):u,
+KW=kWin(d.length,e.id+"|"+a+"|"+s.trim(),66),
 h=ua.slice().sort((e,t)=>Na(e).localeCompare(Na(t),Ia())),
 p=h.indexOf(e),
 g=r.sp,
-v=(r.path||[]).map(e=>Pa(e)),
 b=new Set;
 u.forEach(e=>e.src.forEach(e=>b.add(e)));
 let y=Array.from(b).concat(g?[("Unicode CLDR estimate"===g.src?"Unicode CLDR ("+n.estimate+")":za(g.src))+(g.y?" "+g.y:"")]:[]).concat(["Glottolog"]).concat(r.an?[n.anL+": "+za(r.anSrc)]:[]);
-return(0,f.jsxs)("div",{className:"view lview",style:window.__hdv?window.__hdv(e):void 0,children:[(0,f.jsxs)("div",{className:"head",children:[(0,f.jsxs)("span",{className:"pill",children:[(0,f.jsx)("span",{className:"dot "+e.family}),Ca(e.family)]}),(0,f.jsx)("h2",{children:Na(e)}),(0,f.jsx)(oi,{}),r.an?(0,f.jsx)("p",{className:"anb",lang:"",children:r.an}):null,(0,f.jsxs)("div",{className:"meta",children:[(0,f.jsx)("span",{children:(0,f.jsx)("b",{children:Ma(e)})}),g?(0,f.jsxs)("span",{children:[(0,f.jsx)("b",{children:za(g.v)})," ",n.spk]}):null,r.lv?(0,f.jsx)("span",{children:Aa(r.lv)}):null]}),null,(()=>{let C=(r.cen||[]).map(e=>({k:e[0],t:" · "+za(e[1])+" · "+e[2]+", "+za(e[3])})),D=window.__diaOf?window.__diaOf(e.lang):null;
+return(0,f.jsxs)("div",{className:"view lview",style:window.__hdv?window.__hdv(e):void 0,children:[(0,f.jsxs)("div",{className:"head",children:[(0,f.jsxs)("span",{className:"pill",children:[(0,f.jsx)("span",{className:"dot "+e.family}),Ca(e.family)]}),(0,f.jsx)("h2",{children:Na(e)}),(0,f.jsx)(oi,{}),r.an?(0,f.jsx)("p",{className:"anb",lang:"",children:r.an}):null,(0,f.jsxs)("div",{className:"meta",children:[(0,f.jsx)("span",{children:(0,f.jsx)("b",{children:Ma(e)})}),g?(0,f.jsxs)("span",{children:[(0,f.jsx)("b",{children:za(g.v)})," ",n.spk]}):null,r.lv?(0,f.jsx)("span",{children:Aa(r.lv)}):null]}),null,(0,f.jsx)(kDet,{id:e.id,lbl:({en:"Details",sq:"Detaje",sr:"Detalji",sc:"Детаљи"})[ya()]||"Details",kids:[(()=>{let C=(r.cen||[]).map(e=>({k:e[0],t:" · "+za(e[1])+" · "+e[2]+", "+za(e[3])})),D=window.__diaOf?window.__diaOf(e.lang):null;
 D&&Object.keys(D).forEach(k=>{C.some(c=>c.k===k)||C.push({k:k,t:""})});
-return C.length?(0,f.jsx)("div",{className:"cenl",children:C.map((c,t)=>(0,f.jsxs)("p",{children:[(0,f.jsx)("b",{children:window.__cnm?window.__cnm(c.k,za):za(c.k)}),c.t,D&&D[c.k]?(0,f.jsx)("span",{className:"cdia",children:D[c.k].map(d=>(0,f.jsxs)("span",{className:"cdi",children:[(0,f.jsx)("i",{style:{background:d[1]}}),d[0]]},d[0]))}):null]},t))}):null})(),void 0!==r.dialectOf&&r.cls&&r.cls.length?(0,f.jsx)("div",{className:"clsl",children:r.cls.map((e,t)=>(0,f.jsxs)("p",{children:[(0,f.jsx)("b",{children:za(e[0])})," · "+za(e[1])]},t))}):null]}),(0,f.jsx)("div",{className:"lsearch",children:(0,f.jsx)(ui,{id:"wq",value:s,onChange:o,ph:n.findIn(Na(e))})}),(0,f.jsx)("div",{className:"ltiles",role:"tablist",children:["all",...aa].map(e=>(0,f.jsx)("button",{type:"button",role:"tab","aria-selected":e===a,className:"lt"+(e===a?" on":""),onClick:()=>{mi.cat=e;
+return C.length?(0,f.jsx)("div",{className:"cenl",children:C.map((c,t)=>(0,f.jsxs)("p",{children:[(0,f.jsx)("b",{children:window.__cnm?window.__cnm(c.k,za):za(c.k)}),c.t,D&&D[c.k]?(0,f.jsx)("span",{className:"cdia",children:D[c.k].map(d=>(0,f.jsxs)("span",{className:"cdi",children:[(0,f.jsx)("i",{style:{background:d[1]}}),d[0]]},d[0]))}):null]},t))}):null})(),void 0!==r.dialectOf&&r.cls&&r.cls.length?(0,f.jsx)("div",{className:"clsl",children:r.cls.map((e,t)=>(0,f.jsxs)("p",{children:[(0,f.jsx)("b",{children:za(e[0])})," · "+za(e[1])]},t))}):null]})]}),(0,f.jsx)("div",{className:"lsearch",children:(0,f.jsx)(ui,{id:"wq",value:s,onChange:o,ph:n.findIn(Na(e))})}),(0,f.jsx)("div",{className:"ltiles",role:"tablist",children:["all",...aa].map(e=>(0,f.jsx)("button",{type:"button",role:"tab","aria-selected":e===a,className:"lt"+(e===a?" on":""),onClick:()=>{mi.cat=e;
 try{localStorage.setItem("khl-cat",e)}catch{}
-i(e),t&&t()},children:"all"===e?n.allF:n.cat[e]},e))}),(0,f.jsx)("div",{className:"lrows",children:d.length?d.map((t,n)=>(0,f.jsxs)("button",{type:"button",className:"wr",onClick:()=>Ja(hi(e,t)),children:[(0,f.jsx)("span",{className:"wk",children:1===t.cs.length&&t.meaning.indexOf(", ")>-1?La(t.cs[0]):Ta(t.meaning)}),(0,f.jsxs)("span",{className:"wv",children:[(0,f.jsx)("b",{children:t.word}),ai(t)?(0,f.jsx)("small",{className:"pr",children:ai(t)}):null]})]},n)):(0,f.jsx)("p",{className:"empty",children:n.none})}),(0,f.jsx)(FDsection,{L:e,q:s,d:FDd}),(0,f.jsx)("button",{type:"button",className:"minimap",ref:l,"aria-label":n.showMap,onClick:()=>Ja("map-"+e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})}),(0,f.jsx)(bp,{prev:p>0?[h[p-1].id,Na(h[p-1])]:null,next:p<h.length-1?[h[p+1].id,Na(h[p+1])]:null}),(0,f.jsxs)("p",{className:"note",children:[n.sources,": ",y.join(" · ")]})]})}
+i(e),t&&t()},children:"all"===e?n.allF:n.cat[e]},e))}),(0,f.jsx)("div",{className:"lrows",ref:KW.ref,children:d.length?[kSp("kt",KW.top)].concat(d.slice(KW.a,KW.b).map((t,n)=>(0,f.jsxs)("button",{type:"button",className:"wr","data-i":KW.a+n,onClick:()=>Ja(hi(e,t)),children:[(0,f.jsx)("span",{className:"wk",children:1===t.cs.length&&t.meaning.indexOf(", ")>-1?La(t.cs[0]):Ta(t.meaning)}),(0,f.jsxs)("span",{className:"wv",children:[(0,f.jsx)("b",{children:t.word}),ai(t)?(0,f.jsx)("small",{className:"pr",children:ai(t)}):null]})]},KW.a+n)),[kSp("kb",KW.bot)]):(0,f.jsx)("p",{className:"empty",children:n.none})}),(0,f.jsx)(FDsection,{L:e,q:s,d:FDd}),(0,f.jsx)("button",{type:"button",className:"minimap",ref:l,"aria-label":n.showMap,onClick:()=>Ja("map-"+e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})}),(0,f.jsx)(bp,{prev:p>0?[h[p-1].id,Na(h[p-1])]:null,next:p<h.length-1?[h[p+1].id,Na(h[p+1])]:null}),(0,f.jsxs)("p",{className:"note",children:[n.sources,": ",y.join(" · ")]})]})}
 function wp(){let e=ja(),
 [t,n]=(0,m.useState)(mi.reg),
 [r,a]=(0,m.useState)(mi.azL),
@@ -13457,9 +13527,9 @@ l.forEach(e=>{u[o(e)]=1});
 let c=Object.keys(u).sort(),
 d="all"===r||u[r]?r:"all",
 h="all"===d?l:l.filter(e=>o(e)===d),
-p="";
-return(0,f.jsxs)("div",{className:"view",children:[(0,f.jsx)("div",{className:"regs",children:["all","west","ital","cee","east","nord","balk","grk","cauc","dag","volga","iran","casia","casia2","sib"].map(r=>(0,f.jsx)("button",{type:"button","aria-pressed":t===r,onClick:()=>{n(r),s(300)},children:"all"===r?e.allF:e.reg[r]},r))}),(0,f.jsxs)("div",{className:"lets",children:[(0,f.jsx)("button",{type:"button","aria-pressed":"all"===d,onClick:()=>{a("all"),s(300)},children:e.allF}),c.map(e=>(0,f.jsx)("button",{type:"button","aria-pressed":d===e,onClick:()=>{a(e),s(300)},children:e},e))]}),(0,f.jsx)("div",{className:"rows",children:h.slice(0,i).map((e,t)=>{let n=o(e),r=n!==p;
-return p=n,(0,f.jsxs)("div",{style:{display:"contents"},children:[r?(0,f.jsx)("div",{className:"letter",children:n}):null,(0,f.jsx)(fi,{x:e})]},t)})}),h.length>i?(0,f.jsx)("button",{type:"button",className:"more",onClick:()=>s(i+300),children:e.more(Math.min(300,h.length-i))}):null]})}
+KW=kWin(Math.min(h.length,i),t+"|"+d,75);
+return(0,f.jsxs)("div",{className:"view",children:[(0,f.jsx)("div",{className:"regs",children:["all","west","ital","cee","east","nord","balk","grk","cauc","dag","volga","iran","casia","casia2","sib"].map(r=>(0,f.jsx)("button",{type:"button","aria-pressed":t===r,onClick:()=>{n(r),s(300)},children:"all"===r?e.allF:e.reg[r]},r))}),(0,f.jsxs)("div",{className:"lets",children:[(0,f.jsx)("button",{type:"button","aria-pressed":"all"===d,onClick:()=>{a("all"),s(300)},children:e.allF}),c.map(e=>(0,f.jsx)("button",{type:"button","aria-pressed":d===e,onClick:()=>{a(e),s(300)},children:e},e))]}),(0,f.jsx)("div",{className:"rows",ref:KW.ref,children:[kSp("kt",KW.top-(KW.a>0&&o(h[KW.a])===o(h[KW.a-1])?KWD:0))].concat(KW.a>0&&o(h[KW.a])===o(h[KW.a-1])?[(0,f.jsx)("div",{className:"letter","data-d":1,children:o(h[KW.a]),key:"kd"})]:[],h.slice(KW.a,KW.b).map((e,t)=>{let x=KW.a+t,n=o(e),r=x<1||n!==o(h[x-1]);
+return[r?(0,f.jsx)("div",{className:"letter","data-i":x,children:n,key:"h"+x}):null,(0,f.jsx)(fi,{x:e,di:r?void 0:x,key:x})]}).flat(),[kSp("kb",KW.bot)])}),h.length>i?(0,f.jsx)("button",{type:"button",className:"more",onClick:()=>s(i+300),children:e.more(Math.min(300,h.length-i))}):null]})}
 function xp({L:e,e:t}){let n=ja(),
 r=(e.info,(0,m.useRef)(null)),
 {done:a,
@@ -13531,7 +13601,8 @@ rm=Ya();
 e.querySelectorAll(":scope > svg").forEach(x=>x.remove());
 let g0=Math.min(e.clientWidth,620,Math.max(280,innerHeight-150)),
 v=g0/2,
-R=v-3;
+R=v-3,
+PRV=null,LT=0,DN=0;
 e.style.height=g0+"px";
 let y=ws(e).insert("svg",":first-child").attr("viewBox",[-v,-v,g0,g0]).attr("width",g0).attr("height",g0).attr("role","group").attr("aria-label",l.nav.tree),
 arc=lh().startAngle(d=>d.a0).endAngle(d=>d.a1).padAngle(.007).padRadius(R*.6).innerRadius(d=>d.r0).outerRadius(d=>d.r1).cornerRadius(3.5),
@@ -13568,12 +13639,6 @@ a.hidden=!0;
 let kids=root.children||[],
 TOP=!root.depth&&kids.length>1&&kids.every(q=>!q.data.L),
 __t=(LS=.08),
-HINT={en:"Tap a family to open it",
-sq:"Prek një familje për ta hapur",
-
-sr:"Dodirni porodicu da je otvoriš",
-sc:"Додирни породицу да је отвориш"}[ya()]||"Tap a family to open it",
-hasB=kids.some(q=>!q.data.L),
 hasL=kids.some(q=>(q.children||[]).some(w=>!w.data.L)),
 rc=.28*R,
 rA0=rc+.015*R,
@@ -13609,8 +13674,7 @@ let BG=t.BG,
 col=q=>{let F=t[q.d.fam],
 c=Mf(F,q.d)||F,
 D=parseInt((BG||"#fff").replace("#","").slice(0,2),16)<=128;
-return"a"===q.kind?D?Ms(F,BG)(.32):F:"b"===q.kind?Ms(F,BG)(D?.48:.3):"rim"===q.kind?Ms(c,t.INK)(.5):c},
-LM=parseInt((BG||"#fff").replace("#","").slice(0,2),16)>128?.94:.7;
+return"a"===q.kind?D?Ms(F,BG)(.32):F:"b"===q.kind?Ms(F,BG)(D?.48:.3):"rim"===q.kind?Ms(c,t.INK)(.5):c};
 i.style.width=i.style.height=(1.3*rc).toFixed(1)+"px";
 {let OUT=(()=>{let PP=root.parent;
 if(!PP)return arcs.filter(q=>"leaf"===q.kind||"tick"===q.kind);
@@ -13629,14 +13693,32 @@ sm.onclick=()=>{sm.classList.remove("hit"),
 sm.offsetWidth,
 sm.classList.add("hit");
 root.depth&&setTimeout(()=>r(root.parent),rm?0:140)}}
-let dir=null==PD?0:root.depth>PD?1:root.depth<PD?-1:0;
+let off="off"===document.documentElement.getAttribute("data-motion"),
+red=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches),
+dir=null==PD?0:root.depth>PD?1:root.depth<PD?-1:0;
 PD=root.depth;
-if(rm||!dir)y.selectAll("g.lay,g.lgone").remove();
+DN++;
+/* A3, dive into a family: the outgoing layer and the incoming layer are two groups moved with transform and opacity only.
+   Origin = the tapped slice (going in: its place in the old wheel; going back: the family's place in the wheel that returns),
+   found from the angles of the layout that was on screen. A second tap before the first has settled drops the leftover
+   layers at once, so no half state stays. */
+let SP=(arr,nd)=>{let q=arr&&nd&&arr.find(z=>"rim"!==z.kind&&"tick"!==z.kind&&z.d===nd);
+for(let n=nd&&nd.parent;arr&&!q&&n;n=n.parent)q=arr.find(z=>"rim"!==z.kind&&"tick"!==z.kind&&z.d===n);
+if(!q)return null;
+let m=(q.a0+q.a1)/2;
+return{sx:Math.sin(m),sy:-Math.cos(m)}},
+OR=dir>0?SP(PRV&&PRV.arcs,root):dir<0?SP(arcs,PRV&&PRV.root):null,
+WR=OR?(OR.sx>=0?-9:9)+"deg":"-8deg",
+setO=(sel,k)=>sel.style("transform-origin",OR?(OR.sx*R*k).toFixed(1)+"px "+(OR.sy*R*k).toFixed(1)+"px":"0px 0px").style("--wr",WR);
+if(off||!dir||performance.now()-LT<320)y.selectAll("g.lay,g.lgone").remove();
 else{y.selectAll("g.lgone").remove();
-let og=y.selectAll("g.lay").attr("class","lgone"+(dir<0?" dn":""));
-setTimeout(()=>og.remove(),220)}
-let G=y.append("g").attr("class","lay"+(TOP?" wtop":"")+(rm?"":dir>0?" win":dir<0?" wout":" wfirst")),
+let og=y.selectAll("g.lay").attr("class","lgone"+(dir<0?" dn":"")+(red?" wrm":""));
+setO(og,dir>0?.6:.55);
+setTimeout(()=>og.remove(),red?140:260)}
+LT=performance.now();
+let G=y.append("g").attr("class","lay"+(TOP?" wtop":"")+(off?"":red?" wrm":dir>0?" win":dir<0?" wout":" wfirst")),
 P=G.append("g").selectAll("path").data(arcs).join("path").attr("class",q=>"wa "+q.kind).attr("fill",col).attr("tabindex",0).attr("role","button").attr("aria-label",q=>q.d.data.name+(q.d.data.L?"":" · "+q.d.value)),
+SO=off||!dir?0:setO(G,.5),
 LB=G.append("g").attr("pointer-events","none"),
 OUTL=0,
 OUTS=[];
@@ -13656,7 +13738,7 @@ return}
 let th=q.r1-q.r0,rmid=(q.r0+q.r1)/2,f0=Math.min("a"===q.kind?TOP?g0>560?34:28:g0>560?15:13.5:g0>560?12.5:11.5,.5*th),hw=Math.min(sp/2-.008,1.3),room=2*hw*rmid-10;
 if(!TOP&&(f0<9||room<22))return;
 let cl="a"===q.kind?"wla":"wlb",f=f0>=9&&room>=22?TOP?best(CAND(q),f0,9.5,room,cl):fit(nm,f0,9,room,cl):null;
-if(!f&&TOP){let rs=q.r0+10,rr=q.r1-q.r0-12,fs=Math.min(14,.8*sp*((q.r0+q.r1)/2));
+if(!f&&TOP){let rr=q.r1-q.r0-12,fs=Math.min(14,.8*sp*((q.r0+q.r1)/2));
 if(fs<8)return;
 let g2=best(CAND(q),fs,8,rr,cl);
 if(!g2)return;
@@ -13664,7 +13746,7 @@ let dg=ph*180/Math.PI,lf=ph>Math.PI;
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("dy","0.35em").attr("font-size",g2.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+((q.r0+q.r1)/2).toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(g2.t);
 return}
 if(!f)return;
-let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+ix;
+let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+DN+"_"+ix;
 LB.append("path").attr("id",id).attr("fill","none").attr("d","M"+FX(A0)+"A"+rb.toFixed(1)+","+rb.toFixed(1)+" 0 0 "+(tp?1:0)+" "+FX(A1));
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
 P.attr("d",arc);
@@ -13672,19 +13754,17 @@ P.attr("d",arc);
 B=0;
 if(OUTS.length){let FS=g0>560?13:12,
 RH=FS+5,
-HW=Math.max(v,innerWidth/2-8),
+HW=(()=>{let bb=e.getBoundingClientRect(),c=bb.left+bb.width/2;return Math.max(60,Math.min(c-8,innerWidth-c-8))})(),
 cv=document.createElement("canvas").getContext("2d");
 cv.font="500 "+FS+"px Manrope, system-ui, sans-serif";
-let rows={t:[],
-b:[]};
 let lay=(grp,sgn)=>{let L=grp.map(o=>{let x=R*Math.sin(o.ph),yr=-R*Math.cos(o.ph),w=cv.measureText(o.nm).width+2;
 return{...o,x,yr,w}}).sort((a,b)=>Math.abs(a.x)-Math.abs(b.x));
 let placed=[];
 L.forEach(o=>{let cs=[];
 if(Math.abs(o.x)<.35*R){let c=Math.max(-HW+o.w/2,Math.min(HW-o.w/2,o.x));
 cs.push({an:"middle",tx:c,a0:c-o.w/2,a1:c+o.w/2})}
-if(o.x<0){let a0=Math.max(-HW,o.x-3);
-cs.push({an:"start",tx:a0,a0,a1:a0+o.w})}else{let a1=Math.min(HW,o.x+3);
+if(o.x<0){let a0=Math.min(HW-o.w,Math.max(-HW,o.x-3));
+cs.push({an:"start",tx:a0,a0,a1:a0+o.w})}else{let a1=Math.max(-HW+o.w,Math.min(HW,o.x+3));
 cs.push({an:"end",tx:a1,a0:a1-o.w,a1})}
 for(let r=0;r<14;r++)for(const c of cs){let a0=c.a0-5,a1=c.a1+5;
 let ok=placed.every(p=>{if(p.r===r&&!(a1<p.a0||a0>p.a1))return!1;
@@ -13709,7 +13789,26 @@ let H=g0+T+B;
 y.attr("viewBox",[-v,-v-T,g0,H]).attr("height",H);
 e.style.height=H+"px";
 i.style.top=(v+T)+"px";
-i.style.transform="translate(-50%,-50%)"}
+i.style.transform="translate(-50%,-50%)";
+/* D2, phones (<64rem): once a family is open, the wheel with its outside names must end above the choice bar (the fixed bar over the
+   tab bar). If it would not, the whole drawing is scaled down to the room (svg size only, viewBox unchanged; the empty band above
+   the wheel is used first), measured at scroll position 0. The page's own scroll is not involved. */
+{let wr=e.parentNode,sc=1;
+wr.style.paddingTop="";
+if(root.depth&&window.matchMedia&&!matchMedia("(min-width: 64rem)").matches){let pr=document.createElement("div");
+pr.style.cssText="position:fixed;visibility:hidden;pointer-events:none;left:0;width:1px;height:54px;bottom:calc(4.5rem + .75rem + env(safe-area-inset-bottom,0px))";
+document.body.appendChild(pr);
+let bt=pr.getBoundingClientRect().top;
+pr.remove();
+let rm2=()=>(bt-8-(e.getBoundingClientRect().top+window.scrollY))/H;
+sc=Math.min(1,rm2());
+if(sc<1){wr.style.paddingTop=".25rem";
+sc=Math.max(.3,Math.min(1,rm2()))}}
+y.attr("width",g0);
+if(sc<1){y.attr("width",(g0*sc).toFixed(1)).attr("height",(H*sc).toFixed(1));
+e.style.height=(H*sc).toFixed(1)+"px";
+i.style.top=((v+T)*sc).toFixed(1)+"px";
+i.style.transform="translate(-50%,-50%) scale("+sc.toFixed(3)+")"}}}
 let pk=i.querySelector(".wpk")||(()=>{let z=document.createElement("span");
 z.className="wpk";
 i.appendChild(z);
@@ -13782,16 +13881,19 @@ paint()}};
 P.on("click",(ev,q)=>act(q)).on("keydown",(ev,q)=>{("Enter"===ev.key||" "===ev.key)&&(ev.preventDefault(),act(q))}).on("pointerenter",(ev,q)=>{"mouse"===ev.pointerType&&(a.hidden=!1,a.textContent=q.d.data.name+(q.d.data.L?"":" · "+q.d.value))}).on("pointerleave",ev=>{"mouse"===ev.pointerType&&paint()});
 Ep&&arcs.some(x=>"leaf"===x.kind&&x.d.data.L.id===Ep)&&(SL=Ep,Ep=null),
 paint(),
-TOP&&!rm&&P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>1100+260*j+"ms");
+PRV={root,arcs};
+/* A4d: the first-draw sweep runs once per visit (WSW outlives this wheel), under 900 ms in all */
+TOP&&!rm&&!WSW&&(WSW=1,P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>500+40*j+"ms"));
 },
 destroy(){y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
-var Ep=null;
+var Ep=null,WSW=0;
 function zp(e){if(!Ep)return e;
 let t=e.leaves().find(e=>e.data.L&&e.data.L.id===Ep);
 return t&&(t.ancestors().find(e=>e.depth===Math.min(2,t.depth-1))||t.parent)||e}
-function Np({path:e,go:t,lbl:n}){let r=e.slice(1);
+function Np({path:e,go:t,lbl:n,back:bk}){let r=e.slice(1);
 return(0,f.jsx)("nav",{className:"kdep","aria-label":n,children:r.map((a,i)=>{let s=i===r.length-1,o=s?e[i]:a;
-return(0,f.jsx)("button",{type:"button",className:"kdp"+(s?" cur":""),style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":(s?"↑ ":"")+(o.depth?o.data.name:n),title:a.data.name,onClick:()=>t(o),children:(0,f.jsx)("i",{})},i)})})}
+/* D2: the last item goes back one level; it carries an arrow and the interface's "Back" so it reads as a control */
+return s?(0,f.jsxs)("button",{type:"button",className:"kdp cur kdb",style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":(bk||"Back")+" · "+(o.depth?o.data.name:n),title:a.data.name,onClick:()=>t(o),children:[(0,f.jsx)("svg",{viewBox:"0 0 24 24","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M15 6l-6 6 6 6"})}),(0,f.jsx)("span",{children:bk||"Back"})]},i):(0,f.jsx)("button",{type:"button",className:"kdp",style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":o.depth?o.data.name:n,title:a.data.name,onClick:()=>t(o),children:(0,f.jsx)("i",{})},i)})})}
 function Mp({root:e,cur:t,go:n}){let r=t.ancestors();
 return(0,f.jsx)("div",{className:"wfam",role:"tablist",children:(e.children||[]).map(a=>{let i=r.includes(a);
 return(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":i,onClick:()=>n(i&&t===a?e:a),style:{"--wf":Mf(If(a.fam),a)||""},children:[(0,f.jsx)("i",{}),(0,f.jsx)("span",{children:a.data.name})]},a.data.name)})})}
@@ -13881,7 +13983,7 @@ return e.observe(document.documentElement,{attributes:!0,attributeFilter:["data-
 let b=u.ancestors().reverse(),
 y=((u.children||[]).filter(e=>!e.data.L),Da(s.trim()));
 u.leaves().map(e=>e.data.L).sort((e,t)=>Na(e).localeCompare(Na(t),Ia())).filter(e=>!y||Da(Na(e)+" "+Ma(e)+" "+e.lang+" "+(e.info&&e.info.an||"")).indexOf(y)>-1);
-return(0,f.jsxs)("div",{className:"view"+("tree"===a?" tvtree":""),id:"langs",children:[(0,f.jsx)("div",{className:"lmrow",children:(0,f.jsxs)("div",{className:"lm tvs",role:"tablist",children:[(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"wheel"===a,onClick:()=>i("wheel"),children:[(0,f.jsx)(si,{n:"wheel"}),(0,f.jsx)("span",{children:r.wheel})]}),(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"tree"===a,onClick:()=>i("tree"),children:[(0,f.jsx)(si,{n:"tree"}),(0,f.jsx)("span",{children:r.tree})]})]})}),"tree"===a?(0,f.jsx)(Lp,{s:l}):(0,f.jsxs)("div",{className:"sbwrap",children:[(0,f.jsx)(Mp,{root:l,cur:u,go:c}),(0,f.jsx)(Np,{path:b,go:c,lbl:r.nav.tree}),(0,f.jsx)("div",{className:"sb",ref:d,children:(0,f.jsx)("div",{className:"sbc",ref:p})}),(0,f.jsx)("p",{className:"sbh",ref:h,hidden:!0,children:""})]}),null]})}
+return(0,f.jsxs)("div",{className:"view"+("tree"===a?" tvtree":""),id:"langs",children:[(0,f.jsx)("div",{className:"lmrow",children:(0,f.jsxs)("div",{className:"lm tvs",role:"tablist",children:[(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"wheel"===a,onClick:()=>i("wheel"),children:[(0,f.jsx)(si,{n:"wheel"}),(0,f.jsx)("span",{children:r.wheel})]}),(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"tree"===a,onClick:()=>i("tree"),children:[(0,f.jsx)(si,{n:"tree"}),(0,f.jsx)("span",{children:r.tree})]})]})}),"tree"===a?(0,f.jsx)(Lp,{s:l}):(0,f.jsxs)("div",{className:"sbwrap",children:[(0,f.jsx)(Mp,{root:l,cur:u,go:c}),(0,f.jsx)(Np,{path:b,go:c,lbl:r.nav.tree,back:r.back}),(0,f.jsx)("div",{className:"sb",ref:d,children:(0,f.jsx)("div",{className:"sbc",ref:p})}),(0,f.jsx)("p",{className:"sbh",ref:h,hidden:!0,children:""})]}),null]})}
 d("aIIwE"),
 d("aIIwE"),
 m=d("aIIwE");
@@ -13939,7 +14041,7 @@ if(i.current&&n)return o.current=function(e,t,n,r,a={}){let i,s,o,l,u,c,d,h=ja()
    Everything on top (pins, names, outlines, card) is still drawn here. The functions for it are kV ... gStart further down.
    The old map drawn here in SVG was retired on 2026-11-13: when the engine cannot start (no WebGL2, a failed or stalled
    download) the map box shows a short note instead (kNoMap). GL is always on; the remaining "!GL" branches are inert. */
-let GL=!0,GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gFit=0,gMv=!1,gLon=!1;
+let GM=null,gT=Fh,gB=0,gC=0,gZ=-1,gOne=1,gFit=0,gMv=!1,gLon=!1;
 e.querySelectorAll(":scope > svg").forEach(e=>e.remove());
 let p=null,m={};
 r&&(p=new Set,ha[r].forEach(e=>{p.add(e.L.id),(m[e.L.id]=m[e.L.id]||[]).push(e.e)}));
@@ -13954,7 +14056,7 @@ let KP=.25,q=ws(e).insert("svg",":first-child").attr("viewBox",[-KP*b,-KP*y,(1+2
 null==v?o.removeAttribute(n):o.getAttribute(n)!==v&&o.setAttribute(n,v)})});
 kMo.observe(q.node(),{attributes:!0,attributeFilter:["class","data-f","data-sf"]});
 /* GL: what little is left of the base drawing (the dimming mask, names at deep zoom) lives in the top drawing, under the pins: one drawing to refresh per frame instead of two */
-GL&&(q.attr("data-gl",1),E.remove(),E=Q2.insert("g",":first-child"));
+q.attr("data-gl",1),E.remove(),E=Q2.insert("g",":first-child");
 /* pointer position in map-box pixels, whatever the base picture is doing at that moment */
 q.node().__kpt=ev=>{let r=e.getBoundingClientRect();
 return[(ev.clientX-r.left-e.clientLeft)*b/(e.clientWidth||b),(ev.clientY-r.top-e.clientTop)*y/(e.clientHeight||y)]};
@@ -13965,13 +14067,8 @@ let z=sd(j);
 q.attr("class","m-wait"),e.classList.add("loading");
 {let t=()=>{q.classed("m-wait",!1).classed("m-in",!0),e.classList.remove("loading")};
 op().then(t,t),setTimeout(t,1800)}
-GL||(wt=E.append("path").attr("class","coast").attr("d",z(mf())),xt=E.append("path").attr("class","bord").attr("d",z((df||(df=af(ca,ca.objects.countries,(e,t)=>e!==t)),df))),jt=wt.attr("d"),St=xt.attr("d"));
 let N=[];
-if(!GL){let e=mf();
-("FeatureCollection"===e.type?e.features:[e]).forEach(e=>{let t=e.geometry;
-("Polygon"===t.type?[t.coordinates]:t.coordinates).forEach(e=>{e[0].some(e=>e[0]>=-40&&e[0]<=180&&e[1]>0)&&e.forEach(e=>{let t=e.map(e=>j([Math.max(-60,Math.min(180,e[0])),Math.max(-10,e[1])])),n=1e9,r=1e9,a=-1e9,i=-1e9;
-t.forEach(e=>{e[0]<n&&(n=e[0]),e[0]>a&&(a=e[0]),e[1]<r&&(r=e[1]),e[1]>i&&(i=e[1])}),N.push({r:t,b:[n,r,a,i]})})})})}
-let M=j.scale()/function(e){return e&&e.__esModule?e.default:e}(lf).S0,C=j.translate(),L="translate("+C[0]+","+C[1]+") scale("+M+")",T=e=>!!(da[e.lang]&&(da[e.lang].d||da[e.lang].h)),A=E.append("g").attr("class","zones"),P=A.append("g").attr("transform",L),I=A.insert("g",":first-child").attr("transform",L).attr("class","dias"),R=E.append("g").attr("class","ters"),O=R.append("g").attr("transform",L),D=null;
+let M=j.scale()/function(e){return e&&e.__esModule?e.default:e}(lf).S0,C=j.translate(),L="translate("+C[0]+","+C[1]+") scale("+M+")",T=e=>!!(da[e.lang]&&(da[e.lang].d||da[e.lang].h)),R=E.append("g").attr("class","ters"),O=R.append("g").attr("transform",L),D=null;
 function F(e,t){let n=x.indexOf(e),r=e._xy,a=Xa(e),i=a<1e3?15:a<1e4?25:a<1e5?40:a<1e6?70:a<1e7?140:200,s=j([e.info.lon,e.info.lat+i/111]),o=Math.max(Math.hypot(s[0]-r[0],s[1]-r[1]),1.2),l=Ni(72).map(e=>{let t=e/72*2*Math.PI;
 return[r[0]+o*Math.cos(t),r[1]+o*Math.sin(t)]}),u=(D||(D=dl.from(x,e=>e._xy[0],e=>e._xy[1]).voronoi([-2*b,-2*y,3*b,3*y]))).cellPolygon(n);
 if(!u)return l;
@@ -14001,16 +14098,12 @@ function U(e){let t,n,r;
 if(T(e)){let t=da[e.lang].b;
 return[t[0]*M+C[0],t[1]*M+C[1],t[2]*M+C[0],t[3]*M+C[1]]}
 return n=(t=F(e)).map(e=>e[0]),[Math.min(...n),Math.min(...r=t.map(e=>e[1])),Math.max(...n),Math.max(...r)]}
-let H=E.append("g").attr("class","adm");
 
 (!ff&&(ff=kAfterMap().then(()=>new Promise(e=>(window.requestIdleCallback||(e=>setTimeout(e,300)))(e,{timeout:1500}))).then(()=>Promise.all([fetch("data/today.json").then(e=>e.json()),kTerrD()])).then(([e])=>{let t=ef(e,e.objects.regions).features,n=ef(e,e.objects.countries).features;
-return[...t,...n].forEach(e=>{e.bb=kHitBox(e)}),hf={t:e,R:t,C:n,get mesh(){return this._m||(this._m=af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c))}}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(GL||H.append("path").attr("d",z(e.mesh)),nt&&lt(nt),bt(),kKeys())});
+return[...t,...n].forEach(e=>{e.bb=kHitBox(e)}),hf={t:e,R:t,C:n,get mesh(){return this._m||(this._m=af(e,e.objects.regions,(e,t)=>e!==t&&e.properties.c===t.properties.c))}}}).catch(()=>null)),ff).then(e=>{e&&q.node().isConnected&&(nt&&lt(nt),bt(),kKeys())});
 try{new ResizeObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t),new MutationObserver(()=>e.style.setProperty("--ch",(t.hidden?0:t.offsetHeight+10)+"px")).observe(t,{attributes:!0,attributeFilter:["hidden"]})}catch{}
-GL||E.insert("g","g.adm").attr("class","shd").attr("pointer-events","none").attr("transform",L).append("image").attr("href",matchMedia("(max-width:820px),(pointer:coarse) and (max-width:1180px)").matches?"h/shade-s.0274f45a6f.avif":"h/shade.2af37527dd.avif").attr("decoding","async").style("opacity",0).on("error",function(){let w="h/shade.679ada88c2.webp";
-this.getAttribute("href")!==w&&this.setAttribute("href",w)}).on("load",function(){this.style.transition="opacity .6s";
-requestAnimationFrame(()=>{this.style.opacity=""})}).attr("x",-1490).attr("y",-1670).attr("width",3150).attr("height",1660).attr("preserveAspectRatio","none"),e.addEventListener("focusin",e=>{e.target.closest&&e.target.closest(".kfb")&&t.classList.contains("kpanel")&&!t.hidden&&(t.hidden=!0,Le(null))});
-let W=E.append("g").attr("class","adm2").attr("pointer-events","none");
-yt=E.append("g").attr("class","adm2l").attr("pointer-events","none"),setTimeout(()=>kAfterMap().then(Zf).then(e=>{e&&q.node().isConnected&&(GL||W.append("path").attr("class","d2m").attr("d",z(af(e.topo,e.topo.objects.d,(e,t)=>e!==t))),se=e.F.map((e,t)=>{let n=e.geometry,r="Polygon"===n.type?[n.coordinates]:n.coordinates,a=null,i=-1;
+e.addEventListener("focusin",e=>{e.target.closest&&e.target.closest(".kfb")&&t.classList.contains("kpanel")&&!t.hidden&&(t.hidden=!0,Le(null))});
+yt=E.append("g").attr("class","adm2l").attr("pointer-events","none"),setTimeout(()=>kAfterMap().then(Zf).then(e=>{e&&q.node().isConnected&&(se=e.F.map((e,t)=>{let n=e.geometry,r="Polygon"===n.type?[n.coordinates]:n.coordinates,a=null,i=-1;
 if(r.forEach(e=>{let t=e[0].map(e=>j(e)).filter(Boolean),n=0,r=0,s=0;
 for(let e=0,a=t.length;e<a;e++){let i=t[e],o=t[(e+1)%a],l=i[0]*o[1]-o[0]*i[1];
 n+=l,r+=(i[0]+o[0])*l,s+=(i[1]+o[1])*l}
@@ -14022,8 +14115,7 @@ let $=E2.append("g").attr("class","regs"),fA={};
 x.forEach(e=>{T(e)&&(fA[e.family]=(fA[e.family]||0)+(da[e.lang].a||0))});
 let fV=Object.values(fA).filter(e=>e>0).map(Math.log),f0=Math.min(...fV),f1=Math.max(...fV);
 $.selectAll("text").data([["Slavic",33,53.5],["Romance",.5,44.6],["Iranian",54,33],["Greek",24.6,37],["Albanian",20.1,41.1],["Uralic",62,63.6],["Turkic",70,47.5],["Caucasian",44.6,44.15],["Mongolic",106,45.2],["Germanic",10.0,55.6],["Baltic",24.5,56.2]]).join("text").attr("class",e=>"regn fam "+e[0]).style("--fk",e=>fA[e[0]]>0&&f1>f0?((Math.log(fA[e[0]])-f0)/(f1-f0)).toFixed(3):0).attr("x",e=>j([e[1],e[2]])[0]).attr("y",e=>j([e[1],e[2]])[1]).text(e=>Ca(e[0]).toLocaleUpperCase());
-let V=x.filter(T).sort((e,t)=>da[t.lang].a-da[e.lang].a);
-P.selectAll("path").data(GL?[]:V).join("path").attr("class",e=>"zone "+e.family+(e.info&&e.info.hist?" hist":"")).attr("fill-rule","evenodd").attr("d",e=>da[e.lang].v||da[e.lang].d),x.filter(e=>!GL&&!T(e)).forEach(e=>A.append("path").datum(e).attr("class","zone "+e.family+(e.info&&e.info.hist?" hist":"")).attr("d",G(e,1))),function(e,t,n,r,a,i,s){op().then(o=>{if(!o||!e.node().isConnected)return;
+!function(e,t,n,r,a,i,s){op().then(o=>{if(!o||!e.node().isConnected)return;
 let l=++sp,u=t.scale()/1e3,c=t.translate(),d="translate("+c[0]+","+c[1]+") scale("+u/o.u+")",h=e.insert("g","path.coast").attr("class","topo").attr("pointer-events","none");
 h.append("path").attr("class","tland").attr("d",s);
 let f=h.append("g").attr("transform",d);
@@ -14039,9 +14131,8 @@ e.t&&n.attr("transform",e.t)});
 let r=g.append("g").attr("clip-path","url(#tcp"+l+e+")").attr("class","tf "+e).append("g").attr("transform",d);
 r.append("use").attr("href","#tm"+l).attr("class","tc tcm"),r.append("use").attr("href","#ti"+l).attr("class","tc tci");
 let a=m[e].filter(e=>e.t).map(e=>e.d).join("");
-a&&g.append("g").attr("class","tout "+e).attr("transform",n).append("path").attr("d",a).attr("fill","none").attr("fill-rule","evenodd").attr("vector-effect","non-scaling-stroke")})})}(E,j,L,x,T,G,GL?"":z(mf())),GL||Yf(I),A.selectAll("path.zone").each(function(e){let t=Vf(e);
-t&&(this.style.fill=t,this.style.stroke=t,this.style.setProperty("--zc",t))}),Df().then(e=>{let t=e&&e.st;
-t&&A.selectAll("path.zone").classed("zmin",e=>"min"===t[e.lang]).classed("zplu",e=>"plu"===t[e.lang])}),e.querySelectorAll(".mtip").forEach(e=>e.remove());
+a&&g.append("g").attr("class","tout "+e).attr("transform",n).append("path").attr("d",a).attr("fill","none").attr("fill-rule","evenodd").attr("vector-effect","non-scaling-stroke")})})}(E,j,L,x,T,G,""),Df().then(e=>{
+}),e.querySelectorAll(".mtip").forEach(e=>e.remove());
 let Z=document.createElement("div");
 Z.className="mtip",Z.hidden=!0,e.appendChild(Z);
 let Q=E.append("g").attr("transform",L).append("path").attr("class","zhl").attr("fill-rule","evenodd");
@@ -14051,7 +14142,7 @@ Z.innerHTML=n,Z.hidden=!1;
 let a=Z.offsetWidth,i=Z.offsetHeight,s="mouse"!==At,o=s?r[0]-a/2:r[0]+14,l=s?r[1]-i-26:r[1]+16;
 s?(o=Math.max(8,Math.min(o,e.clientWidth-a-8)),l<58&&(l=r[1]+28)):(o+a>e.clientWidth-8&&(o=r[0]-a-14),l+i>e.clientHeight-8&&(l=r[1]-i-12)),Z.style.transform="translate("+Math.round(o)+"px,"+Math.round(l)+"px)"}
 function J(){clearTimeout(Pt),Z.hidden=!0,Z.classList.remove("pin"),Q.attr("d",null)}
-A.selectAll("path").on("pointermove",(e,t)=>{if(!vt())return e.pointerType&&"mouse"!==e.pointerType?J():(Q.attr("class","zhl "+t.family).attr("d",T(t)?da[t.lang].d+(da[t.lang].x||""):null),void Y(e,"<b>"+ei(Na(t))+"</b><span>"+ei(Ca(t.family))+" · "+ei(Ma(t))+"</span>"))}).on("pointerleave",()=>{vt()||J()}),q.on("pointerleave",()=>{X||J(),De(null)});
+q.on("pointerleave",()=>{X||J(),De(null)});
 let X=!1,ee={},te=null,ne={},re={},ae=null,ie=null,se=[],oe=new Set;
 function le(e){let t,n,r,a=kPl(e);
 if(!a)return null;
@@ -14114,7 +14205,6 @@ function me(){return!p&&!(!window.matchMedia||!matchMedia("(min-width: 64rem)").
 function ge(){return me()&&t&&!t.hidden&&t.classList.contains("kpanel")?t.offsetWidth+12:0}
 function ve(e){let t={en:{rg:"Area",lh:"Languages here",pl:"Places",kin:"Kinship",maj:"majority",nomaj:"No group has a majority",lin:"Lineage",cen:"Home region"},sq:{rg:"Zona",lh:"Gjuhët këtu",pl:"Vende",kin:"Afërsia",maj:"shumicë",nomaj:"Asnjë grup nuk ka shumicë",lin:"Prejardhja",cen:"Rajoni"},sr:{rg:"Oblast",lh:"Jezici ovde",pl:"Mesta",kin:"Srodstvo",maj:"većina",nomaj:"Nijedna grupa nema većinu",lin:"Poreklo",cen:"Matična oblast"},sc:{rg:"Област",lh:"Језици овде",pl:"Места",kin:"Сродство",maj:"већина",nomaj:"Ниједна група нема већину",lin:"Порекло",cen:"Матична област"}};
 return(t[ya()]||t.en)[e]||t.en[e]}
-function be(e,t){return'<button type="button" class="prow" data-sel="'+e.id+'"><i class="pdot" style="background:'+(Vf(e)||"")+'"></i><span class="prn"><b>'+ei(Na(e))+"</b><small>"+ei(Pf(e))+"</small></span>"+"</button>"}
 function ye(e){let t={en:{rgn:"Region",spk:"Census count",st:"Status",go:"Words",more:"Details",near:"Nearby in this family",pl:"Places",hint:"Tap a place to see who speaks there"},sq:{rgn:"Rajoni",spk:"Regjistrimi",st:"Statusi",go:"Fjalët",more:"Detaje",near:"Afër në këtë familje",pl:"Vende",hint:"Prek një vend për të parë kush flet atje"},sr:{rgn:"Oblast",spk:"Popis",st:"Status",go:"Reči",more:"Detalji",near:"U blizini, ista porodica",pl:"Mesta",hint:"Dodirni mesto da vidiš ko tamo govori"},sc:{rgn:"Област",spk:"Попис",st:"Статус",go:"Речи",more:"Детаљи",near:"У близини, иста породица",pl:"Места",hint:"Додирни место да видиш ко тамо говори"}};
 return(t[ya()]||t.en)[e]||t.en[e]}
 let ke={},we=[],xe=null,je=null;
@@ -14174,7 +14264,7 @@ return r<0||n.length<2?null:[n[(r-1+n.length)%n.length],n[(r+1)%n.length]]}
 function nearMap(e){let t=e.info||{},n=new Set(nearFam(e)||[]),r=e=>e.info&&e.info.dialectOf,a=kV(),i=null,s=e=>[a.applyX(e._xy[0]),a.applyY(e._xy[1])],o=s(e);
 try{let e=R.select("path.terr").node(),t=e&&e.getBoundingClientRect(),n=Q2.node().getBoundingClientRect();
 t&&t.width&&(i=[t.left-n.left,t.top-n.top,t.right-n.left,t.bottom-n.top])}catch{}
-if(GL&&T(e)){let u=U(e);
+if(T(e)){let u=U(e);
 i=[a.applyX(u[0]),a.applyY(u[1]),a.applyX(u[2]),a.applyY(u[3])]}
 return x.filter(n=>n!==e&&n._xy&&(void 0===r(n)||r(n)===e.lang||void 0!==t.dialectOf&&r(n)===t.dialectOf)).map(e=>{let t=s(e);
 return[e,i?Math.hypot(Math.max(i[0]-t[0],0,t[0]-i[2]),Math.max(i[1]-t[1],0,t[1]-i[3])):0,Math.hypot(t[0]-o[0],t[1]-o[1])]}).sort((e,t)=>e[1]-t[1]||e[2]-t[2]).slice(0,8).forEach(e=>n.add(e[0])),n}
@@ -14216,7 +14306,7 @@ window.__kfT=e?Date.now():0;
 e&&(M.append("path").attr("class","kmask").attr("fill-rule","evenodd").attr("d","M-1e6,-1e6H1e6V1e6H-1e6Z"+z(e)),M.append("path").attr("class","kr tap "+(nt?nt.family:"")).attr("d",z(e)))}
 Ce()}
 function Te(){J(),Le(null),t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),$t(null),Ut(800),Ae()}
-function Ae(){GL&&gSync();
+function Ae(){gSync();
 try{e.dispatchEvent(new CustomEvent("ksel",{detail:{lang:nt?nt.id:null,fam:nt?null:rt||null}}))}catch{}}
 function Pe(){t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),$t(null)}
 function Ie(){t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),J(),Le(null),nt&&$t(null)}
@@ -14384,7 +14474,7 @@ n?(Y(e,n),De(de(t))):(J(),De(null))}))}),q.on("click.place",e=>{let t=e.target;
 if(t.closest&&t.closest("g.pin,.clu")||!vt()||!hf)return;
 let n=le(Ue(e));
 if(!n)return X=!1,Le(null),J(),void(nt&&!p&&Pe());
-Ge((Ue(e),de(Ue(e))),n,e)}),A.selectAll("path").on("click",(e,t)=>{vt()&&hf||(e.stopPropagation(),J(),nn(t),Ht(t,950))}),E.append("g");
+Ge((Ue(e),de(Ue(e))),n,e)}),E.append("g");
 let We=E2.append("g").attr("class","ksel").attr("pointer-events","none"),$e=E2.append("g"),Ve=E2.append("g"),Ze=E2.append("g"),Qe=E2.append("g").attr("class","cities").attr("pointer-events","none"),Ye=E2.insert("g","g.cities").attr("class","acities").attr("pointer-events","none"),Je=Jf.map(e=>{let t=j([e[2],e[1]]);
 return{n:e[0],p:e[3],x:t[0],y:t[1]}}),Xe=!!p,et=Q2.append("g").attr("class","labs"),tt=Q2.append("g").attr("class","labs");
 x.forEach(e=>{e._xy=j([e.info.lon,e.info.lat])});
@@ -14399,7 +14489,7 @@ n.some(t)||st.some(t)?u=!1:n.push(e)}
 u!==this.__u&&(this.__u=u,this.style.display=u?null:"none"),u&&this.setAttribute("transform","translate("+s.x+","+s.y+") scale("+1/Math.pow(e,.9)+")")})}
 var st=[];
 function ot(e){let t=1/Math.pow(e,.96);
-GL&&gMv||Ve.selectAll("g.pin").attr("transform",e=>"translate("+e._xy[0]+","+e._xy[1]+") scale("+(e===nt?1.4*t:t)+")"),Qe.selectAll("g.city").attr("transform",t=>"translate("+t.x+","+t.y+") scale("+1/Math.pow(e,.9)+")"),function(e){let t=Qe.selectAll("g.city.kp");
+gMv||Ve.selectAll("g.pin").attr("transform",e=>"translate("+e._xy[0]+","+e._xy[1]+") scale("+(e===nt?1.4*t:t)+")"),Qe.selectAll("g.city").attr("transform",t=>"translate("+t.x+","+t.y+") scale("+1/Math.pow(e,.9)+")"),function(e){let t=Qe.selectAll("g.city.kp");
 if(t.empty())return;
 let n=e<2?3:e<4?8:e<8?18:60,r=[],a=new Set;
 t.each(t=>{if(a.size>=n)return;
@@ -14438,9 +14528,9 @@ if(u-l<d){let e=(l+u)/2;
 l=e-d/2,u=e+d/2}
 Wt(s,l,o,u,520)}
 function vt(e){return null==e&&(e=kV().k),!!p||!!nt||!!rt||e>=1.7}
-function bt(t){Ne(t=t||kV()),GL&&ot(t.k),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(kV())},90);
+function bt(t){Ne(t=t||kV()),ot(t.k),clearTimeout(Mt),Mt=setTimeout(()=>{q.node().isConnected&&!q.node().classList.contains("zooming")&&pe(kV())},90);
 let n,r=t.k,a=[],i=vt(r);
-q.classed("ov",!i).classed("zin",r>=2.2).classed("kpho",!me()&&!p),A.classed("dim",!!nt||i&&!p).classed("faint",!!p),p&&(a.push([0,0,b,52]),a.push([0,y-w(),b,y])),function(e){if(!p)return function(e){let t=x.length,n=x.map((e,t)=>t),r=e=>{for(;n[e]!==e;)n[e]=n[n[e]],e=n[e];
+q.classed("ov",!i).classed("zin",r>=2.2).classed("kpho",!me()&&!p),p&&(a.push([0,0,b,52]),a.push([0,y-w(),b,y])),function(e){if(!p)return function(e){let t=x.length,n=x.map((e,t)=>t),r=e=>{for(;n[e]!==e;)n[e]=n[n[e]],e=n[e];
 return e},a=10/e;
 if(e<24&&!nt&&!rt&&me())for(let e=0;e<t;e++)for(let i=e+1;i<t;i++){if(x[e]===nt||x[i]===nt)continue;
 let t=x[e]._xy,s=x[i]._xy;
@@ -14492,16 +14582,19 @@ a.push([n.left-t.left-4,n.top-t.top-4,n.right-t.left+4,n.bottom-t.top+4])}
 Qe.selectAll("g.city").each(e=>{let n=t.applyX(e.x),r=t.applyY(e.y);
 a.push([n-6,r-9,n+9+6.2*e.n.length,r+9])});
 let c=e=>a.some(t=>e[0]+1<t[2]&&e[2]-1>t[0]&&e[1]+1<t[3]&&e[3]-1>t[1]),d=e=>e[0]>=2&&e[2]<=b-2&&e[1]>=2&&e[3]<=y-2;
-let kOk=kOrd(l,e=>(e.__data__===nt?tt:et).node());
+let kPW=kPh()&&!!p,kOk=kOrd(l,e=>(e.__data__===nt?tt:et).node());
 if(l.forEach(e=>{let n=e.__data__;
 if(kOk||(n===nt?tt:et).node().appendChild(e),!i||!n.cl&&ft.has(n.id)||rt&&!n.cl&&n.family!==rt&&n!==nt||!Xe&&!rt&&!n.cl&&n!==nt&&t.k<3.4||kn&&!n.cl&&n!==nt&&!kn.has(n))return void(e.style.opacity=0);
-let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
+let r=n===nt||n.cl?14:12.5,l=t.applyX(n._xy[0]),u=t.applyY(n._xy[1]),h=n.cl?mt(n)*o+5:(n===nt?1.35*s:s)+4,f=kPW?kTw(e,r):e.textContent.length*r*.56,p=[["start",l+h,u+5,[l+h-1,u+5-r,l+h+f+2,u+6]],["end",l-h,u+5,[l-h-f-2,u+5-r,l-h+1,u+6]],["middle",l,u-h-3,[l-f/2-2,u-h-3-r,l+f/2+2,u-h+1]],["middle",l,u+h+r-1,[l-f/2-2,u+h-1,l+f/2+2,u+h+r+2]],["start",l+.7*h,u-.7*h-2,[l+.7*h-1,u-.7*h-2-r,l+.7*h+f+2,u-.7*h+2]],["start",l+.7*h,u+.7*h+r-2,[l+.7*h-1,u+.7*h-2,l+.7*h+f+2,u+.7*h+r+1]],["end",l-.7*h,u-.7*h-2,[l-.7*h-f-2,u-.7*h-2-r,l-.7*h+1,u-.7*h+2]],["end",l-.7*h,u+.7*h+r-2,[l-.7*h-f-2,u+.7*h-2,l-.7*h+1,u+.7*h+r+1]]],m=null;
 /* phones without pins (kpho): the name is the marker, centred on its language's point, with room around it; a name that would
    touch one already placed (larger languages are placed first) waits for a closer zoom. The chosen language keeps its pin. */
 if(n!==nt&&!n.cl&&q.node().classList.contains("kpho")){let g=f/2+8,v=u+.36*r;p=[["middle",l,v,[l-g,v-r-4,l+g,v+6]]]}
+/* D5, phone word view: the width is measured (the estimate was too short, so names ran off the edge), and every name keeps 5 px at the sides and 3 px above and below,
+   so fewer fit and none touches another or the screen edge. Desktop is unchanged. */
+kPW&&p.forEach(z=>{z[3]=[z[3][0]-5,z[3][1]-3,z[3][2]+5,z[3][3]+3]});
 for(let e=0;e<p.length;e++)if(d(p[e][3])&&!c(p[e][3])){m=p[e];
 break}
-m||n!==nt||(m=p[0]),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),e.__o=[m[1]-l,m[2]-u],a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=Q2.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
+m||n!==nt||(m=p[0],kPW&&(m=kClamp(m))),m?(e.setAttribute("text-anchor",m[0]),e.setAttribute("x",Math.round(m[1])),e.setAttribute("y",Math.round(m[2])),e.__o=[m[1]-l,m[2]-u],a.push(m[3]),e.style.opacity=1):e.style.opacity=0}),$.style("opacity",i?0:null),function(e){let t=Q2.node().getBoundingClientRect(),n=[],r=[],a=(e,n)=>{let r=e.getBoundingClientRect();
 return r.width?[r.left-t.left-n,r.top-t.top-n,r.right-t.left+n,r.bottom-t.top+n]:null},i=(e,t)=>t.some(t=>e[0]<t[2]&&e[2]>t[0]&&e[1]<t[3]&&e[3]>t[1]);
 Q2.selectAll("text.plabel").each(function(){if("0"===this.style.opacity)return;
 let e=a(this,1);
@@ -14511,8 +14604,8 @@ let e=a(this,1);
 e&&(i(e,n)||i(e,r)?this.classList.add("kx"):r.push(e))}),st=n.concat(r),it(e.k)}(t),!i){let e=b>=1024?17*1.15:b>=700?13:11;
 $.selectAll("text").attr("dx",function(n){let r=t.applyX(j([n[1],n[2]])[0]),a=this.textContent.length*e*1.12/2+8;
 return r-a<4?4+a-r:r+a>b-4?b-4-a-r:0})}/* the census names follow what the page has just written (family names have moved by now) */
-GL&&gNames()}
-var yt,kt,wt,xt,jt,St,_t,qt,Et,zt,Nt=null,Mt=0,Ct=null,Lt=!1,Tt=0,At="mouse",Pt=0,It=!1;
+gNames()}
+var yt,kt,wt,xt,jt,St,_t,qt,Et,zt,Mt=0,Ct=null,At="mouse",Pt=0;
 /* How the base keeps up with a gesture.
    kT is the view the base was last drawn at. kShow moves that drawing (as a picture) to where view T needs it.
    kPaint redraws it exactly at the view. A redraw in mid-gesture happens only when the picture no longer covers
@@ -14526,20 +14619,26 @@ var yt,kt,wt,xt,jt,St,_t,qt,Et,zt,Nt=null,Mt=0,Ct=null,Lt=!1,Tt=0,At="mouse",Pt=
 /* ---- GL: the view, and the link to the map engine (site/map-gl.js) ----
    The rest of this code thinks in one transform T (k = how many times the first view, x / y = shift in pixels), as it always did.
    kV reads it from the engine, kGo sends one to it, kTick runs on every frame the engine draws. */
-function kV(){if(!GL)return Bh(q.node());
+function kV(){
 if(!GM)return gT;
 let v=GM.view(),k=v.s/M;
 return Fh.translate(b/2-k*(v.x*M+C[0]),y/2-k*(v.y*M+C[1])).scale(k)}
 function kGo(T,ms){gT=T;
 GM?GM.jump({s:T.k*M,x:((b/2-T.x)/T.k-C[0])/M,y:((y/2-T.y)/T.k-C[1])/M},f?0:ms||0):(kTick(T),clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&bt()},0))}
+/* a flight (to a language, a region, a family, a pin, or back home: Wt, Qt, Ut): 400 to 700 ms by how far it goes, the zoom
+   steps it takes plus the screens it pans; the engine flies it with the site's easing. 0 stays a jump. */
+function kFly(T,ms){let c=ms&&kV();
+if(!c)return ms||0;
+let z=Math.abs(Math.log2(T.k/c.k)),d=Math.hypot((b/2-T.x)/T.k-(b/2-c.x)/c.k,(y/2-T.y)/T.k-(y/2-c.y)/c.k)*Math.min(T.k,c.k)/Math.max(b,y);
+return Math.round(400+300*Math.min(1,(z+d)/3))}
 function kTick(T){let t=T.k,z=t>=11?2:t>=6?1:0;
 Rt&&Rt.classList.toggle("on",!Gt(T)||!!nt||!!te);
 /* GL: while the engine moves the map it also draws the names and dots (gLab below), so the page's own unseen copies are not
    moved or touched at all; they are put right once, at rest (the "end" handler calls kTick again). Moving them would make the
    browser lay out all of them (about 2,600) on every frame, and taking them out of the drawing instead made it rebuild them all
    whenever the map stopped. */
-if(GL&&gMv&&gLon)return void(Ot=T);
-GL?(E.attr("transform",T),z!==gZ&&(gZ=z,q.classed("zmid",z>0).classed("zdeep",z>1))):kMove(T),E2.attr("transform",T);
+if(gMv&&gLon)return void(Ot=T);
+E.attr("transform",T),z!==gZ&&(gZ=z,q.classed("zmid",z>0).classed("zdeep",z>1)),E2.attr("transform",T);
 ot(t),kFollow(T),$.selectAll("text").attr("transform",e=>{let n=j([e[1],e[2]]);
 return"translate("+n[0]+","+n[1]+") scale("+1/Math.max(t,gOne)+") translate("+-n[0]+","+-n[1]+")"}),$e.selectAll("circle").attr("r",11.76/Math.pow(t,.96)),Ot=T}
 function gHome(){let B=[1e9,1e9,-1e9,-1e9];
@@ -14561,6 +14660,13 @@ W[1]>W[0]&&(cy=(W[0]+W[1])/2,
    80%), so a few in the Arctic or in southern Arabia do not pull the view away from Europe, the Caucasus and Iran */
 me()&&W[1]-W[0]>2*hh&&(cy=kMid(x.filter(e=>T(e)&&Math.abs(e._xy[0]-cx)<=hw).map(e=>e._xy[1]))))}
 return Fh.translate(b/2,top+(y-top-pad)/2).scale(k).translate(-cx,-cy)}
+/* the chosen name has no free place: slide it sideways until it is inside the screen */
+function kClamp(m){let R=m[3],dx=R[0]<4?4-R[0]:R[2]>b-4?b-4-R[2]:0;
+return dx?[m[0],m[1]+dx,m[2],[R[0]+dx,R[1],R[2]+dx,R[3]]]:m}
+/* a phone (<64rem); me() cannot say it: it is false in the word view on every screen */
+function kPh(){return!window.matchMedia||!matchMedia("(min-width: 64rem)").matches}
+function kTw(e,r){let k=r+"|"+e.textContent,c=e.__tw;
+return c&&c[0]===k?c[1]:(e.__tw=[k,(e.getComputedTextLength?e.getComputedTextLength():0)||e.textContent.length*r*.56])[1]}
 function kMid(v){v=v.slice().sort((a,b)=>a-b);let q=f=>v[Math.min(v.length-1,Math.floor(f*v.length))];return v.length?(q(.1)+q(.9))/2:0}
 function gZoom(fac){let T=kV(),k=Math.max(.8*gOne,Math.min(150,T.k*fac)),r=k/T.k;
 kGo(Fh.translate(b/2-(b/2-T.x)*r,y/2-(y/2-T.y)*r).scale(k),260)}
@@ -14658,7 +14764,7 @@ let T=kV(),r=Q2.node().getBoundingClientRect(),h=le(t);
 h?(Y({clientX:r.left+T.applyX(P[0]),clientY:r.top+T.applyY(P[1])},h),De(de(t))):(J(),De(null))};
 if(X>40&&X<b-40&&Yp>64&&Yp<y-40-w())return show();
 let TT=Fh.translate(b/2-T.k*P[0],top-T.k*P[1]).scale(T.k);
-GL?kGo(TT,f?0:380):q.transition().duration(f?0:380).ease(Po).call(Dt.transform,TT),setTimeout(show,f?40:440)}
+kGo(TT,f?0:380),setTimeout(show,f?40:440)}
 /* The map's fallback (v74 in src/styles/v66.css): a short note over the map box when the engine cannot start, with the two
    ways on that still work (the Languages wheel, and trying again). The rest of the site does not need the map. */
 function kNoMap(box){if(!box||box.querySelector(".knomap"))return;
@@ -14672,7 +14778,7 @@ d.innerHTML='<div class="knm"><svg viewBox="0 0 24 24" aria-hidden="true"><path 
 d.querySelector(".knl").onclick=()=>Ja("languages"),d.querySelector(".knr").onclick=()=>location.reload(),box.appendChild(d)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start",err),GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),kNoMap(e),window.__kMapReady||(window.__kMapReady=!0,window.dispatchEvent(new Event("etimo:mapready"))))},/* a start that takes longer than 20 seconds (a stalled download) also ends in the note */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import(new URL("map-gl.js?v=9",document.baseURI).href).then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import(new URL("h/map-gl.6cd5dfa8ab.js",document.baseURI).href).then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,e.querySelectorAll("canvas[aria-label]").forEach(c=>c.setAttribute("aria-label",Ea({sq:"Harta e gjuhëve",sr:"Mapa jezika"}[ya()]||"Map of languages"))),GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),
@@ -14708,7 +14814,7 @@ Ve.selectAll("g.pin").on("pointerenter.gl",(e,d)=>{gPh=d,gPinSync(80)}).on("poin
    An engine file without labels() (an old copy in a browser's cache) leaves everything to the page, as before. */
 let gLt=0,gLr=0,gLo=null,gLkey="",gLops=[],gLwait=0;
 const gR2=v=>Math.round(100*v)/100;
-function gLabSync(ms){if(!GL||!GM||!GM.labels||!q.node().isConnected)return;
+function gLabSync(ms){if(!GM||!GM.labels||!q.node().isConnected)return;
 gLo||(gLon=!1,gLo=new MutationObserver(()=>{gMv||gLabSync()}),[q.node(),Q2.node()].forEach(n=>gLo.observe(n,{subtree:!0,childList:!0,characterData:!0,attributes:!0,attributeFilter:["class","style","transform","x","y","r","display","opacity","data-off"]})),
 /* a word circle's hover and focus look comes from the style sheet alone (no change in the page to observe) */
 ["pointerover","pointerout","focusin","focusout"].forEach(t=>Q2.node().addEventListener(t,e=>{e.target.closest&&e.target.closest(".clu")&&gLabSync(200)})));
@@ -14779,20 +14885,9 @@ let fs=parseFloat(cs.fontSize),s=fs*k,a=gLanchor(el,r,T2)||[cx,cy];
 out.push({k:"t",x:gR2(a[0]),y:gR2(a[1]),t,s:gR2(s),w:100*Math.round((+cs.fontWeight||400)/100),ls:gR2((parseFloat(cs.letterSpacing)||0)/fs),off:[gR2((cx-a[0])/s),gR2((cy-a[1])/s)],c:fill,h:edge||"rgba(0,0,0,0)",hw:gR2(Math.min(s/4,sw/2)),o:gR2(o)})})});
 mark.forEach(([el,on])=>on?el.setAttribute("data-gl",""):el.removeAttribute("data-gl"));
 return out}
-let kT=Fh,kCss=!1,kTm=0,kAt=0,kMs=30,kHold=!1;
-function kShow(T){let s=T.k/kT.k,dx=T.x-s*kT.x,dy=T.y-s*kT.y,n=q.node().style;
-return 1e-5>Math.abs(s-1)&&.05>Math.abs(dx)&&.05>Math.abs(dy)?kCss&&(n.transform="",n.willChange="",kCss=!1):(n.transform="translate3d("+dx+"px,"+dy+"px,0) scale("+s+")",kHold||(n.willChange="transform"),kCss=!0),[s,dx,dy]}
-function kPaint(P){clearTimeout(kTm),kTm=0;
-let t0=performance.now(),n=q.node().style;
-Et&&fe(P)&&he(),kT=P,E.attr("transform",P),q.classed("zmid",P.k>=6).classed("zdeep",P.k>=11),n.transform="",n.willChange="",kCss=!1,kHold=!0,kAt=t0,requestAnimationFrame(()=>{kHold=!1,requestAnimationFrame(()=>{kMs=.5*kMs+.5*Math.max(0,Math.min(500,performance.now()-t0-16))})})}
-function kMove(T){let now=performance.now(),s=T.k/kT.k,dx=T.x-s*kT.x,dy=T.y-s*kT.y,open=dx-KP*b*s>.5||dx+(1+KP)*b*s<b-.5||dy-KP*y*s>.5||dy+(1+KP)*y*s<y-.5,gap=Math.min(420,Math.max(120,4*kMs));
-/* the picture is never shown stretched past 4 times or shrunk below a quarter: beyond that it is redrawn at once, however recent the last redraw */
-if((open||s>1.6)&&now-kAt>gap||s>4||s<.25)return kPaint(T);
-kShow(T),clearTimeout(kTm),kTm=setTimeout(()=>{kTm=0,kCss&&q.node().isConnected&&kPaint(kV())},130)}
 /* labels keep their place next to their pin while the map moves; they are laid out again when it rests */
 function kFollow(T){Q2.selectAll("text.plabel").each(function(d){let o=this.__o;
 o&&d&&d._xy&&"0"!==this.style.opacity&&(this.setAttribute("x",(T.applyX(d._xy[0])+o[0]).toFixed(1)),this.setAttribute("y",(T.applyY(d._xy[1])+o[1]).toFixed(1)))})}
-function kEnd(){kPaint(kV()),q.classed("zooming",!1),bt()}
 /* credits for the map's data (both maps): one small line in the bottom left corner; only the link takes the pointer */
 /* map credits: one line on desktop; on phones a small (i) in the map's lower left corner that starts open, folds away at the
    first touch of the map or while a card is open, and opens again when tapped (styles: v65.css) */
@@ -14802,61 +14897,25 @@ KB.onclick=ev=>{ev.stopPropagation();let o=!K.classList.contains("open")||!K.cla
 let Rt=e.querySelector(".mreset")||(()=>{let t=e,n=document.createElement("button");
 n.type="button",n.className="mreset kreset";
 let r={en:"Reset",sq:"Rifillo",sr:"Ispočetka",sc:"Испочетка"}[ya()]||"Reset";
-return n.setAttribute("aria-label",r),n.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',n.setAttribute("title",r),t.appendChild(n),n})(),Ot=null,Dt=Qh().extent([[0,0],[b,y]]).scaleExtent([.8,150]).translateExtent(function(e,t,n){let r=e.scale()/1e3,a=e.translate(),i=a[0]+-1490*r,s=a[0]+1660*r,o=a[1]+-1670*r,l=a[1]+-10*r,u=t/.55,c=n/.55,d=(i+s)/2,h=(o+l)/2;
-return s-i<u&&(i=d-u/2,s=d+u/2),l-o<c&&(o=h-c/2,l=h+c/2),[[i,o],[s,l]]}(j,b,y)).filter(e=>!(e.button||e.ctrlKey&&"wheel"!==e.type||0===String(e.type).indexOf("touch")||"touch"===e.pointerType)).on("start",()=>{clearTimeout(Mt),De(null),q.classed("zooming",!0),X=!1,J()}).on("end",()=>{Lt||kEnd()}).on("zoom",e=>kTick(e.transform));
-GL||q.call(Dt);
-if(GL){let w=t=>{"Escape"===t.key&&(!t.target||!/INPUT|TEXTAREA/.test(t.target.tagName))&&(nt||rt||!Gt(kV()))&&Te()},pd=ev=>{At=ev.pointerType};
-window.addEventListener("keydown",w),e.addEventListener("pointerdown",pd,!0),zt=()=>{window.removeEventListener("keydown",w),e.removeEventListener("pointerdown",pd,!0),kMo.disconnect(),clearTimeout(gB),clearTimeout(gC),GM&&GM.off(),GM=null}}else{let e=q.node(),t=new Map,n=null,r=0,a=null,i=!1,s=null,o=0,l=null,u=()=>{let h=e.parentNode,t=Nt||(Nt=h.getBoundingClientRect());
-return[b/(h.clientWidth||b),y/(h.clientHeight||y),t.left+h.clientLeft,t.top+h.clientTop]},c=e=>{let t=u();
-return[(e.clientX-t[2])*t[0],(e.clientY-t[3])*t[1]]},d=e=>Dt.constrain()(Fh.translate(e.x,e.y).scale(Math.max(.8,Math.min(150,e.k))),[[0,0],[b,y]],Dt.translateExtent()),h=()=>{let r=[...t.values()],a=Bh(e);
-n=r.length>1?{m:"z",T:a,c:[(r[0][0]+r[1][0])/2,(r[0][1]+r[1][1])/2],d:Math.hypot(r[0][0]-r[1][0],r[0][1]-r[1][1])||1}:r.length?{m:"p",T:a,c:r[0].slice()}:null},m=()=>{if(!n)return;
-let e,i=[...t.values()];
-if("p"===n.m&&i.length)e=Fh.translate(n.T.x+i[0][0]-n.c[0],n.T.y+i[0][1]-n.c[1]).scale(n.T.k);
-else{if(!(i.length>1))return;
-{let t=[(i[0][0]+i[1][0])/2,(i[0][1]+i[1][1])/2],r=Math.hypot(i[0][0]-i[1][0],i[0][1]-i[1][1])||1,a=Math.max(.8,Math.min(150,n.T.k*r/n.d)),s=(n.c[0]-n.T.x)/n.T.k,o=(n.c[1]-n.T.y)/n.T.k;
-e=Fh.translate(t[0]-s*a,t[1]-o*a).scale(a)}}
-a=d(e),r||(r=requestAnimationFrame(()=>{r=0,a&&(Lt=!0,q.call(Dt.transform,a),a=null)}))},g=e=>{if(!t.has(e.pointerId))return;
-let n=c(e);
-t.set(e.pointerId,n),!i&&Math.hypot(n[0]-s[0],n[1]-s[1])>14&&(i=!0),i&&m()},v=e=>{if(!t.has(e.pointerId))return;
-if(t.delete(e.pointerId),t.size)return void h();
-let s=Lt;
-if(Lt=!1,n=null,cancelAnimationFrame(r),r=0,a=null,i)Tt=performance.now(),s&&kEnd();
-else if("pointercancel"!==e.type){let t=c(e),n=performance.now();
-l&&n-o<320&&Math.hypot(t[0]-l[0],t[1]-l[1])<32&&!(e.target&&e.target.closest&&e.target.closest("g.pin,.clu"))?(o=0,l=null,Tt=n,q.transition().duration(f?0:300).ease(Ao).call(Dt.scaleBy,2,t)):(o=n,l=t)}},k=e=>{if(performance.now()-Tt<380)return e.stopPropagation(),void e.preventDefault();
-It&&(It=!1,e.stopPropagation(),e.preventDefault(),X=!1,Le(null),J(),nt&&!p&&Pe(),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null),bt(),Ae()))},w=t=>{"Escape"===t.key&&(!t.target||!/INPUT|TEXTAREA/.test(t.target.tagName))&&(nt||rt||!Gt(Bh(e)))&&Te()};
-q.on("pointerdown.kt",e=>{Nt=null,It=!1,At=e.pointerType,"mouse"!==e.pointerType&&(t.set(e.pointerId,c(e)),1===t.size?(i=!1,s=c(e),q.interrupt()):i=!0,h())}),window.addEventListener("pointermove",g,{passive:!0}),window.addEventListener("pointerup",v),window.addEventListener("pointercancel",v),window.addEventListener("keydown",w),e.addEventListener("click",k,!0);
-/* wheel and trackpad: each step sets a target and the view glides to it, instead of jumping a notch at a time */
-let wK=0,wP=null,wR=0,wT=0,wS=()=>{let now=performance.now(),T=Bh(e),a=1-Math.exp(-Math.max(8,Math.min(50,now-wT))/55);
-wT=now;
-let lk=Math.log(T.k)+a*(Math.log(wK)-Math.log(T.k)),kk=.004>Math.abs(Math.log(wK)-lk)?wK:Math.exp(lk),x0=(wP[0]-T.x)/T.k,y0=(wP[1]-T.y)/T.k;
-Lt=!0,q.call(Dt.transform,d(Fh.translate(wP[0]-x0*kk,wP[1]-y0*kk).scale(kk))),kk===wK?(wR=0,Lt=!1,kEnd()):wR=requestAnimationFrame(wS)};
-q.on("wheel.zoom",null),e.addEventListener("wheel",ev=>{ev.preventDefault();
-let T=Bh(e),dl=-ev.deltaY*(1===ev.deltaMode?.05:ev.deltaMode?1:.002)*(ev.ctrlKey?10:1);
-wR||(wK=T.k,wT=performance.now()-16);
-let nk=Math.max(.8,Math.min(150,wK*Math.pow(2,dl)));
-if(!wR&&1e-4>Math.abs(Math.log(nk/T.k)))return;
-wR||q.interrupt(),wK=nk,wP=e.__kpt(ev),wR||(wR=requestAnimationFrame(wS))},{passive:!1});
-/* what lands on a pin or a cluster (top drawing) still drives the map underneath */
-let o2=Q2.node(),fw=ev=>{"wheel"===ev.type&&ev.preventDefault(),e.dispatchEvent(new ev.constructor(ev.type,{bubbles:!1,cancelable:!0,view:window,detail:ev.detail,clientX:ev.clientX,clientY:ev.clientY,screenX:ev.screenX,screenY:ev.screenY,ctrlKey:ev.ctrlKey,shiftKey:ev.shiftKey,altKey:ev.altKey,metaKey:ev.metaKey,button:ev.button,buttons:ev.buttons,deltaX:ev.deltaX,deltaY:ev.deltaY,deltaMode:ev.deltaMode,pointerId:ev.pointerId,pointerType:ev.pointerType,isPrimary:ev.isPrimary}))};
-["wheel","mousedown","dblclick","pointerdown"].forEach(t=>o2.addEventListener(t,fw,{passive:!1})),o2.addEventListener("click",k,!0),zt=()=>{window.removeEventListener("pointermove",g),window.removeEventListener("pointerup",v),window.removeEventListener("pointercancel",v),window.removeEventListener("keydown",w),e.removeEventListener("click",k,!0),cancelAnimationFrame(r),cancelAnimationFrame(wR),clearTimeout(kTm),kMo.disconnect()}}
+return n.setAttribute("aria-label",r),n.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3.2"/></svg>',n.setAttribute("title",r),t.appendChild(n),n})(),Ot=null;
+{let w=t=>{"Escape"===t.key&&(!t.target||!/INPUT|TEXTAREA/.test(t.target.tagName))&&(nt||rt||!Gt(kV()))&&Te()},pd=ev=>{At=ev.pointerType};
+window.addEventListener("keydown",w),e.addEventListener("pointerdown",pd,!0),zt=()=>{window.removeEventListener("keydown",w),e.removeEventListener("pointerdown",pd,!0),kMo.disconnect(),clearTimeout(gB),clearTimeout(gC),GM&&GM.off(),GM=null}}
 let Ft=e.querySelector("#zi"),Bt=e.querySelector("#zo");
-Ft&&(Ft.onclick=()=>GL?gZoom(1.8):q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1.8)),Bt&&(Bt.onclick=()=>GL?gZoom(1/1.8):q.transition().duration(260*!f).ease(Ao).call(Dt.scaleBy,1/1.8));
+Ft&&(Ft.onclick=()=>gZoom(1.8)),Bt&&(Bt.onclick=()=>gZoom(1/1.8));
 let Kt=(i=x.map(e=>e._xy[0]),s=x.map(e=>e._xy[1]),o=Math.min(...i),l=Math.max(...i),u=Math.min(...s),(d=Math.max(1,Math.min(1.6,.62*y/Math.max(1,(c=Math.max(...s))-u))))<9?(b<640?phoneHome():Fh):Fh.translate(b/2,y/2+10).scale(d).translate(-(o+l)/2-.06*(l-o),-(u+c)/2)),Gt=e=>.04>Math.abs(e.k-Kt.k)&&30>Math.abs(e.x-Kt.x)&&30>Math.abs(e.y-Kt.y);
 /* GL: the first view shows every language area, on every screen; what appears at which scale is unchanged */
-GL&&(Kt=gHome(),gOne=Math.min(1,gFit||Kt.k));
+Kt=gHome(),gOne=Math.min(1,gFit||Kt.k);
 function phoneHome(){let ys=x.filter(e=>e._xy[0]>0&&e._xy[0]<b).map(e=>e._xy[1]),u=Math.min(...ys),c=Math.max(...ys),top=64,free=y-top-12,k=Math.max(1,Math.min(1.15,.8*free/Math.max(1,c-u)));
 return Fh.translate(b/2,top+free/2).scale(k).translate(-b/2,-(u+c)/2)}
-function Ut(e){GL?kGo(Kt,e||620):q.transition().duration(f?0:e||620).ease(Po).call(Dt.transform,Kt)}
+function Ut(e){kGo(Kt,kFly(Kt,e||620))}
 function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,i=Math.max(n[2]-n[0],b/c),s=Math.max(n[3]-n[1],y/c);
 Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
 let TT=Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2);
-GL?kGo(TT,a):q.transition().duration(f?0:a).ease(Po).call(Dt.transform,TT)}
+kGo(TT,kFly(TT,a))}
 function $t(e){nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
 let t=kV().k;
-Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&!GL&&(T(e)?O.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].d).each(function(){let c=Vf(e);
-c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)}):R.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",G(e)).each(function(){let c=Vf(e);
-c&&(this.style.fill="color-mix(in srgb,"+c+" 22%,transparent)",this.style.stroke=c)})),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),kn=e&&!p?nearMap(e):null,lt(e),Fe(e),bt(),Ae()}
+Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),kn=e&&!p?nearMap(e):null,lt(e),Fe(e),bt(),Ae()}
 Rt&&(Rt.onclick=()=>Te()),window.__kMapHome=Te;
 let Vt=-1,Zt=null;
 function Qt(e,t){let n=1e9;
@@ -14864,7 +14923,7 @@ g.forEach(t=>{if(t!==e){let r=Math.hypot(t._xy[0]-e._xy[0],t._xy[1]-e._xy[1]);
 r<n&&(n=r)}});
 let r=Math.min(40,Math.max(5,30/Math.max(n,.3))),a=52+(y-52-w())/2;
 let TT=Fh.translate(b/2,a).scale(r).translate(-e._xy[0],-e._xy[1]);
-GL?kGo(TT,t):q.transition().duration(f?0:t).ease(Po).call(Dt.transform,TT)}
+kGo(TT,kFly(TT,t))}
 function Yt(e,t){(e!==Vt||t)&&(Vt=e,k.forEach((t,n)=>{t.classList.toggle("on",n===e),t.setAttribute("aria-selected",n===e)}),$t(g[e]),t&&Qt(g[e],560))}
 function Jt(e,t){let n=k[e];
 v.scrollTo({left:n.offsetLeft-(v.clientWidth-n.offsetWidth)/2,behavior:t&&!f?"smooth":"auto"})}
@@ -14913,17 +14972,14 @@ o&&(t.hidden=!0,Ja(o.dataset.go))};
 let rn=a.view;
 a.fam&&(rt=a.fam,q.classed("fsel",!0).attr("data-f",a.fam));
 let an=rn?rn.sel?fa["l-"+rn.sel]:null:n?fa["l-"+n]:null;
-if(GL&&kGo(Kt,0),bt(),rn){an&&nn(an);
-let e=j(rn.c),t=Math.max(GL?.8*gOne:1,Math.min(150,rn.zs/j.scale())),n=y-52-w();
+if(kGo(Kt,0),bt(),rn){an&&nn(an);
+let e=j(rn.c),t=Math.max(.8*gOne,Math.min(150,rn.zs/j.scale())),n=y-52-w();
 {let TT=Fh.translate(b/2,t>1.01?52+n/2:y/2).scale(t).translate(-e[0],-e[1]);
-GL?kGo(TT,0):q.call(Dt.transform,TT)}}else if(an)nn(an),setTimeout(()=>Ht(an,760),60*!f);
+kGo(TT,0)}}else if(an)nn(an),setTimeout(()=>Ht(an,760),60*!f);
 else if(g.length){if(g.length){let e=g.map(e=>e._xy[0]),t=g.map(e=>e._xy[1]);
-Yt(0,!1),setTimeout(()=>Wt(Math.min(...e)-12,Math.min(...t)-12,Math.max(...e)+12,Math.max(...t)+12,700),60*!f)}}else if(GL);
-else if(f)q.call(Dt.transform,Kt);
-else{let e=(b/2-Kt.x)/Kt.k,t=(y/2-Kt.y)/Kt.k,n=Math.max(.6,.58*Kt.k);
-q.call(Dt.transform,Fh.translate(b/2-e*n,y/2-t*n).scale(n)),q.transition().delay(250).duration(1600).ease(Po).call(Dt.transform,Kt)}
+Yt(0,!1),setTimeout(()=>Wt(Math.min(...e)-12,Math.min(...t)-12,Math.max(...e)+12,Math.max(...t)+12,700),60*!f)}}else ;
 f||(Ve.selectAll("g.pin").each(function(e,t){this.style.setProperty("--pi",t%90)}),q.classed("kboot",!0),setTimeout(()=>q.classed("kboot",!1),3600));
-GL&&gStart();
+gStart();
 let sn={cauc:[38,39.5,50.5,45],dag:[45.2,40.8,48.6,43.7],north:[12,55,140,75]};
 return Uf&&!p&&setTimeout(()=>{let e=Uf;
 if(e&&q.node().isConnected&&kt&&(Uf=null,kt.family(e.fam),e.sub)){let t=new Set(e.ids),n=1e9,r=1e9,a=-1e9,i=-1e9;
@@ -14935,7 +14991,7 @@ n=j([(t=sn[e])[0],t[3]]),r=j([t[2],t[1]]),Wt(Math.min(n[0],r[0]),Math.min(n[1],r
 if(t){if(p){let e=g.indexOf(t);
 return void(e>=0&&(e===Vt?Qt(t,520):Jt(e,!0)))}
 J(),Le(null),rt&&(rt=null,pt=null,q.classed("fsel",!1).attr("data-f",null)),nn(t),Ht(t,1e3)}},home(){Te()},view(){/* an engine map whose engine never started has no view worth keeping: the old map then opens at its own first view */
-if(GL&&!GM)return null;
+if(!GM)return null;
 let e=kV(),t=y-52-w(),n=e.k>1.01?52+t/2:y/2;
 return{c:j.invert([e.invertX(b/2),e.invertY(n)]),zs:e.k*j.scale(),sel:nt&&!p?nt.id.replace(/^l-/,""):null}},family(e){if(e&&Ie(),rt=e,q.classed("fsel",!!e).attr("data-f",e||null),pt=null,!e)return bt(),Ut(800),void Ae();
 let t=1e9,n=1e9,r=-1e9,a=-1e9;

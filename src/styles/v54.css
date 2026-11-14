@@ -13,8 +13,8 @@
 .mapbox .city text{font-weight:600;stroke-width:3.6px}
 .mapbox text.plabel{paint-order:stroke;stroke:var(--bg);stroke-width:3.4px;stroke-linejoin:round}
 /* start over, sits with + and − */
-.mapbox .zoom .mreset.kzr{display:flex!important;position:static;transform:none;height:auto;width:50px;min-height:50px;padding:4px 0 0;margin-top:2px;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--ink);flex-direction:column;align-items:center;gap:1px;font:700 .625rem/1.1 var(--sans);letter-spacing:.01em;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
-.mapbox .zoom .mreset.kzr.on{opacity:1;pointer-events:auto}
-.mapbox .zoom .mreset.kzr svg{width:26px;height:26px;filter:drop-shadow(0 0 1.5px var(--bg)) drop-shadow(0 0 3px var(--bg)) drop-shadow(0 0 6px var(--bg))}
-.mapbox .zoom .mreset.kzr span{paint-order:stroke;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 6px var(--bg);max-width:64px}
-.mapbox .zoom .mreset.kzr:active svg{transform:rotate(-40deg)}
+
+
+
+
+

@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+"""./build: the one command that makes site/ from content/, src/ and the data, running only what changed.
+
+    ./build            run every stage whose inputs changed since it last ran (says so when nothing did)
+    ./build --all      run every stage, changed or not
+    ./build --check    run what is needed, then exit 1 if site/ differs from what is committed
+    ./build --offline  never fetch anything and never cut tiles: a data or map stage whose inputs changed is an error
+                       (what the GitHub check runs, with --check: a fresh checkout has no downloads and no tippecanoe)
+
+Stages, in order (the commands are the ones in scripts/add-words.sh and scripts/map-next/build.py):
+    data    fetch sheets, merge data, current regions, region languages   (scripts/add-words.sh data)
+    page    site/index.html and the hashed files in site/h                (scripts/add-words.sh page)
+    map     map areas and tiles in site/map-next                          (.venv/bin/python scripts/map-next/build.py; needs tippecanoe)
+    page    again, because it lists the map's first tiles
+    checks  search keys, overlaps, words report, colour check in Chrome   (scripts/add-words.sh checks)
+
+A stage's inputs are fingerprinted (SHA-1 of the file contents, cached by size and time in .cache/build-state.json);
+the stage is skipped when the fingerprint is the one it last ran with. The data and map stages also keep their
+fingerprint in a file committed with the site (site/data/inputs.sha256, site/map-next/inputs.sha256), so "older than
+its inputs" is found on a fresh checkout too, without downloading or cutting anything. Only files git knows or would
+add count as inputs (ignored files such as caches do not), so the fingerprint is the same on every machine.
+No dependencies beyond Python 3 and git.
+"""
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+STATE = os.path.join(ROOT, '.cache', 'build-state.json')
+RECORD = {'map': os.path.join(ROOT, 'site', 'map-next', 'inputs.sha256'),
+          'data': os.path.join(ROOT, 'site', 'data', 'inputs.sha256')}
+
+# files the build itself writes inside an input folder: they must not count as inputs
+GENERATED_NAMES = {'import-report.txt', 'duplicates-report.txt', '.DS_Store', 'inputs.sha256'}
+SKIP_DIRS = {'__pycache__', '.git', 'node_modules'}
+DATA_BUILT = {'lexicon.json', 'languages.json', 'terr.json', 'dia.json', 'today.json', 'adm2.json', 'micro.json',
+              'ethno.json', 'region-langs.json',
+              'palette.json'}      # site/data files the build writes (scripts/merge; palette.json by build-page.py): not data-stage inputs
+# folders whose files carry a content hash in their name (or are cut by a tool): only the list of names counts
+NAMES_ONLY = ('site/map-next/tiles', 'site/h/dict', 'site/h/search', 'site/fonts')
+
+STAGES = {
+    'data': {
+        'roots': ['content', 'reference', 'scripts/merge', 'site/data'],
+        'skip': lambda rel: rel.startswith('site/data/') and rel.count('/') == 2 and os.path.basename(rel) in DATA_BUILT,
+    },
+    'page': {
+        'roots': ['content', 'src', 'scripts/build-page.py', 'scripts/page_code.py', 'scripts/merge/palette.py',
+                  'scripts/merge/families.py', 'site/data', 'site/h/dict', 'site/h/search', 'site/fonts',
+                  'site/map-gl.js', 'site/regional-layer.js', 'site/search-key.js', 'site/_headers',
+                  'site/country-data.js', 'site/country-sources.js', 'site/country-sources.css',
+                  'site/map-next/data/meta.json', 'site/map-next/tiles/3'],
+    },
+    'map': {
+        # what scripts/map-next/build.py reads (see its docstring): site/data, regional-layer.js, the minority list, and the
+        # colour table and family names that build-page.py writes into the page (content/languages, families, src/app, palette)
+        'roots': ['site/data', 'site/regional-layer.js', 'content/minority-areas.csv', 'content/families.json',
+                  'content/languages', 'src/app', 'scripts/map-next', 'scripts/build-page.py', 'scripts/page_code.py',
+                  'scripts/merge/palette.py', 'scripts/merge/families.py', 'scripts/merge/topo.py'],
+    },
+    'checks': {
+        'roots': ['content', 'reference', 'scripts', 'src', 'site'],
+    },
+}
+ORDER = ['data', 'page', 'map', 'page', 'checks']
+
+
+def say(msg):
+    print(f'build: {msg}', flush=True)
+
+
+def load_state():
+    try:
+        with open(STATE, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {'files': {}, 'stages': {}}
+
+
+def save_state(state):
+    os.makedirs(os.path.dirname(STATE), exist_ok=True)
+    tmp = STATE + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(state, f)
+    os.replace(tmp, STATE)
+
+
+def file_hash(path, state, names_only):
+    st = os.stat(path)
+    if names_only:
+        return str(st.st_size)
+    key = [st.st_size, st.st_mtime_ns]
+    hit = state['files'].get(path)
+    if hit and hit[:2] == key:
+        return hit[2]
+    h = hashlib.sha1()
+    with open(path, 'rb') as f:
+        for block in iter(lambda: f.read(1 << 20), b''):
+            h.update(block)
+    state['files'][path] = key + [h.hexdigest()]
+    return h.hexdigest()
+
+
+def git_files(roots):
+    """Files under the roots that git tracks or would add (not ignored), still present on disk."""
+    out = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--'] + roots,
+                         cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    return [f for f in out.split('\0') if f and os.path.lexists(os.path.join(ROOT, f))]
+
+
+def fingerprint(stage, state):
+    cfg = STAGES[stage]
+    skip = cfg.get('skip', lambda rel: False)
+    h = hashlib.sha1()
+    for rel in sorted(set(git_files(cfg['roots']))):
+        if os.path.basename(rel) in GENERATED_NAMES or any(part in SKIP_DIRS for part in rel.split('/')):
+            continue
+        if skip(rel) or os.path.islink(os.path.join(ROOT, rel)) and not os.path.exists(os.path.join(ROOT, rel)):
+            continue
+        names_only = any(rel.startswith(p + '/') for p in NAMES_ONLY) and not rel.startswith('site/map-next/tiles/3/')
+        h.update(f'{rel}\0{file_hash(os.path.join(ROOT, rel), state, names_only)}\n'.encode())
+    return h.hexdigest()
+
+
+def run(cmd, env=None, tee=None):
+    """Run a command, show its output as it comes; returns (exit code, the lines that match tee)."""
+    p = subprocess.Popen(cmd, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
+    kept = []
+    for line in p.stdout:
+        sys.stdout.write(line)
+        if tee and tee(line):
+            kept.append(line.rstrip())
+    sys.stdout.flush()
+    return p.wait(), kept
+
+
+def venv_python():
+    py = os.path.join(ROOT, '.venv', 'bin', 'python')
+    return py if os.access(py, os.X_OK) else None
+
+
+def run_stage(stage):
+    if stage in ('data', 'page', 'checks'):
+        code, _ = run(['sh', os.path.join('scripts', 'add-words.sh'), stage])
+        return code == 0
+    # map: needs the venv Python (shapely) and tippecanoe
+    py = venv_python()
+    if not py:
+        say('map stage needs .venv (run ./scripts/add-words.sh once, it makes it): map data is out of date, stopping')
+        return False
+    if not shutil.which('tippecanoe'):
+        say('map stage needs tippecanoe (brew install tippecanoe, or apt install tippecanoe): map data is out of date, stopping')
+        return False
+    code, warn = run([py, os.path.join('scripts', 'map-next', 'build.py')],
+                     tee=lambda l: 'WARNING' in l or 'no colour in the table' in l)
+    if warn:
+        say('map: languages or areas that need a look (reported by scripts/map-next/build.py):')
+        for line in warn:
+            print('  ' + line)
+    return code == 0
+
+
+def read_record(stage):
+    try:
+        with open(RECORD[stage], encoding='utf-8') as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
+def write_record(stage, fp):
+    os.makedirs(os.path.dirname(RECORD[stage]), exist_ok=True)
+    with open(RECORD[stage], 'w', encoding='utf-8') as f:
+        f.write(fp + '\n')
+
+
+def site_differs():
+    """git: does site/ differ from the commit? Prints a summary and returns True if it does."""
+    out = subprocess.run(['git', 'status', '--porcelain', '--', 'site'], cwd=ROOT, capture_output=True, text=True).stdout
+    if not out.strip():
+        return False
+    lines = out.strip().splitlines()
+    say(f'site/ differs from what is committed: {len(lines)} paths')
+    for line in lines[:40]:
+        print('  ' + line)
+    if len(lines) > 40:
+        print(f'  ... and {len(lines) - 40} more')
+    stat = subprocess.run(['git', 'diff', '--stat', '--', 'site'], cwd=ROOT, capture_output=True, text=True).stdout.strip().splitlines()
+    for line in stat[-15:]:
+        print('  ' + line)
+    return True
+
+
+def main(argv):
+    if any(a in ('-h', '--help') for a in argv):
+        print(__doc__)
+        return 0
+    unknown = [a for a in argv if a not in ('--all', '--check', '--offline')]
+    if unknown:
+        print(f'build: unknown option {unknown[0]} (use --all, --check, --offline or --help)')
+        return 2
+    force, check, offline = '--all' in argv, '--check' in argv, '--offline' in argv
+    state = load_state()
+    started, ran = time.time(), []
+    sheets_live = False
+    try:
+        with open(os.path.join(ROOT, 'content', 'sheets.txt'), encoding='utf-8') as f:
+            sheets_live = any(l.strip() and not l.lstrip().startswith('#') for l in f)
+    except OSError:
+        pass
+
+    for stage in ORDER:
+        fp = fingerprint(stage, state)
+        if stage in RECORD and offline:
+            # nothing may be fetched or cut: the committed output must already match its inputs
+            if read_record(stage) != fp:
+                say(f'{stage}: its inputs changed since site/ was built ({os.path.relpath(RECORD[stage], ROOT)} does not match). '
+                    'Run ./build on a machine with the downloads and tippecanoe, and commit site/')
+                return 1
+            needed = False
+        elif stage == 'map':
+            needed = force or read_record(stage) != fp
+        else:
+            needed = force and not (stage == 'page' and 'page' in ran) or state['stages'].get(stage) != fp
+            if stage == 'data':
+                needed = needed or read_record(stage) != fp
+                if sheets_live:
+                    needed = True     # the sheets live on the web: only a run can tell whether they changed
+        if not needed:
+            say(f'{stage}: inputs unchanged, skipped')
+            save_state(state)
+            continue
+        say(f'{stage}: running' + (' (again, the map changed what it lists)' if stage == 'page' and 'page' in ran else ''))
+        t = time.time()
+        if not run_stage(stage):
+            save_state(state)
+            say(f'{stage}: FAILED')
+            return 1
+        ran.append(stage)
+        if stage == 'data':
+            fp = fingerprint(stage, state)      # the data stage also refreshes files among its own inputs: record the state it left
+        if stage in RECORD:
+            write_record(stage, fp)
+        if stage != 'map':
+            state['stages'][stage] = fp
+        save_state(state)
+        say(f'{stage}: done in {time.time() - t:.0f} s')
+
+    # a map older than its inputs (also found without tippecanoe, from the record that is committed with the site)
+    if read_record('map') != fingerprint('map', state):
+        say('map data is older than its inputs: run ./build --all with tippecanoe and commit site/map-next')
+        return 1
+    if not ran:
+        say('nothing to do: every input is unchanged since the last build')
+    else:
+        say(f'built ({", ".join(ran)}) in {time.time() - started:.0f} s')
+    if check and site_differs():
+        say('CHECK FAILED: commit the rebuilt site/ (./build, then git add site)')
+        return 1
+    if check:
+        say('check passed: site/ is what the build produces')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

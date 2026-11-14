@@ -8,6 +8,13 @@
 .kdp:focus-visible{outline:2px solid var(--hd);outline-offset:-2px;border-radius:6px}
 @keyframes kdIn{from{transform:scaleY(0);opacity:0}
 }
+/* D2: the last item of the depth row is the "back one level" control: arrow plus the interface's "Back" (same on phone and desktop) */
+.kdp.kdb{width:auto;min-width:44px;gap:.3rem;padding:0 .7rem 0 .45rem;margin-left:.35rem;border-radius:999px;color:var(--ink);font:600 .875rem/1 var(--sans)}
+.kdp.kdb svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--dc,currentColor);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.kdp.kdb:hover svg{transform:translateX(-2px)}
+.kdp.kdb svg{transition:transform .15s cubic-bezier(.2,.8,.2,1)}
+.kdp.kdb:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.kdp.kdb:focus-visible{outline:2px solid var(--hd);outline-offset:-2px}
 .crumbs{display:none!important}
 /* ---- wheel centre: mini ring = back ---- */
 .sbc{width:auto!important;max-width:none!important}
@@ -24,20 +31,34 @@
 @keyframes smHit{40%{transform:rotate(-40deg) scale(.82)}
 100%{transform:rotate(0) scale(1)}
 }
-/* ---- wheel layer transitions: one composited group, no per-arc tweens ---- */
+/* ---- wheel layer transitions (A3, dive into a family): two groups, transform and opacity only, no per-arc tweens.
+   qp sets transform-origin on both groups to the tapped slice's direction and --wr (a small turn, toward the slice).
+   Going in: the old wheel grows and turns away from the slice while fading, the family's rings grow out of the slice.
+   Going back: the reverse. Out 220 ms, in 300 ms starting at 60 ms: 360 ms in all. ---- */
 .sb svg g.lay,.sb svg g.lgone{transform-origin:0 0}
-.sb svg g.lay.win{animation:wIn .34s cubic-bezier(.2,.8,.2,1) both}
-.sb svg g.lay.wout{animation:wBack .34s cubic-bezier(.2,.8,.2,1) both}
-.sb svg g.lay.wfirst{animation:wIn .5s cubic-bezier(.2,.8,.2,1) both}
-.sb svg g.lgone{pointer-events:none;animation:wGone .2s ease-out forwards}
+.sb svg g.lay.win{animation:wIn .3s cubic-bezier(.2,.8,.2,1) .06s both}
+.sb svg g.lay.wout{animation:wBack .3s cubic-bezier(.2,.8,.2,1) .06s both}
+.sb svg g.lay.wfirst{animation:wFirst .5s cubic-bezier(.2,.8,.2,1) both}
+.sb svg g.lgone{pointer-events:none;animation:wGone .22s cubic-bezier(.2,.8,.2,1) forwards}
 .sb svg g.lgone.dn{animation-name:wGone2}
-@keyframes wIn{from{opacity:0;transform:scale(.82) rotate(-8deg)}
+@keyframes wIn{from{opacity:0;transform:rotate(var(--wr,-8deg)) scale(.5)}
 }
-@keyframes wBack{from{opacity:0;transform:scale(1.14) rotate(6deg)}
+@keyframes wBack{from{opacity:0;transform:rotate(var(--wr,8deg)) scale(1.7)}
 }
-@keyframes wGone{to{opacity:0;transform:scale(1.12)}
+@keyframes wFirst{from{opacity:0;transform:scale(.82) rotate(-8deg)}
 }
-@keyframes wGone2{to{opacity:0;transform:scale(.84)}
+@keyframes wGone{to{opacity:0;transform:rotate(var(--wr,-8deg)) scale(1.7)}
+}
+@keyframes wGone2{to{opacity:0;transform:rotate(var(--wr,8deg)) scale(.5)}
+}
+/* reduced motion: no movement, a plain fade of 100 ms (not when motion is switched off in the page's own settings) */
+@keyframes wFade{from{opacity:0}
+}
+@keyframes wFadeOut{to{opacity:0}
+}
+@media (prefers-reduced-motion:reduce){
+  html:not([data-motion=off]) .sb svg g.lay.wrm{animation:wFade .1s linear both!important}
+  html:not([data-motion=off]) .sb svg g.lgone.wrm{animation:wFadeOut .1s linear forwards!important}
 }
 /* ---- family row: one full-width row ---- */
 .wfam{display:flex!important;flex-wrap:nowrap!important;justify-content:stretch!important;gap:.4rem!important;width:100%!important;max-width:none!important;margin:.25rem 0 .5rem!important;padding:2px!important;-webkit-mask-image:none!important;mask-image:none!important;overflow:visible!important}
@@ -102,8 +123,8 @@ body{font-weight:400;letter-spacing:.005em}
 }
 
 /* ---- v67: minority areas are a solid lighter tint of the language's own colour (was see-through, which went muddy over the colour underneath) ---- */
-.mapbox path.zone.zmin{fill:color-mix(in srgb,var(--zc,transparent) 46%,var(--land))!important;fill-opacity:1}
-.mapbox path.zone.zplu{fill:color-mix(in srgb,var(--zc,transparent) 74%,var(--land))!important;fill-opacity:1}
+
+
 
 /* ---- v68: family names on the first map view are sized by the family's territory (--fk: 0 smallest .. 1 largest, set by the app) ---- */
 .mapbox .regn.fam{--f0:9px;--f1:12.5px;font-size:calc(var(--f0) + var(--fk,.6)*(var(--f1) - var(--f0)));letter-spacing:calc(.14em + var(--fk,.6)*.2em);stroke-width:.3em}
