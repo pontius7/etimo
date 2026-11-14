@@ -50,6 +50,7 @@ What produces each part of `site/`:
 | path in `site/` | produced by |
 |---|---|
 | `index.html` | `scripts/build-page.py`, from the files in `src/` |
+| `l/<language>/index.html` (a plain readable page per language, for search engines and sharing), `l/page.css`, `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `icon.svg` | `scripts/site_pages.py`, called by `build-page.py`; the site address is `SITE_URL` there |
 | `data/languages.json`, `lexicon.json`, `terr.json`, `dia.json` and the other map data | `scripts/merge/merge-data.py` |
 | `h/` (startup files, full dictionaries, search index, and the copies of `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`; all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` (`own_files()`) |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
@@ -84,6 +85,7 @@ src/                          the page's source (see "How the page is built")
 scripts/
   add-words.sh                THE build: fetch sheets, merge data, build the page, run every check
   build-page.py               joins src/ into site/index.html and fills the placeholders
+  site_pages.py               the readable language pages, robots.txt, sitemap.xml, manifest and icon
   build-regional.py           census and regional tables (run only when that source data changes)
   watch.py, watch.sh          rebuild whenever a file in content/ or src/ is saved
   hooks/                      optional commit check (refuses a commit if site/ is out of date)
