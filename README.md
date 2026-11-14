@@ -312,7 +312,7 @@ the preview.
 | `app/1-libraries-ui.js`, `app/3-libraries-map.js` | other people's libraries (React and the interface kit; d3 for the map). Not meant to be edited |
 | `app/2-app-text-and-tables.js` | every interface text in each language (`Zr`), the word categories, language and place names, region tabs |
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
-| `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search (written by hand, with readable names) |
+| `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search; `kWin` draws only the rows near the screen on long lists (language page, A-Z) and keeps the page length with two spacers (written by hand, with readable names) |
 | `app/6-app-screens-and-startup.js` | language page, tree, wheel, the map (`Dp`), settings, startup |
 | `app/7-language-colours.js` | the colour of every language, and how colours are lifted for dark mode |
 
