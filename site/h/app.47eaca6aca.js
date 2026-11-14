@@ -8993,7 +8993,14 @@ function Ra(e){let t=ya();
 return ka(e+" "+("en"===t?1===e?"language":"languages":"sr"===t?Vr(e,"jezik","jezika","jezika"):"sq"===t?"gjuhë":1===e?"Sprache":"Sprachen"))}
 function Oa(e,t){let n=ai(t);
 return Na(e)+", "+Ma(e)+" – "+t.word+(n?" ("+n+")":"")+" – "+Ta(t.meaning)}
-function Da(e){let t=String(e||"").toLowerCase().replace(/ß/g,"ss").replace(/[æǣǽ]/g,"ae").replace(/œ/g,"oe").replace(/[łƚɬ]/g,"l").replace(/[đðɖ]/g,"d").replace(/[øǿɵ]/g,"o").replace(/þ/g,"th").replace(/[ħɦ]/g,"h").replace(/[ŋɲɳ]/g,"n").replace(/[ɣɡ]/g,"g").replace(/ı/g,"i").replace(/[əǝɛ]/g,"e").replace(/[ʁʀɾɹ]/g,"r").replace(/χ/g,"x").replace(/[үұ]/g,"у").replace(/ө/g,"о").replace(/ң/g,"н").replace(/[қҝ]/g,"к").replace(/[ғҕ]/g,"г").replace(/[ҳһ]/g,"х").replace(/ә/g,"а").replace(/ҙ/g,"з").replace(/ҫ/g,"с").replace(/җ/g,"ж").replace(/ӏ/g,"i").replace(/[ɨɩɪ]/g,"i").replace(/[ɑɐ]/g,"a").replace(/[ɔɒ]/g,"o").replace(/β/g,"b").replace(/[ɯʉʊ]/g,"u").replace(/[эё]/g,"е").replace(/[ҥӈӊ]/g,"н").replace(/[ӄҡҟ]/g,"к").replace(/[ӆԓ]/g,"л").replace(/ӎ/g,"м").replace(/[ҷҹӌ]/g,"ч").replace(/ў/g,"у").replace(/[іїӣ]/g,"и").replace(/[ʃɕʂ]/g,"sh").replace(/[ʒʑʐ]/g,"zh").replace(/ɟ/g,"j").replace(/[ɫɭ]/g,"l").replace(/[ɽɻ]/g,"r").replace(/ʋ/g,"v").replace(/ɸ/g,"f").replace(/θ/g,"th");
+/* Da: the same result as the old chain of 46 replacements, in one pass (each of those letters maps to a fixed text and no
+   result is itself replaced later); text made only of plain letters, digits and spaces skips the rest, and text that is plain
+   ASCII after the map skips the accent steps (they cannot change it). Search runs this on every word. */
+const DaM={"ß":"ss","æ":"ae","ǣ":"ae","ǽ":"ae","œ":"oe","ł":"l","ƚ":"l","ɬ":"l","đ":"d","ð":"d","ɖ":"d","ø":"o","ǿ":"o","ɵ":"o","þ":"th","ħ":"h","ɦ":"h","ŋ":"n","ɲ":"n","ɳ":"n","ɣ":"g","ɡ":"g","ı":"i","ə":"e","ǝ":"e","ɛ":"e","ʁ":"r","ʀ":"r","ɾ":"r","ɹ":"r","χ":"x","ү":"у","ұ":"у","ө":"о","ң":"н","қ":"к","ҝ":"к","ғ":"г","ҕ":"г","ҳ":"х","һ":"х","ә":"а","ҙ":"з","ҫ":"с","җ":"ж","ӏ":"i","ɨ":"i","ɩ":"i","ɪ":"i","ɑ":"a","ɐ":"a","ɔ":"o","ɒ":"o","β":"b","ɯ":"u","ʉ":"u","ʊ":"u","э":"е","ё":"е","ҥ":"н","ӈ":"н","ӊ":"н","ӄ":"к","ҡ":"к","ҟ":"к","ӆ":"л","ԓ":"л","ӎ":"м","ҷ":"ч","ҹ":"ч","ӌ":"ч","ў":"у","і":"и","ї":"и","ӣ":"и","ʃ":"sh","ɕ":"sh","ʂ":"sh","ʒ":"zh","ʑ":"zh","ʐ":"zh","ɟ":"j","ɫ":"l","ɭ":"l","ɽ":"r","ɻ":"r","ʋ":"v","ɸ":"f","θ":"th"},DaR=/[ßæǣǽœłƚɬđðɖøǿɵþħɦŋɲɳɣɡıəǝɛʁʀɾɹχүұөңқҝғҕҳһәҙҫҗӏɨɩɪɑɐɔɒβɯʉʊэёҥӈӊӄҡҟӆԓӎҷҹӌўіїӣʃɕʂʒʑʐɟɫɭɽɻʋɸθ]/g,DaP=/^[a-z0-9 ]*$/,DaN=/[^\x00-\x7f]/;
+function Da(e){let t=String(e||"").toLowerCase();
+if(DaP.test(t))return t.replace(/ +/g," ").trim();
+t=t.replace(DaR,e=>DaM[e]);
+if(!DaN.test(t))return t.replace(/['"`]/g,"").replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
 return t.normalize("NFD").replace(/\p{M}/gu,"").replace(/[\u02b0-\u02ff\u1d2c-\u1dbf\u2018-\u201f'"`´ʼʻˮʔʕʿʾꞌ]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim()}
 function Fa(e){return(e=String(e||"").split(/[,;\/(]/)[0].toLowerCase().replace(/[łɬ]/g,"l").replace(/[øœ]/g,"o").replace(/[đð]/g,"d").replace(/æ/g,"ae").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"")).replace(/ə/g,"e").replace(/ı/g,"i").replace(/ŋ/g,"n").replace(/ħ/g,"h").replace(/ɣ/g,"g").replace(/[^a-z]/g,"")}
 function Ba(e,t){let n,
@@ -9022,6 +9029,26 @@ EK.keys(e.e.word).concat(e.e.lat?EK.keys(e.e.lat):[]).forEach(e=>t.add(e)),
 e._k=Array.from(t)}
 return e._k}
 let Ua=e=>e<=3||e<=6?1:e<=9?2:3;
+/* Search text of a word (its forms, its meaning and the meaning in the interface language, then its keys) and its meanings
+   one by one: worked out once per word and interface language, by the search itself or by the warm-up below. */
+function kSrT(e){return e._u!==ga.ui&&(e._u=ga.ui,e._f=Da(e.e.word+" "+(e.e.lat||"")+" "+(e.e.orig||"")+" "+e.e.meaning+" "+Ta(e.e.meaning)),e._s=e._f+" "+Ga(e).join(" ")),e._s}
+function kSrM(e){return e._mu!==ga.ui&&(e._mu=ga.ui,e._m=Array.from(new Set((e.e.meaning+", "+Ta(e.e.meaning)).split(/,\s*/).map(e=>Da(e.replace(/\(.*?\)/g,"")).trim()).filter(Boolean)))),e._m}
+/* Search warm-up. The first search needs the search text of every word (about 79,000); done in one go that froze the page
+   for seconds on a phone. kSrW() prepares it in the background, a few ms at a time, and answers whether all of it is ready;
+   kSrW(f) also calls f once it is. It starts over when the word list or the interface language changes. */
+let kSrS={p:null,u:null,n:0,on:0,f:[]};
+function kSrW(f){let S=kSrS,fresh=()=>{(S.p!==pa||S.u!==ga.ui)&&(S.p=pa,S.u=ga.ui,S.n=0)};
+fresh();
+if(S.n>=pa.length)return!0;
+f&&S.f.push(f);
+if(!S.on){S.on=1;
+let step=()=>{fresh();
+let t=performance.now();
+for(;S.n<pa.length&&performance.now()-t<8;){let e=pa[S.n++];kSrT(e),kSrM(e)}
+if(S.n<pa.length)setTimeout(step,0);
+else{S.on=0;let c=S.f;S.f=[];c.forEach(e=>e())}};
+setTimeout(step,0)}
+return!1}
 function Ha(e){let t=/\s$/.test(String(e)),
 n=String(e).trim(),
 r=Da(e=n.replace(/([а-яёА-ЯЁ])[IӀӏ1lІі|](?=[а-яёА-ЯЁ]|$)/g,"$1ӏ")),
@@ -9034,12 +9061,14 @@ sim:[],
 dym:[]};
 let o=Object.keys(ia).filter(e=>ha[e].length&&s.some(n=>(" "+Da(e+" "+La(e)).replace(/[()]/g," ")+" ").indexOf(" "+n+(t?" ":""))>-1)).sort((e,t)=>(Da(La(e))!==r)-(Da(La(t))!==r)||Da(La(e)).length-Da(La(t)).length),
 l=[];
-if(pa.forEach(e=>{let t=(e._u!==ga.ui&&(e._u=ga.ui,e._f=Da(e.e.word+" "+(e.e.lat||"")+" "+(e.e.orig||"")+" "+e.e.meaning+" "+Ta(e.e.meaning))),e._f+" "+Ga(e).join(" "));
+if(pa.forEach(e=>{let t=kSrT(e);
 if(!s.some(e=>t.indexOf(e)>-1))return;
-let n=Ga(e),r=(e._mu!==ga.ui&&(e._mu=ga.ui,e._m=Array.from(new Set((e.e.meaning+", "+Ta(e.e.meaning)).split(/,\s*/).map(e=>Da(e.replace(/\(.*?\)/g,"")).trim()).filter(Boolean)))),e._m),a=6;
+let n=Ga(e),r=kSrM(e),a=6;
 for(let e of s)a=n.some(t=>t===e)?Math.min(a,0):r.some(t=>t===e)?Math.min(a,1):n.some(t=>t.startsWith(e))?Math.min(a,2):r.some(t=>t.split(" ").some(t=>t===e))?Math.min(a,3):r.some(t=>t.split(" ").some(t=>t.startsWith(e)))?Math.min(a,4):Math.min(a,5);
 l.push([a,e])}),(()=>{let t=e.toLowerCase(),n=e=>String(e.e.word).replace(/[IӀ1]/g,"ӏ").toLowerCase().split(/[,;]\s*/).includes(t)?0:Da(e.e.lat||"").split(" ").includes(r)?1:2;
-l.sort((e,t)=>e[0]-t[0]||n(e[1])-n(t[1])||String(e[1].e.word).length-String(t[1].e.word).length||Na(e[1].L).localeCompare(Na(t[1].L),Ia()))})(),t){let e=l.filter(e=>0===e[0]||1===e[0]||3===e[0]);
+/* same order as before; each hit's keys are worked out once (not on every comparison), names compared by one collator */
+let k=e=>void 0===e[2]?e[2]=n(e[1]):e[2],w=e=>void 0===e[3]?e[3]=Na(e[1].L):e[3],c=new Intl.Collator(Ia());
+l.sort((e,t)=>e[0]-t[0]||k(e)-k(t)||String(e[1].e.word).length-String(t[1].e.word).length||c.compare(w(e),w(t)))})(),t){let e=l.filter(e=>0===e[0]||1===e[0]||3===e[0]);
 e.length&&(l=e)}
 let u=l.map(e=>e[1]),
 c=[];
@@ -9207,7 +9236,7 @@ function di({s:e,q:t}){if(!t)return(0,f.jsx)(f.Fragment,{children:e});
 let n=e.toLowerCase().indexOf(t.toLowerCase());
 return n<0?(0,f.jsx)(f.Fragment,{children:e}):(0,f.jsxs)(f.Fragment,{children:[e.slice(0,n),(0,f.jsx)("mark",{children:e.slice(n,n+t.length)}),e.slice(n+t.length)]})}
 function hi(e,t){return"w"+e.entries.indexOf(t)+"-"+e.id.slice(2)}
-function fi({x:e,q:t=""}){return(0,f.jsx)("button",{type:"button",className:"row",onClick:()=>{Qa(mi.q||""),Ja(hi(e.L,e.e))},children:(0,f.jsxs)("span",{className:"m",children:[(0,f.jsxs)("span",{className:"t",children:[(0,f.jsx)("span",{className:"dot "+e.L.family}),(0,f.jsx)("span",{children:(0,f.jsx)(di,{s:e.e.word,q:t})}),ai(e.e)?(0,f.jsxs)(f.Fragment,{children:[" ",(0,f.jsx)("span",{className:"pr pri",children:(0,f.jsx)(di,{s:ai(e.e),q:t})})]}):null]}),(0,f.jsxs)("span",{className:"s",children:[(0,f.jsx)(di,{s:Ta(e.e.meaning),q:t})," · ",Na(e.L)]})]})})}
+function fi({x:e,q:t="",di:DI}){return(0,f.jsx)("button",{type:"button",className:"row","data-i":DI,onClick:()=>{Qa(mi.q||""),Ja(hi(e.L,e.e))},children:(0,f.jsxs)("span",{className:"m",children:[(0,f.jsxs)("span",{className:"t",children:[(0,f.jsx)("span",{className:"dot "+e.L.family}),(0,f.jsx)("span",{children:(0,f.jsx)(di,{s:e.e.word,q:t})}),ai(e.e)?(0,f.jsxs)(f.Fragment,{children:[" ",(0,f.jsx)("span",{className:"pr pri",children:(0,f.jsx)(di,{s:ai(e.e),q:t})})]}):null]}),(0,f.jsxs)("span",{className:"s",children:[(0,f.jsx)(di,{s:Ta(e.e.meaning),q:t})," · ",Na(e.L)]})]})})}
 function pi(){let[e,t]=(0,m.useState)(!1);
 return{done:e,
 copy:function(e){let n=()=>{t(!0),
@@ -12592,10 +12621,15 @@ m=d("aIIwE");
 function Yh(e){return(0,f.jsxs)("div",{className:"fdw",children:[(0,f.jsx)(FDYh,e),(0,f.jsx)(FDresults,{q:e.q,fam:e.fam})]})}
 function FDYh({q:e,fam:t="all",onPick:n}){let r=ja(),
 [a,i]=(0,m.useState)(80),
-s=(0,m.useMemo)(()=>Ha(e),[e,r]),
-o=!s.hits.length&&s.dym.length?s.dym[0]:null,
+w=kSrW(),
+[,wk]=(0,m.useState)(0);
+/* results wait for the search warm-up (kSrW) instead of freezing the page while every word is prepared */
+(0,m.useEffect)(()=>{if(w)return;let live=1;kSrW(()=>live&&wk(e=>e+1));return()=>{live=0}},[w,r]);
+let s=(0,m.useMemo)(()=>w?Ha(e):null,[e,r,w]),
+o=s&&!s.hits.length&&s.dym.length?s.dym[0]:null,
 l=(0,m.useMemo)(()=>o?Object.assign({},s,{ms:[o],hits:Ha(La(o)).hits}):s,[s,o]);
 (0,m.useEffect)(()=>i(80),[e,t]);
+if(!l)return null;
 let u=e=>"all"===t?e:e.filter(e=>e.L.family===t),
 c=u(l.hits),
 d=u(l.sim);
@@ -12607,6 +12641,7 @@ function Jh(){let e=ja(),
 [i,s]=(0,m.useState)("all"),
 o=(0,m.useDeferredValue)(r.replace(/^\s+/,"").replace(/\s+$/," "));
 (0,m.useEffect)(()=>{mi.sq=r},[r]);
+(0,m.useEffect)(()=>{kSrW()},[]);
 let l=Za();
 return(0,f.jsxs)("div",{className:"view srch",children:[(0,f.jsx)(ui,{id:"sq",value:r,onChange:a,ph:"l"===t?e.ph.lang:e.ph.all,recent:"l"!==t,autoFocus:!0}),(0,f.jsx)(Tp,{v:t,on:e=>{mi.sm=e,n(e)}}),"l"===t?(0,f.jsx)(Ap,{q:o}):o?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"chips fchips",children:["all"].concat(la).map(t=>(0,f.jsx)("button",{type:"button","aria-pressed":i===t,onClick:()=>s(t),children:"all"===t?e.allF:(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("i",{className:"dot "+t}),Ca(t)]})},t))}),(0,f.jsx)(Yh,{q:o,fam:i,onPick:a})]}):(0,f.jsxs)("div",{className:"sidle",children:[l.length?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("p",{className:"gh",children:e.recent}),(0,f.jsx)("div",{className:"chipsc",children:l.map(e=>(0,f.jsx)("button",{type:"button",className:"qchip",onClick:()=>a(e),children:e},e))})]}):null,(0,f.jsx)("div",{className:"sbg",children:aa.map(t=>(0,f.jsxs)("button",{type:"button",className:"kt sbt",onClick:e=>li(e,"c-"+t),children:[(0,f.jsx)("span",{className:"kn",children:e.cat[t]}),(0,f.jsx)("span",{className:"kb",children:rp(t)})]},t))})]})]})}
 function Xh(e){return e}
@@ -13186,6 +13221,63 @@ const FDt = k => {
   }[k];
   return ka(t[ya()] || t.en);
 };
+/* Long lists draw only the rows near the screen. kWin(n, key, est) -> {ref, a, b, top, bot}:
+   ref goes on the list box; rows a..b-1 are drawn between two spacers (heights top, bot) that stand in for the others, so the page keeps
+   its length. The first element of every row carries data-i = row number (rows are measured from it). A row that is not measured
+   yet counts as the average measured row (est before any). key names the list: heights stay remembered while it stays the same.
+   A sticky heading (class letter) may be the first element of a row: its row starts where the next element starts minus its height.
+   An element with data-d is a repeated heading (A-Z); its height is subtracted from the top spacer by the caller (KWD).
+   When a measured height moves rows above the screen the scroll position is corrected by the shift, so nothing jumps. */
+let KWC = {k: '', w: 0, h: []}, KWD = 0;
+/* On a scroll the new rows are drawn at once, in the same frame (the browser sends one scroll event per frame, before it paints):
+   a fast drag of the scrollbar never shows an empty screen. React's flushSync; a plain call if it is ever missing. */
+const KWF = f => { let s = d("2b9p0").flushSync; s ? s(f) : f(); };
+function kWin(n, key, est) {
+  let ref = (0, m.useRef)(null), an = (0, m.useRef)(null), cur = (0, m.useRef)(null), [rg, setRg] = (0, m.useState)([0, 40, key]), [, tick] = (0, m.useState)(0);
+  if (KWC.k !== key || KWC.w !== innerWidth) KWC = {k: key, w: innerWidth, h: []};
+  let r = rg[2] === key ? rg : [0, 40, key], a = Math.min(r[0], n), b = Math.min(r[1], n), avg = () => { let s = 0, c = 0; for (let x of KWC.h) if (x > 0) { s += x; c++; } return c ? s / c : est; }, av = avg(), t = 0, u = 0;
+  for (let i = 0; i < n; i++) { let h = KWC.h[i] || av; if (i < a) t += h; else if (i >= b) u += h; }
+  cur.current = {r, n, key};
+  let cap = () => {
+    let el = ref.current;
+    if (!el) return;
+    for (let e of el.children) if (e.dataset.i != null && !e.classList.contains('letter')) { let q = e.getBoundingClientRect(); if (q.bottom > 0) { an.current = {i: e.dataset.i, y: q.top, s: scrollY}; return; } }
+  };
+  let calc = now => {
+    let el = ref.current, C = cur.current;
+    if (!el || !C) return;
+    let q = el.getBoundingClientRect(), vh = innerHeight, lo = -q.top - vh * 1.5, hi = -q.top + vh * 2.5, v = avg(), y = 0, x = -1, z = C.n;
+    for (let i = 0; i < C.n; i++) { let h = KWC.h[i] || v; if (x < 0 && y + h > lo) x = i; if (y > hi) { z = i; break; } y += h; }
+    if (x < 0) x = Math.max(0, C.n - 30);
+    x = Math.floor(x / 8) * 8; z = Math.min(C.n, Math.max(Math.ceil(z / 8) * 8, x + 8));
+    if (x !== Math.min(C.r[0], C.n) || z !== Math.min(C.r[1], C.n) || C.r[2] !== C.key) { cap(); now ? KWF(() => setRg([x, z, C.key])) : setRg([x, z, C.key]); }
+  };
+  (0, m.useLayoutEffect)(() => {
+    let el = ref.current;
+    if (!el) return;
+    let A = an.current;
+    an.current = null;
+    if (A) {
+      let e = el.querySelector('[data-i="' + A.i + '"]');
+      if (e) { let j = e.getBoundingClientRect().top - (A.y - (scrollY - A.s)); if (Math.abs(j) > 1) scrollTo({top: scrollY + j, behavior: 'instant'}); }
+    }
+    let rows = [], ch = false, dd = el.querySelector('[data-d]');
+    for (let e of el.children) if (e.dataset.i != null) rows.push([+e.dataset.i, e.classList.contains('letter') ? e.nextElementSibling.getBoundingClientRect().top - e.getBoundingClientRect().height : e.getBoundingClientRect().top]);
+    let end = el.lastElementChild ? el.lastElementChild.getBoundingClientRect().top : 0;
+    rows.forEach((x, j) => { let h = (j + 1 < rows.length ? rows[j + 1][1] : end) - x[1]; if (h > 0 && Math.abs((KWC.h[x[0]] || 0) - h) > .5) { KWC.h[x[0]] = h; ch = true; } });
+    if (dd && Math.abs(dd.offsetHeight - KWD) > .5) { KWD = dd.offsetHeight; ch = true; }
+    if (ch) { cap(); tick(x => x + 1); } else calc();
+  });
+  (0, m.useEffect)(() => {
+    let q = 0, go = () => { q || (q = requestAnimationFrame(() => { q = 0; calc(); })); }, sc = () => calc(1);
+    document.documentElement.style.overflowAnchor = 'none'; /* the browser's own scroll anchoring would correct a second time */
+    addEventListener('scroll', sc, {passive: true}); addEventListener('resize', go);
+    return () => { document.documentElement.style.overflowAnchor = ''; removeEventListener('scroll', sc); removeEventListener('resize', go); cancelAnimationFrame(q); };
+  }, []);
+  return {ref, a, b, top: t, bot: u};
+}
+/* the two spacers of a windowed list */
+const kSp = (k, h) => (0, f.jsx)('div', {key: k, 'aria-hidden': true, style: {height: Math.max(0, h), flexShrink: 0}});
 const FDnum = n => n.toLocaleString(Ia());
 /* one language's dictionary file -> {s, e, k (keys, built on first search)} */
 function FDload(L) {
@@ -13400,6 +13492,7 @@ let u="all"===a?e.entries:e.entries.filter(e=>e.cats[a]),
 c=Da(s.trim()),
 FQ=FDq(s),
 d=c?u.filter(e=>Da(e.word+" "+(e.lat||"")+" "+e.meaning+" "+Ta(e.meaning)).indexOf(c)>-1||FDcoreMatch(e,FQ)):u,
+KW=kWin(d.length,e.id+"|"+a+"|"+s.trim(),66),
 h=ua.slice().sort((e,t)=>Na(e).localeCompare(Na(t),Ia())),
 p=h.indexOf(e),
 g=r.sp,
@@ -13410,7 +13503,7 @@ return(0,f.jsxs)("div",{className:"view lview",style:window.__hdv?window.__hdv(e
 D&&Object.keys(D).forEach(k=>{C.some(c=>c.k===k)||C.push({k:k,t:""})});
 return C.length?(0,f.jsx)("div",{className:"cenl",children:C.map((c,t)=>(0,f.jsxs)("p",{children:[(0,f.jsx)("b",{children:window.__cnm?window.__cnm(c.k,za):za(c.k)}),c.t,D&&D[c.k]?(0,f.jsx)("span",{className:"cdia",children:D[c.k].map(d=>(0,f.jsxs)("span",{className:"cdi",children:[(0,f.jsx)("i",{style:{background:d[1]}}),d[0]]},d[0]))}):null]},t))}):null})(),void 0!==r.dialectOf&&r.cls&&r.cls.length?(0,f.jsx)("div",{className:"clsl",children:r.cls.map((e,t)=>(0,f.jsxs)("p",{children:[(0,f.jsx)("b",{children:za(e[0])})," · "+za(e[1])]},t))}):null]}),(0,f.jsx)("div",{className:"lsearch",children:(0,f.jsx)(ui,{id:"wq",value:s,onChange:o,ph:n.findIn(Na(e))})}),(0,f.jsx)("div",{className:"ltiles",role:"tablist",children:["all",...aa].map(e=>(0,f.jsx)("button",{type:"button",role:"tab","aria-selected":e===a,className:"lt"+(e===a?" on":""),onClick:()=>{mi.cat=e;
 try{localStorage.setItem("khl-cat",e)}catch{}
-i(e),t&&t()},children:"all"===e?n.allF:n.cat[e]},e))}),(0,f.jsx)("div",{className:"lrows",children:d.length?d.map((t,n)=>(0,f.jsxs)("button",{type:"button",className:"wr",onClick:()=>Ja(hi(e,t)),children:[(0,f.jsx)("span",{className:"wk",children:1===t.cs.length&&t.meaning.indexOf(", ")>-1?La(t.cs[0]):Ta(t.meaning)}),(0,f.jsxs)("span",{className:"wv",children:[(0,f.jsx)("b",{children:t.word}),ai(t)?(0,f.jsx)("small",{className:"pr",children:ai(t)}):null]})]},n)):(0,f.jsx)("p",{className:"empty",children:n.none})}),(0,f.jsx)(FDsection,{L:e,q:s,d:FDd}),(0,f.jsx)("button",{type:"button",className:"minimap",ref:l,"aria-label":n.showMap,onClick:()=>Ja("map-"+e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})}),(0,f.jsx)(bp,{prev:p>0?[h[p-1].id,Na(h[p-1])]:null,next:p<h.length-1?[h[p+1].id,Na(h[p+1])]:null}),(0,f.jsxs)("p",{className:"note",children:[n.sources,": ",y.join(" · ")]})]})}
+i(e),t&&t()},children:"all"===e?n.allF:n.cat[e]},e))}),(0,f.jsx)("div",{className:"lrows",ref:KW.ref,children:d.length?[kSp("kt",KW.top)].concat(d.slice(KW.a,KW.b).map((t,n)=>(0,f.jsxs)("button",{type:"button",className:"wr","data-i":KW.a+n,onClick:()=>Ja(hi(e,t)),children:[(0,f.jsx)("span",{className:"wk",children:1===t.cs.length&&t.meaning.indexOf(", ")>-1?La(t.cs[0]):Ta(t.meaning)}),(0,f.jsxs)("span",{className:"wv",children:[(0,f.jsx)("b",{children:t.word}),ai(t)?(0,f.jsx)("small",{className:"pr",children:ai(t)}):null]})]},KW.a+n)),[kSp("kb",KW.bot)]):(0,f.jsx)("p",{className:"empty",children:n.none})}),(0,f.jsx)(FDsection,{L:e,q:s,d:FDd}),(0,f.jsx)("button",{type:"button",className:"minimap",ref:l,"aria-label":n.showMap,onClick:()=>Ja("map-"+e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})}),(0,f.jsx)(bp,{prev:p>0?[h[p-1].id,Na(h[p-1])]:null,next:p<h.length-1?[h[p+1].id,Na(h[p+1])]:null}),(0,f.jsxs)("p",{className:"note",children:[n.sources,": ",y.join(" · ")]})]})}
 function wp(){let e=ja(),
 [t,n]=(0,m.useState)(mi.reg),
 [r,a]=(0,m.useState)(mi.azL),
@@ -13425,9 +13518,9 @@ l.forEach(e=>{u[o(e)]=1});
 let c=Object.keys(u).sort(),
 d="all"===r||u[r]?r:"all",
 h="all"===d?l:l.filter(e=>o(e)===d),
-p="";
-return(0,f.jsxs)("div",{className:"view",children:[(0,f.jsx)("div",{className:"regs",children:["all","west","ital","cee","east","nord","balk","grk","cauc","dag","volga","iran","casia","casia2","sib"].map(r=>(0,f.jsx)("button",{type:"button","aria-pressed":t===r,onClick:()=>{n(r),s(300)},children:"all"===r?e.allF:e.reg[r]},r))}),(0,f.jsxs)("div",{className:"lets",children:[(0,f.jsx)("button",{type:"button","aria-pressed":"all"===d,onClick:()=>{a("all"),s(300)},children:e.allF}),c.map(e=>(0,f.jsx)("button",{type:"button","aria-pressed":d===e,onClick:()=>{a(e),s(300)},children:e},e))]}),(0,f.jsx)("div",{className:"rows",children:h.slice(0,i).map((e,t)=>{let n=o(e),r=n!==p;
-return p=n,(0,f.jsxs)("div",{style:{display:"contents"},children:[r?(0,f.jsx)("div",{className:"letter",children:n}):null,(0,f.jsx)(fi,{x:e})]},t)})}),h.length>i?(0,f.jsx)("button",{type:"button",className:"more",onClick:()=>s(i+300),children:e.more(Math.min(300,h.length-i))}):null]})}
+KW=kWin(Math.min(h.length,i),t+"|"+d,75);
+return(0,f.jsxs)("div",{className:"view",children:[(0,f.jsx)("div",{className:"regs",children:["all","west","ital","cee","east","nord","balk","grk","cauc","dag","volga","iran","casia","casia2","sib"].map(r=>(0,f.jsx)("button",{type:"button","aria-pressed":t===r,onClick:()=>{n(r),s(300)},children:"all"===r?e.allF:e.reg[r]},r))}),(0,f.jsxs)("div",{className:"lets",children:[(0,f.jsx)("button",{type:"button","aria-pressed":"all"===d,onClick:()=>{a("all"),s(300)},children:e.allF}),c.map(e=>(0,f.jsx)("button",{type:"button","aria-pressed":d===e,onClick:()=>{a(e),s(300)},children:e},e))]}),(0,f.jsx)("div",{className:"rows",ref:KW.ref,children:[kSp("kt",KW.top-(KW.a>0&&o(h[KW.a])===o(h[KW.a-1])?KWD:0))].concat(KW.a>0&&o(h[KW.a])===o(h[KW.a-1])?[(0,f.jsx)("div",{className:"letter","data-d":1,children:o(h[KW.a]),key:"kd"})]:[],h.slice(KW.a,KW.b).map((e,t)=>{let x=KW.a+t,n=o(e),r=x<1||n!==o(h[x-1]);
+return[r?(0,f.jsx)("div",{className:"letter","data-i":x,children:n,key:"h"+x}):null,(0,f.jsx)(fi,{x:e,di:r?void 0:x,key:x})]}).flat(),[kSp("kb",KW.bot)])}),h.length>i?(0,f.jsx)("button",{type:"button",className:"more",onClick:()=>s(i+300),children:e.more(Math.min(300,h.length-i))}):null]})}
 function xp({L:e,e:t}){let n=ja(),
 r=(e.info,(0,m.useRef)(null)),
 {done:a,
@@ -13499,7 +13592,8 @@ rm=Ya();
 e.querySelectorAll(":scope > svg").forEach(x=>x.remove());
 let g0=Math.min(e.clientWidth,620,Math.max(280,innerHeight-150)),
 v=g0/2,
-R=v-3;
+R=v-3,
+PRV=null,LT=0,DN=0;
 e.style.height=g0+"px";
 let y=ws(e).insert("svg",":first-child").attr("viewBox",[-v,-v,g0,g0]).attr("width",g0).attr("height",g0).attr("role","group").attr("aria-label",l.nav.tree),
 arc=lh().startAngle(d=>d.a0).endAngle(d=>d.a1).padAngle(.007).padRadius(R*.6).innerRadius(d=>d.r0).outerRadius(d=>d.r1).cornerRadius(3.5),
@@ -13590,14 +13684,32 @@ sm.onclick=()=>{sm.classList.remove("hit"),
 sm.offsetWidth,
 sm.classList.add("hit");
 root.depth&&setTimeout(()=>r(root.parent),rm?0:140)}}
-let dir=null==PD?0:root.depth>PD?1:root.depth<PD?-1:0;
+let off="off"===document.documentElement.getAttribute("data-motion"),
+red=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches),
+dir=null==PD?0:root.depth>PD?1:root.depth<PD?-1:0;
 PD=root.depth;
-if(rm||!dir)y.selectAll("g.lay,g.lgone").remove();
+DN++;
+/* A3, dive into a family: the outgoing layer and the incoming layer are two groups moved with transform and opacity only.
+   Origin = the tapped slice (going in: its place in the old wheel; going back: the family's place in the wheel that returns),
+   found from the angles of the layout that was on screen. A second tap before the first has settled drops the leftover
+   layers at once, so no half state stays. */
+let SP=(arr,nd)=>{let q=arr&&nd&&arr.find(z=>"rim"!==z.kind&&"tick"!==z.kind&&z.d===nd);
+for(let n=nd&&nd.parent;arr&&!q&&n;n=n.parent)q=arr.find(z=>"rim"!==z.kind&&"tick"!==z.kind&&z.d===n);
+if(!q)return null;
+let m=(q.a0+q.a1)/2;
+return{sx:Math.sin(m),sy:-Math.cos(m)}},
+OR=dir>0?SP(PRV&&PRV.arcs,root):dir<0?SP(arcs,PRV&&PRV.root):null,
+WR=OR?(OR.sx>=0?-9:9)+"deg":"-8deg",
+setO=(sel,k)=>sel.style("transform-origin",OR?(OR.sx*R*k).toFixed(1)+"px "+(OR.sy*R*k).toFixed(1)+"px":"0px 0px").style("--wr",WR);
+if(off||!dir||performance.now()-LT<320)y.selectAll("g.lay,g.lgone").remove();
 else{y.selectAll("g.lgone").remove();
-let og=y.selectAll("g.lay").attr("class","lgone"+(dir<0?" dn":""));
-setTimeout(()=>og.remove(),220)}
-let G=y.append("g").attr("class","lay"+(TOP?" wtop":"")+(rm?"":dir>0?" win":dir<0?" wout":" wfirst")),
+let og=y.selectAll("g.lay").attr("class","lgone"+(dir<0?" dn":"")+(red?" wrm":""));
+setO(og,dir>0?.6:.55);
+setTimeout(()=>og.remove(),red?140:260)}
+LT=performance.now();
+let G=y.append("g").attr("class","lay"+(TOP?" wtop":"")+(off?"":red?" wrm":dir>0?" win":dir<0?" wout":" wfirst")),
 P=G.append("g").selectAll("path").data(arcs).join("path").attr("class",q=>"wa "+q.kind).attr("fill",col).attr("tabindex",0).attr("role","button").attr("aria-label",q=>q.d.data.name+(q.d.data.L?"":" · "+q.d.value)),
+SO=off||!dir?0:setO(G,.5),
 LB=G.append("g").attr("pointer-events","none"),
 OUTL=0,
 OUTS=[];
@@ -13625,7 +13737,7 @@ let dg=ph*180/Math.PI,lf=ph>Math.PI;
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("dy","0.35em").attr("font-size",g2.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+((q.r0+q.r1)/2).toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(g2.t);
 return}
 if(!f)return;
-let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+ix;
+let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+DN+"_"+ix;
 LB.append("path").attr("id",id).attr("fill","none").attr("d","M"+FX(A0)+"A"+rb.toFixed(1)+","+rb.toFixed(1)+" 0 0 "+(tp?1:0)+" "+FX(A1));
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
 P.attr("d",arc);
@@ -13633,7 +13745,7 @@ P.attr("d",arc);
 B=0;
 if(OUTS.length){let FS=g0>560?13:12,
 RH=FS+5,
-HW=Math.max(v,innerWidth/2-8),
+HW=(()=>{let bb=e.getBoundingClientRect(),c=bb.left+bb.width/2;return Math.max(60,Math.min(c-8,innerWidth-c-8))})(),
 cv=document.createElement("canvas").getContext("2d");
 cv.font="500 "+FS+"px Manrope, system-ui, sans-serif";
 let lay=(grp,sgn)=>{let L=grp.map(o=>{let x=R*Math.sin(o.ph),yr=-R*Math.cos(o.ph),w=cv.measureText(o.nm).width+2;
@@ -13642,8 +13754,8 @@ let placed=[];
 L.forEach(o=>{let cs=[];
 if(Math.abs(o.x)<.35*R){let c=Math.max(-HW+o.w/2,Math.min(HW-o.w/2,o.x));
 cs.push({an:"middle",tx:c,a0:c-o.w/2,a1:c+o.w/2})}
-if(o.x<0){let a0=Math.max(-HW,o.x-3);
-cs.push({an:"start",tx:a0,a0,a1:a0+o.w})}else{let a1=Math.min(HW,o.x+3);
+if(o.x<0){let a0=Math.min(HW-o.w,Math.max(-HW,o.x-3));
+cs.push({an:"start",tx:a0,a0,a1:a0+o.w})}else{let a1=Math.max(-HW+o.w,Math.min(HW,o.x+3));
 cs.push({an:"end",tx:a1,a0:a1-o.w,a1})}
 for(let r=0;r<14;r++)for(const c of cs){let a0=c.a0-5,a1=c.a1+5;
 let ok=placed.every(p=>{if(p.r===r&&!(a1<p.a0||a0>p.a1))return!1;
@@ -13741,16 +13853,19 @@ paint()}};
 P.on("click",(ev,q)=>act(q)).on("keydown",(ev,q)=>{("Enter"===ev.key||" "===ev.key)&&(ev.preventDefault(),act(q))}).on("pointerenter",(ev,q)=>{"mouse"===ev.pointerType&&(a.hidden=!1,a.textContent=q.d.data.name+(q.d.data.L?"":" · "+q.d.value))}).on("pointerleave",ev=>{"mouse"===ev.pointerType&&paint()});
 Ep&&arcs.some(x=>"leaf"===x.kind&&x.d.data.L.id===Ep)&&(SL=Ep,Ep=null),
 paint(),
-TOP&&!rm&&P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>1100+260*j+"ms");
+PRV={root,arcs};
+/* A4d: the first-draw sweep runs once per visit (WSW outlives this wheel), under 900 ms in all */
+TOP&&!rm&&!WSW&&(WSW=1,P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>500+40*j+"ms"));
 },
 destroy(){y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
-var Ep=null;
+var Ep=null,WSW=0;
 function zp(e){if(!Ep)return e;
 let t=e.leaves().find(e=>e.data.L&&e.data.L.id===Ep);
 return t&&(t.ancestors().find(e=>e.depth===Math.min(2,t.depth-1))||t.parent)||e}
-function Np({path:e,go:t,lbl:n}){let r=e.slice(1);
+function Np({path:e,go:t,lbl:n,back:bk}){let r=e.slice(1);
 return(0,f.jsx)("nav",{className:"kdep","aria-label":n,children:r.map((a,i)=>{let s=i===r.length-1,o=s?e[i]:a;
-return(0,f.jsx)("button",{type:"button",className:"kdp"+(s?" cur":""),style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":(s?"↑ ":"")+(o.depth?o.data.name:n),title:a.data.name,onClick:()=>t(o),children:(0,f.jsx)("i",{})},i)})})}
+/* D2: the last item goes back one level; it carries an arrow and the interface's "Back" so it reads as a control */
+return s?(0,f.jsxs)("button",{type:"button",className:"kdp cur kdb",style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":(bk||"Back")+" · "+(o.depth?o.data.name:n),title:a.data.name,onClick:()=>t(o),children:[(0,f.jsx)("svg",{viewBox:"0 0 24 24","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M15 6l-6 6 6 6"})}),(0,f.jsx)("span",{children:bk||"Back"})]},i):(0,f.jsx)("button",{type:"button",className:"kdp",style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":o.depth?o.data.name:n,title:a.data.name,onClick:()=>t(o),children:(0,f.jsx)("i",{})},i)})})}
 function Mp({root:e,cur:t,go:n}){let r=t.ancestors();
 return(0,f.jsx)("div",{className:"wfam",role:"tablist",children:(e.children||[]).map(a=>{let i=r.includes(a);
 return(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":i,onClick:()=>n(i&&t===a?e:a),style:{"--wf":Mf(If(a.fam),a)||""},children:[(0,f.jsx)("i",{}),(0,f.jsx)("span",{children:a.data.name})]},a.data.name)})})}
@@ -13840,7 +13955,7 @@ return e.observe(document.documentElement,{attributes:!0,attributeFilter:["data-
 let b=u.ancestors().reverse(),
 y=((u.children||[]).filter(e=>!e.data.L),Da(s.trim()));
 u.leaves().map(e=>e.data.L).sort((e,t)=>Na(e).localeCompare(Na(t),Ia())).filter(e=>!y||Da(Na(e)+" "+Ma(e)+" "+e.lang+" "+(e.info&&e.info.an||"")).indexOf(y)>-1);
-return(0,f.jsxs)("div",{className:"view"+("tree"===a?" tvtree":""),id:"langs",children:[(0,f.jsx)("div",{className:"lmrow",children:(0,f.jsxs)("div",{className:"lm tvs",role:"tablist",children:[(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"wheel"===a,onClick:()=>i("wheel"),children:[(0,f.jsx)(si,{n:"wheel"}),(0,f.jsx)("span",{children:r.wheel})]}),(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"tree"===a,onClick:()=>i("tree"),children:[(0,f.jsx)(si,{n:"tree"}),(0,f.jsx)("span",{children:r.tree})]})]})}),"tree"===a?(0,f.jsx)(Lp,{s:l}):(0,f.jsxs)("div",{className:"sbwrap",children:[(0,f.jsx)(Mp,{root:l,cur:u,go:c}),(0,f.jsx)(Np,{path:b,go:c,lbl:r.nav.tree}),(0,f.jsx)("div",{className:"sb",ref:d,children:(0,f.jsx)("div",{className:"sbc",ref:p})}),(0,f.jsx)("p",{className:"sbh",ref:h,hidden:!0,children:""})]}),null]})}
+return(0,f.jsxs)("div",{className:"view"+("tree"===a?" tvtree":""),id:"langs",children:[(0,f.jsx)("div",{className:"lmrow",children:(0,f.jsxs)("div",{className:"lm tvs",role:"tablist",children:[(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"wheel"===a,onClick:()=>i("wheel"),children:[(0,f.jsx)(si,{n:"wheel"}),(0,f.jsx)("span",{children:r.wheel})]}),(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"tree"===a,onClick:()=>i("tree"),children:[(0,f.jsx)(si,{n:"tree"}),(0,f.jsx)("span",{children:r.tree})]})]})}),"tree"===a?(0,f.jsx)(Lp,{s:l}):(0,f.jsxs)("div",{className:"sbwrap",children:[(0,f.jsx)(Mp,{root:l,cur:u,go:c}),(0,f.jsx)(Np,{path:b,go:c,lbl:r.nav.tree,back:r.back}),(0,f.jsx)("div",{className:"sb",ref:d,children:(0,f.jsx)("div",{className:"sbc",ref:p})}),(0,f.jsx)("p",{className:"sbh",ref:h,hidden:!0,children:""})]}),null]})}
 d("aIIwE"),
 d("aIIwE"),
 m=d("aIIwE");
@@ -14479,6 +14594,12 @@ let v=GM.view(),k=v.s/M;
 return Fh.translate(b/2-k*(v.x*M+C[0]),y/2-k*(v.y*M+C[1])).scale(k)}
 function kGo(T,ms){gT=T;
 GM?GM.jump({s:T.k*M,x:((b/2-T.x)/T.k-C[0])/M,y:((y/2-T.y)/T.k-C[1])/M},f?0:ms||0):(kTick(T),clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&bt()},0))}
+/* a flight (to a language, a region, a family, a pin, or back home: Wt, Qt, Ut): 400 to 700 ms by how far it goes, the zoom
+   steps it takes plus the screens it pans; the engine flies it with the site's easing. 0 stays a jump. */
+function kFly(T,ms){let c=ms&&kV();
+if(!c)return ms||0;
+let z=Math.abs(Math.log2(T.k/c.k)),d=Math.hypot((b/2-T.x)/T.k-(b/2-c.x)/c.k,(y/2-T.y)/T.k-(y/2-c.y)/c.k)*Math.min(T.k,c.k)/Math.max(b,y);
+return Math.round(400+300*Math.min(1,(z+d)/3))}
 function kTick(T){let t=T.k,z=t>=11?2:t>=6?1:0;
 Rt&&Rt.classList.toggle("on",!Gt(T)||!!nt||!!te);
 /* GL: while the engine moves the map it also draws the names and dots (gLab below), so the page's own unseen copies are not
@@ -14619,7 +14740,7 @@ d.innerHTML='<div class="knm"><svg viewBox="0 0 24 24" aria-hidden="true"><path 
 d.querySelector(".knl").onclick=()=>Ja("languages"),d.querySelector(".knr").onclick=()=>location.reload(),box.appendChild(d)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start",err),GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),kNoMap(e),window.__kMapReady||(window.__kMapReady=!0,window.dispatchEvent(new Event("etimo:mapready"))))},/* a start that takes longer than 20 seconds (a stalled download) also ends in the note */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import(new URL("map-gl.js?v=9",document.baseURI).href).then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import(new URL("map-gl.js?v=10",document.baseURI).href).then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,e.querySelectorAll("canvas[aria-label]").forEach(c=>c.setAttribute("aria-label",Ea({sq:"Harta e gjuhëve",sr:"Mapa jezika"}[ya()]||"Map of languages"))),GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),
@@ -14748,12 +14869,12 @@ let Kt=(i=x.map(e=>e._xy[0]),s=x.map(e=>e._xy[1]),o=Math.min(...i),l=Math.max(..
 Kt=gHome(),gOne=Math.min(1,gFit||Kt.k);
 function phoneHome(){let ys=x.filter(e=>e._xy[0]>0&&e._xy[0]<b).map(e=>e._xy[1]),u=Math.min(...ys),c=Math.max(...ys),top=64,free=y-top-12,k=Math.max(1,Math.min(1.15,.8*free/Math.max(1,c-u)));
 return Fh.translate(b/2,top+free/2).scale(k).translate(-b/2,-(u+c)/2)}
-function Ut(e){kGo(Kt,e||620)}
+function Ut(e){kGo(Kt,kFly(Kt,e||620))}
 function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,i=Math.max(n[2]-n[0],b/c),s=Math.max(n[3]-n[1],y/c);
 Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
 let TT=Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2);
-kGo(TT,a)}
+kGo(TT,kFly(TT,a))}
 function $t(e){nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
 let t=kV().k;
 Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),kn=e&&!p?nearMap(e):null,lt(e),Fe(e),bt(),Ae()}
@@ -14764,7 +14885,7 @@ g.forEach(t=>{if(t!==e){let r=Math.hypot(t._xy[0]-e._xy[0],t._xy[1]-e._xy[1]);
 r<n&&(n=r)}});
 let r=Math.min(40,Math.max(5,30/Math.max(n,.3))),a=52+(y-52-w())/2;
 let TT=Fh.translate(b/2,a).scale(r).translate(-e._xy[0],-e._xy[1]);
-kGo(TT,t)}
+kGo(TT,kFly(TT,t))}
 function Yt(e,t){(e!==Vt||t)&&(Vt=e,k.forEach((t,n)=>{t.classList.toggle("on",n===e),t.setAttribute("aria-selected",n===e)}),$t(g[e]),t&&Qt(g[e],560))}
 function Jt(e,t){let n=k[e];
 v.scrollTo({left:n.offsetLeft-(v.clientWidth-n.offsetWidth)/2,behavior:t&&!f?"smooth":"auto"})}
