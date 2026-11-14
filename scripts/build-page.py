@@ -192,8 +192,8 @@ def devter_language_shades():
 
 # ---------------------------------------------------------------- hashed startup files
 # today.json stays at data/today.json: regional-layer.js fetches the same URL, so both share one download
-HASHED = {'lexicon.json': 'H_LEXICON', 'languages.json': 'H_LANGUAGES', 'world-50s.json': 'H_WORLD', 'terr.json': 'H_TERR',
-          'shade.webp': 'H_SHADE_WEBP', 'shade.avif': 'H_SHADE', 'shade-s.avif': 'H_SHADE_S'}
+# (the relief has no hashed copy: the engine fetches data/shade*.avif itself, see site/map-gl.js)
+HASHED = {'lexicon.json': 'H_LEXICON', 'languages.json': 'H_LANGUAGES', 'world-50s.json': 'H_WORLD', 'terr.json': 'H_TERR'}
 
 
 def hashed_copies():

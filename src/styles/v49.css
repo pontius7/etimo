@@ -1,7 +1,7 @@
 
 /* ===== v49: subregions, reset, plain back arrow ===== */
-.mtl .mreset{left:auto;right:calc(100% + .45rem);transform:translateX(6px)}
-.mtl .mreset.on{transform:none}
+
+
 .ksel .kr{fill:none;stroke:var(--kf);stroke-width:.9px;vector-effect:non-scaling-stroke;stroke-linejoin:round;opacity:.75}
 .ksel .kr.Slavic{--kf:var(--f-slav)}
 .ksel .kr.Iranian{--kf:var(--f-iran)}

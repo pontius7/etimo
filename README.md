@@ -96,7 +96,7 @@ site/                         the published website (Cloudflare serves this fold
   data/                       map data
     languages.json, lexicon.json, terr.json, dia.json, micro.json, ethno.json, adm2.json   built by merge-data.py
     region-langs.json         built by region-langs.py: languages, speakers and shares per region (region card)
-    world-50m.json, world-50s.json, borders-10m.json, today.json, greece-10m.json          outlines and borders
+    world-50m.json, world-50s.json, today.json                                             outlines and borders
     albanian-dialects.json, vlach-areas.json, serbia-areas.json                            traced area layers
     greece-areas.json, montenegro-areas.json, athos.json                                   traced (scripts/areas/)
     montenegro-municipalities.geojson, country-sources.json, regional-sources.json         census geography and sources

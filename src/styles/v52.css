@@ -80,16 +80,15 @@ to{opacity:1;transform:none}
 }
 
 /* list under the wheel: grouped by branch */
-.llist .lgrp{margin-top:1rem}
-.llist .lgrp:first-child{margin-top:.25rem}
-.llist .lgh{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:5;display:flex;align-items:center;gap:.6rem;width:100%;min-height:52px;padding:0 .9rem;margin:0 0 .35rem;border:0;border-radius:14px;background:var(--hd);color:var(--hd-ink);font:600 1rem/1.2 var(--sans);text-align:left;cursor:pointer}
-.llist .lgh:disabled{cursor:default}
-.llist .lgh .dot{flex:none;width:10px;height:10px}
-.llist .lgh .lgn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.llist .lgh .lgc{margin-left:auto;flex:none;min-width:1.9rem;padding:.1rem .5rem;border-radius:999px;background:color-mix(in srgb,var(--hd-ink) 16%,transparent);font-size:.8125rem;text-align:center}
-.llist .lgh .icn,.llist .lgh svg{flex:none;width:20px;height:20px;opacity:.85}
-@media (width>=64rem){.llist .lgh{top:0}
-}
+
+
+
+
+
+
+
+
+
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ksel .kr.tap:not(.Slavic):not(.Iranian):not(.Greek):not(.Albanian):not(.Romance):not(.Caucasian):not(.Turkic):not(.Uralic):not(.Mongolic){--kf:#a6b5ce}
 }
 :root[data-theme=dark] .ksel .kr.tap:not(.Slavic):not(.Iranian):not(.Greek):not(.Albanian):not(.Romance):not(.Caucasian):not(.Turkic):not(.Uralic):not(.Mongolic){--kf:#a6b5ce}

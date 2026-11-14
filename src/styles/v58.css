@@ -144,7 +144,7 @@
 .kpanel .ppl.on .ppd small{color:var(--hd-muted)}
 .mapbox .card.mcard.kpanel .acts{padding:1rem 1.4rem 1.4rem!important}
 .kpanel .pgo{width:100%;min-height:56px!important;border-radius:16px!important;font:600 1.0625rem var(--sans)!important;letter-spacing:.01em}
-.kpanel .prow{padding:.5rem .4rem}
+
 }
 @media (width>=64rem){.mapbox .card.mcard.kpanel>*{flex-shrink:0}
 }
