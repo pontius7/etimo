@@ -29,6 +29,7 @@ MERGE = os.path.join(HERE, 'merge')
 sys.path.insert(0, MERGE)
 import palette  # noqa: E402
 import families  # noqa: E402
+import site_pages  # noqa: E402
 
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'site', 'index.html')
@@ -432,6 +433,7 @@ def placeholders():
     for name, key in OWN.items():
         P[key] = (H[name], 1)
     P['H_TERRD'] = (jsdump(H['_terrd']), 1)
+    P['SITE_URL'] = (site_pages.SITE_URL, 2)
     return P, len(shades)
 
 
@@ -547,6 +549,7 @@ def build(out=OUT):
     notes.append(f'app code {app}')
     with open(out, 'w', encoding='utf-8', newline='') as f:
         f.write(text)
+    site_pages.write_all()
     print(f'wrote {os.path.relpath(out, ROOT)} ({len(text):,} chars) from src/; families {len(OLD) + len(NEW)}, '
           f'language colours +{n_colours}' + ''.join('; ' + x for x in notes + tnotes))
 
