@@ -63,6 +63,42 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 - Result (same conditions): map on screen 8.6 s -> 2.6 s, main thread blocked during loading 3.0 s -> 1.1 s, tap on a region
   1.2 s -> 0.37 s, longest stall at the end of a pinch 230 ms -> 70 ms. Measured with headless Chrome only, not on a real iPhone.
 
+## How a choice is drawn (2026-11-14)
+- **Each area has its own state.** Every language area, detailed area, family area and tinted country carries its own
+  values in the engine (MapLibre's feature state), keyed by its id in the tiles: `id`, written by `build.py` (the language
+  for a broad area, `kind:language` for a detailed one, `dia:family` for a family's area outside its home areas; a country
+  by its name), read through `promoteId` in `site/map-gl.js`. `meta.json` lists them (`zones` by family, `hist`, `dia`,
+  `tint`, `detail`). Values: `o` how strong the area is drawn, `e` the chosen language's outline, `h` the outline under the
+  pointer, `i` the first view's fade. The layers' rules only read them and never change, so a choice or a hover
+  re-processes no tile (before: every visible tile, 4 of 4, and 170 to 200 ms until the new look showed). A new map area
+  or detailed area needs no code: `build.py` gives it its id and lists it.
+- **The two outlines** (`hover-edge`, `sel-edge`) read the same tiles as a second source, `edges`, added once the first
+  view has faded in (`edges()`): the engine rewrites every layer of an area whenever any of that area's state changes, so on
+  the areas' own source a fade rewrote every outline on every frame (3 to 5 ms a frame, processor slowed 4 times), and
+  building them for the first view cost it about 90 ms there.
+- **What each area gets** (`targets()` in `site/map-gl.js`): the same rules as before, one value per area: the chosen
+  language, its family, the rest, historical languages, a family filter, the word view, the countries tinted with their
+  main language, and the detailed layers with the shared strengths of `site/regional-layer.js`.
+- **Fades** (`fade()`): a choice takes every area from what it shows to its new value in 200 ms, the site's easing
+  (`cubic-bezier(0.2, 0.8, 0.2, 1)`), one value per area and frame; a second choice during a fade starts from where it is.
+  The outline under the pointer (desktop) fades in and out in 120 ms. The language areas fade in once (300 ms) when the
+  map is first drawn in the page, not when the page shows the kept map again. With "reduce motion" (the system's or the
+  site's own setting) every fade lasts at most 100 ms.
+- **Camera.** A flight to a language, a region, a family or a pin, and back home, takes 400 to 700 ms by how far it goes
+  (zoom steps plus screens panned: `kFly` in the page code), with the site's easing.
+- The census view is unchanged (it still sends its shapes on every choice); it is built once the fade's first frame is
+  drawn, so its work does not hold that frame back.
+- Tried and dropped: the strengths as a few numbers in the engine's global state (`setGlobalStateProperty`) read by a
+  per-area rule. MapLibre re-processes every tile whenever global state that a per-area rule reads changes: 14 times in
+  one 200 ms fade. Per-area values set each frame cost under 1 ms of script a frame and no tile.
+- Measured 2026-11-14 (phone size, headless Chrome on an M1 Pro, processor slowed 4 times, no camera move): tiles
+  re-processed by a choice or a hover 4 -> 0; first changed frame 140 to 230 ms -> 20 to 40 ms; fade over at 170 to 250 ms;
+  frames during a fade 16 to 18 ms. Frames over 20 ms remain only from the census view, which still builds and sends its
+  regions on every choice (one frame of about 30 ms; about 80 ms of script for a language with census rows), and the
+  Albanian or Vlach legend (one frame of about 30 ms). The map at rest is pixel for pixel as before for 23 choices
+  (languages on every part of the map, a circle, a historical language, minority areas, the detailed layers, families,
+  the word view) on phone and desktop, light and dark. Map ready: about 50 ms later on the slowed phone (2.08 -> 2.13 s).
+
 ## No old map any more
 The old SVG map was retired on 2026-11-13 (main README, "Old map retired"). When the engine cannot start, the map box shows
 a short note instead (`kNoMap` in the page code).

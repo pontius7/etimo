@@ -7,8 +7,9 @@
    (src/app/6-app-screens-and-startup.js) still decides what shows where, and keeps search and the language card.
 
    The data comes from scripts/map-next/build.py (map-next/data/). Colours of sea, land and lines: src/styles/tokens.css (themeOf below).
-   Which area is how strong when a language or a family is chosen: paint() below; the lists and the strengths of
-   the detailed layers are the ones in regional-layer.js, which the data build reads too, so both follow one rule. */
+   Which area is how strong when a language or a family is chosen: targets() below, given to each area as its own state
+   and faded to (fade()); the lists and the strengths of the detailed layers are the ones in regional-layer.js, which the
+   data build reads too, so both follow one rule. */
 /* ?v= is MapLibre's version: the vendor folder is cached for a year (site/_headers), so a new MapLibre needs a new ?v= here
    (its worker file gets the version from MapLibre itself; the page's first-moment fetches read this line: scripts/build-page.py) */
 import * as maplibregl from './map-next/vendor/maplibre-gl.mjs?v=6.18.0';
@@ -54,9 +55,22 @@ const LAB_O = ['coalesce', ['feature-state', 'o'], ['get', 'o']];
 const LAB_FONT = ['match', ['get', 'w'], 300, ['literal', ['Manrope Light', 'Manrope']], 500, ['literal', ['Manrope Medium', 'Manrope']], 600, ['literal', ['Manrope SemiBold', 'Manrope']], 700, ['literal', ['Manrope Bold', 'Manrope']], ['literal', ['Manrope']]];
 const ZONE = .6;      // a language area with nothing chosen (--zone-op on the site)
 const BASE = .34;     // a country tinted with its main language, under the areas
+/* An area's own state (fade() below), d where it has none: o = how strong it is drawn, i = the first view's fade */
+const FS = (k, d) => ['coalesce', ['feature-state', k], d], IN = FS('i', 1);
+const EDGE = ['!=', ['get', 'kind'], 'dia'];      // the outlines: one filter for both, so the engine builds them once
 
 const json = url => fetch(url).then(r => { if (!r.ok) throw Error(url + ': ' + r.status); return r.json(); });
-const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+/* The site's one easing, cubic-bezier(0.2, 0.8, 0.2, 1), for the camera and every fade on the map: x(t) = .6t - .6t² + t³
+   is solved for t (Newton; it always grows, so a few steps are exact), then y(t). */
+const ease = x => {
+  if (x <= 0 || x >= 1) return x <= 0 ? 0 : 1;
+  let t = x;
+  for (let i = 0; i < 6; i++) t -= (t * (.6 - .6 * t + t * t) - x) / (.6 - 1.2 * t + 3 * t * t);
+  const u = 1 - t;
+  return 2.4 * u * u * t + 3 * u * t * t + t * t * t;
+};
+/* the site's own motion setting (data-motion="off") or the system's "reduce motion": every fade then lasts at most 100 ms */
+const still = () => document.documentElement.getAttribute('data-motion') === 'off' || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let engine = null, made = null, gen = 0;
 const mapReady = () => { if (!window.__kMapReady) { window.__kMapReady = true; window.dispatchEvent(new Event('etimo:mapready')); } };
@@ -116,7 +130,80 @@ async function create(host, id, early) {
 
   const S = {theme: 'light', sel: null, fam: null, conc: false, hover: null, dop: {}, n: 0};
   let ctx = null, H = {}, legend = null;
-  const T0 = THEMES.light, kind = ['get', 'kind'], name = ['get', 'name'];
+
+  /* ---------------------------------------------------------------- what is chosen -> how strong each area is
+     Every language area, detailed area, family area and tinted country has its own state (feature state, keyed by its id
+     in the tiles: promoteId below; the lists come from meta.json): o = how strong it is drawn, e = the chosen language's
+     outline, h = the outline under the pointer, i = the first view's fade. The layers' rules only read it and never
+     change, so a choice or a hover re-processes no tile. */
+  const albMode = () => !!(S.sel && ALBSET.has(S.sel.lang)) || S.fam === 'Albanian';
+  const HIST = new Set(meta.hist);
+  function targets() {
+    const sel = S.sel, fam = S.fam, alb = albMode(), out = [];
+    /* the broad language areas, and the chosen one's outline (not while the Albanian or Vlach view replaces it) */
+    const plain = sel && !alb && !VSET.has(sel.lang);
+    for (const [zf, names] of Object.entries(meta.zones)) for (const n of names) out.push(['areas', n, {
+      o: S.conc ? (sel && n === sel.lang ? .5 : ZONE * .3)
+        : sel ? (n === sel.lang ? OP.sel : zf === sel.family ? OP.fam : OP.other)
+        : fam ? (zf === fam ? ZONE * 1.1 : .12)
+        : HIST.has(n) ? .11 : ZONE,
+      e: plain && n === sel.lang ? 1 : 0}]);
+    /* a family's speakers outside its home areas */
+    for (const df of meta.dia) out.push(['areas', 'dia:' + df, {o: sel || S.conc ? .08 : fam ? (df === fam ? ZONE * .5 : .06) : ZONE * .5}]);
+    /* a country tinted with its main language: only the chosen language's countries, none in the Albanian view */
+    for (const [cn, lang, bfam] of meta.tint) out.push(['land', cn, {o: alb || (sel && lang !== sel.lang) ? 0 : fam && bfam !== fam ? .1 : BASE}]);
+    /* The detailed layers: the strengths are the shared ones (restOp, dialOp, vlachOp in regional-layer.js) */
+    const rest = dfam => restOp(dfam, sel, fam);
+    const isSel = n => !!sel && (n === sel.lang || PAR[n] === sel.lang);
+    const rules = {
+      dial: n => dialOp(n, sel, fam, alb),
+      vlach: n => alb ? 0 : vlachOp(n, sel, fam),
+      area: (n, dfam) => alb ? 0 : isSel(n) ? OP.sel : rest(dfam),
+      /* Montenegro: broad areas while nothing is chosen; with a language chosen the municipalities show its census share */
+      me: (n, dfam) => alb ? 0 : !sel ? rest(dfam) : PAR[sel.lang] && n === sel.lang ? OP.sel : 0,
+    };
+    rules.meg = rules.vlach;
+    S.rules = rules;
+    S.dop = {};
+    for (const [kd, n, dfam] of meta.detail) {
+      const key = kd + ':' + n, o = S.dop[key] = rules[kd](n, dfam);
+      /* outlined: the chosen language's own detailed area */
+      out.push(['areas', key, {o, e: sel && o >= .5 && (kd === 'dial' || kd === 'vlach' || kd === 'meg' ? n === sel.lang : isSel(n)) ? 1 : 0}]);
+    }
+    return out;
+  }
+  /* A change of state fades from what shows now to the new value (one value per area and frame, the site's easing), so a
+     second choice during a fade starts from where the first one is. Measured against the other way (a few numbers in the
+     engine's global state read by the rules): the engine re-processes every tile whenever global state that a per-area
+     rule reads changes, 14 times in one fade; this way none, under 1 ms of work a frame (scripts/map-next/README.md). */
+  const tw = new Map(), run = new Set(), feats = new Map();
+  let raf = 0, outlined = false, built = false;      // built: create() has run to its end (edges() below)
+  function fade(list, ms) {         // list: [[source layer, id, {value: target, ...}], ...]
+    const t0 = performance.now(), d = still() ? Math.min(ms, 100) : ms;
+    for (const [sl, fid, to] of list) for (const k in to) {
+      const src = k === 'e' || k === 'h' ? 'edges' : 'base', fk = src + '|' + sl + '|' + fid, b = to[k];      // the outlines' state on their own source
+      let f = feats.get(fk), r = tw.get(fk + '|' + k);
+      if (!f) feats.set(fk, f = {source: src, sourceLayer: sl, id: fid});
+      if (!r) tw.set(fk + '|' + k, r = {f, k, v: k === 'h' ? 0 : b, b: null});     // a first value is set at once; the pointer's outline fades in from none
+      if (r.b === b) continue;
+      r.a = r.v; r.b = b; r.t0 = t0; r.ms = d;
+      run.add(r);
+    }
+    if (run.size && !raf) raf = requestAnimationFrame(step);
+  }
+  function step() {
+    raf = 0;
+    if (id !== gen) return;
+    const t = performance.now(), now = new Map();
+    for (const r of run) {
+      const p = r.ms > 0 ? Math.min(1, (t - r.t0) / r.ms) : 1, v = p < 1 ? r.a + (r.b - r.a) * ease(p) : r.b;
+      if (v !== r.v || p === 1) { r.v = v; let s = now.get(r.f); if (!s) now.set(r.f, s = {}); s[r.k] = v; }
+      if (p === 1) run.delete(r);
+    }
+    for (const [f, s] of now) if (f.source === 'base' || outlined) map.setFeatureState(f, s);
+    if (run.size) raf = requestAnimationFrame(step);
+  }
+  const T0 = THEMES.light, kind = ['get', 'kind'], TILES = [new URL('map-next/tiles/', location.href).href + '{z}/{x}/{y}.pbf?v=' + meta.tiles.v];
   const reliefOp = P => ['interpolate', ['linear'], ['zoom'], 0, P.relief, 22, P.relief];
   const round = {'line-join': 'round', 'line-cap': 'round'};
   const map = new maplibregl.Map({
@@ -132,36 +219,37 @@ async function create(host, id, early) {
         /* land, language areas and lines: vector tiles cut by scripts/map-next/build.py (tiles()), so the map loads only
            what it shows, at the detail of its zoom; past meta.tiles.maxzoom it enlarges those tiles (full detail kept).
            Sea has no tiles: MapLibre takes a missing tile (404) as empty. ?v= changes with every new build. */
-        base:   {type: 'vector', tiles: [new URL('map-next/tiles/', location.href).href + '{z}/{x}/{y}.pbf?v=' + meta.tiles.v],
-                 minzoom: 0, maxzoom: meta.tiles.maxzoom, bounds: meta.tiles.bounds},
+        base:   {type: 'vector', tiles: TILES, minzoom: 0, maxzoom: meta.tiles.maxzoom, bounds: meta.tiles.bounds,
+                 /* each area's and country's id, for its own state (targets() above): id is written by build.py */
+                 promoteId: {areas: 'id', land: 'name'}},
         census: {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 12, tolerance: .25},
         relief: {type: 'image', coordinates: meta.relief},     // no url: the decoded picture is handed over (style.load below)
         pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
         names:  {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
         labs:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
       },
-      /* Bottom to top. Every paint value that depends on the theme or on what is chosen is set in look() and paint(). */
+      /* Bottom to top. Every paint value that depends on the theme is set in look(); how strong an area is, is its own
+         state (targets() above), read by the rules here (FS, IN). */
       layers: [
         {id: 'sea', type: 'background', paint: {'background-color': T0.sea}},
         {id: 'land', type: 'fill', source: 'base', 'source-layer': 'land', paint: {'fill-color': T0.land}},
-        {id: 'base', type: 'fill', source: 'base', 'source-layer': 'land', filter: ['has', 'base'], paint: {'fill-color': ['get', 'base'], 'fill-opacity': BASE}},
-        {id: 'dia', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['==', kind, 'dia'], paint: {'fill-color': ['get', 'light'], 'fill-opacity': ZONE * .5}},
-        {id: 'areas', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['all', ['!', ['has', 'kind']], ['!', ['has', 'round']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ZONE}},
+        {id: 'base', type: 'fill', source: 'base', 'source-layer': 'land', filter: ['has', 'base'], paint: {'fill-color': ['get', 'base'], 'fill-opacity': ['*', FS('o', BASE), IN]}},
+        {id: 'dia', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['==', kind, 'dia'], paint: {'fill-color': ['get', 'light'], 'fill-opacity': ['*', FS('o', ZONE * .5), IN]}},
+        {id: 'areas', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['all', ['!', ['has', 'kind']], ['!', ['has', 'round']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', ['case', ['has', 'hist'], .11, ZONE]), IN]}},
         /* languages without a drawn area: a circle around the pin. A layer of their own, so a circle lies over the area under it instead of replacing it */
-        {id: 'rounds', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ZONE}},
-        {id: 'detail-a', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['me', 'dial']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': OP.rest}},
+        {id: 'rounds', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', ZONE), IN]}},
+        {id: 'detail-a', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['me', 'dial']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
         {id: 'census', type: 'fill', source: 'census', paint: {'fill-color': ['get', 'c'], 'fill-opacity': ['get', 'o']}},
         {id: 'census-hatch', type: 'fill', source: 'census', filter: ['>', ['get', 'h'], 0], layout: {visibility: 'none'}, paint: {'fill-opacity': ['get', 'h']}},
-        {id: 'detail-b', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['vlach', 'meg', 'area']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': OP.rest}},
-        {id: 'areas-hist', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['has', 'hist'], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': .6, 'line-dasharray': [2.5, 2.1]}},
+        {id: 'detail-b', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['vlach', 'meg', 'area']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
+        {id: 'areas-hist', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['has', 'hist'], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': ['*', .6, IN], 'line-dasharray': [2.5, 2.1]}},
         {id: 'relief', type: 'raster', source: 'relief', paint: {'raster-fade-duration': 0, 'raster-resampling': 'linear', 'raster-opacity': reliefOp(T0)}},
         /* One set of outlines: the coast is the edge of the land shapes; borders, region and district lines are cut to the same shapes. */
         {id: 'coast', type: 'line', source: 'base', 'source-layer': 'land', layout: round, paint: {'line-color': T0.coast, 'line-width': .9}},
         {id: 'district', type: 'line', source: 'base', 'source-layer': 'lines', filter: ['==', kind, 'district'], layout: round, paint: {'line-color': T0.inner, 'line-width': .6, 'line-opacity': 0}},
         {id: 'region', type: 'line', source: 'base', 'source-layer': 'lines', filter: ['==', kind, 'region'], layout: round, paint: {'line-color': T0.inner, 'line-width': .7, 'line-opacity': 0}},
         {id: 'border', type: 'line', source: 'base', 'source-layer': 'lines', filter: ['==', kind, 'border'], layout: round, paint: {'line-color': T0.border, 'line-opacity': .9, 'line-width': 1.2}},
-        {id: 'hover-edge', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .9}},
-        {id: 'sel-edge', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['==', name, ''], layout: {'line-join': 'round'}, paint: {'line-color': ['get', 'color'], 'line-width': 2.2}},
+        /* here, once the first view is drawn: the outline under the pointer and the chosen language's (edges() below) */
         /* names of the census regions (every country with a census table), drawn here in the site's font (Manrope, no font server:
            without a glyphs address MapLibre draws the letters itself). Shown from the zoom where a region is 34 px wide (text-field in scale());
            the larger region wins where two collide. Same size on phone and desktop (10.5 px); phones show fewer (NAME_PX, NAME_PAD). */
@@ -184,15 +272,17 @@ async function create(host, id, early) {
   /* MapLibre counts the map as loaded only once the relief source has a picture. It gets an empty one at once, so the
      map never waits for the relief, and the real one once it is decoded (fetched after the first tile, see relief above). */
   const putRelief = img => { if (id === gen && map.getSource('relief')) map.getSource('relief').updateImage({image: img}); };
-  map.once('style.load', () => putRelief(new ImageData(1, 1)));
+  /* every area's first state, before any tile is drawn: as with nothing chosen, and unseen until the first view fades them in (drawn below) */
+  map.once('style.load', () => { putRelief(new ImageData(1, 1)); fade(targets().map(([sl, fid, to]) => [sl, fid, {...to, i: 0}]), 0); });
   window.__kgl = map;      // for looking at the map from the browser console
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
   map.once('idle', () => box.classList.add('on'));
   /* the first picture with the map's shapes in it: the first quiet moment after a tile of land and areas has come.
-     The page waits for this before it loads what the map does not need yet (lexicon, region shapes). */
+     The page waits for this before it loads what the map does not need yet (lexicon, region shapes). The language areas
+     fade in then, once (300 ms): the map is made once and kept, so a page that shows it again does not fade them again. */
   let tiled = false;
-  const drawn = () => { if (tiled && !(box.parentNode && box.parentNode.hasAttribute('data-kpre'))) { map.off('idle', drawn); mapReady(); } };   // drawn in the page, not in the early hidden box
+  const drawn = () => { if (tiled && !(box.parentNode && box.parentNode.hasAttribute('data-kpre'))) { map.off('idle', drawn); fade(targets().map(([sl, fid]) => [sl, fid, {i: 1}]), 300); mapReady(); map.once('idle', edges); } };   // drawn in the page, not in the early hidden box
   map.on('data', function first(e) { if (e.sourceId === 'base' && e.tile) { tiled = true; map.off('data', first); relief().then(img => img && putRelief(img)); } });
   map.on('idle', drawn);
   let nameFeats = [];
@@ -270,7 +360,7 @@ async function create(host, id, early) {
     map.setPaintProperty('dia', 'fill-color', ['get', S.theme]);
     for (const id of ['areas', 'rounds']) map.setPaintProperty(id, 'fill-color', ['match', ['get', 'tint'], 'min', mix(.46), 'plu', mix(.74), col]);
     for (const id of ['detail-a', 'detail-b']) map.setPaintProperty(id, 'fill-color', col);
-    for (const id of ['areas-hist', 'hover-edge', 'sel-edge']) map.setPaintProperty(id, 'line-color', col);
+    for (const id of ['areas-hist', 'hover-edge', 'sel-edge']) if (map.getLayer(id)) map.setPaintProperty(id, 'line-color', col);
     map.setPaintProperty('pin-disc', 'circle-color', P.pin);
     map.setPaintProperty('pin-disc', 'circle-stroke-color', ['case', PIN_BIG, P.pinSel, P.pinEdge]);
     map.setPaintProperty('coast', 'line-color', P.coast);
@@ -283,46 +373,31 @@ async function create(host, id, early) {
     map.setPaintProperty('relief', 'raster-opacity', ['interpolate', ['linear'], ['zoom'], k(5), P.relief, k(6.5), P.relief * .84, k(9.5), P.relief * .84, k(11.5), 0]);
   }
 
-  /* ---------------------------------------------------------------- what is chosen -> how strong each area is */
-  const albMode = () => !!(S.sel && ALBSET.has(S.sel.lang)) || S.fam === 'Albanian';
+  /* The two outlines (the one under the pointer, the chosen language's), added once the first view has faded in: the same
+     tiles (from the browser's cache) as a source of their own. Their own source because the engine rewrites every layer of
+     an area whenever any of its state changes: on the areas' source a fade rewrote every outline on every frame (3 to 5 ms
+     a frame on a phone slowed 4 times); and only now because building them cost the first view about 90 ms there
+     (measured). A choice made before is outlined as soon as they are in. The first quiet moment after the first view can
+     come before create() has run to its end (measured on the way in from another screen): then it waits for the next one. */
+  function edges() {
+    if (outlined || id !== gen) return;
+    if (!built) { map.once('idle', edges); map.triggerRepaint(); return; }
+    map.addSource('edges', {type: 'vector', tiles: TILES, minzoom: 0, maxzoom: meta.tiles.maxzoom, bounds: meta.tiles.bounds, promoteId: {areas: 'id'}});
+    const col = byName('name'), line = (lid, w, op) => map.addLayer({id: lid, type: 'line', source: 'edges', 'source-layer': 'areas', filter: EDGE, layout: {'line-join': 'round'}, paint: {'line-color': col, 'line-width': w, 'line-opacity': op}}, 'names');
+    line('hover-edge', 2, ['*', .9, FS('h', 0)]);
+    line('sel-edge', 2.2, FS('e', 0));
+    outlined = true;
+    for (const r of tw.values()) if (r.f.source === 'edges' && r.v) map.setFeatureState(r.f, {[r.k]: r.v});
+  }
+
+  /* ---------------------------------------------------------------- a choice: every area fades to its new strength (200 ms) */
   function paint() {
-    const sel = S.sel, fam = S.fam, alb = albMode(), f = ['get', 'fam'];
-    /* the broad language areas */
-    for (const id of ['areas', 'rounds']) map.setPaintProperty(id, 'fill-opacity',
-      S.conc ? (sel ? ['case', ['==', name, sel.lang], .5, ZONE * .3] : ZONE * .3)
-        : sel ? ['case', ['==', name, sel.lang], OP.sel, ['==', f, sel.family], OP.fam, OP.other]
-        : fam ? ['case', ['==', f, fam], ZONE * 1.1, .12]
-        : ['case', ['has', 'hist'], .11, ZONE]);
-    map.setPaintProperty('dia', 'fill-opacity', sel || S.conc ? .08 : fam ? ['case', ['==', f, fam], ZONE * .5, .06] : ZONE * .5);
-    /* a country tinted with its main language */
-    map.setFilter('base', alb ? ['==', name, ''] : sel ? ['all', ['has', 'base'], ['==', ['get', 'lang'], sel.lang]] : ['has', 'base']);
-    map.setPaintProperty('base', 'fill-opacity', fam ? ['case', ['==', ['get', 'bfam'], fam], BASE, .1] : BASE);
-    /* The detailed layers: the strengths are the shared ones (restOp, dialOp, vlachOp in regional-layer.js) */
-    const rest = dfam => restOp(dfam, sel, fam);
-    const isSel = n => !!sel && (n === sel.lang || PAR[n] === sel.lang);
-    const rules = {
-      dial: n => dialOp(n, sel, fam, alb),
-      vlach: n => alb ? 0 : vlachOp(n, sel, fam),
-      area: (n, dfam) => alb ? 0 : isSel(n) ? OP.sel : rest(dfam),
-      /* Montenegro: broad areas while nothing is chosen; with a language chosen the municipalities show its census share */
-      me: (n, dfam) => alb ? 0 : !sel ? rest(dfam) : PAR[sel.lang] && n === sel.lang ? OP.sel : 0,
-    };
-    rules.meg = rules.vlach;
-    S.rules = rules;
-    S.dop = {};
-    const edge = [];
-    for (const [kd, n, dfam] of meta.detail) {
-      const o = S.dop[kd + ':' + n] = rules[kd](n, dfam);
-      if (sel && o >= .5 && (kd === 'dial' || kd === 'vlach' || kd === 'meg' ? n === sel.lang : isSel(n))) edge.push(kd + ':' + n);
-    }
-    const dop = ['match', ['get', 'key'], ...Object.entries(S.dop).flat(), 0];
-    map.setPaintProperty('detail-a', 'fill-opacity', dop);
-    map.setPaintProperty('detail-b', 'fill-opacity', dop);
-    /* the chosen language is outlined (not while the Albanian or Vlach view replaces it) */
-    const plain = sel && !alb && !VSET.has(sel.lang);
-    map.setFilter('sel-edge', sel ? ['any', ['all', ['!', ['has', 'kind']], ['==', name, plain ? sel.lang : '']], ['in', ['get', 'key'], ['literal', edge]]] : ['==', name, '']);
+    fade(targets(), 200);
     showLegend();
-    census();
+    /* the census view once the fade's first frame is drawn, so its work (building and sending the regions, up to 80 ms on
+       a slow phone) does not hold that frame back */
+    map.once('render', () => setTimeout(() => id === gen && census()));
+    map.triggerRepaint();
   }
 
   /* ---------------------------------------------------------------- census view (per municipality or region) */
@@ -420,7 +495,8 @@ async function create(host, id, early) {
   }
 
   /* ---------------------------------------------------------------- the handle the page works with */
-  return {
+  built = true;
+  return map.etimo = {      // map.etimo: for the browser console and the checks, as window.__kgl
     map, box,
     hidePin: HIDEPIN,
     /* (re)attach to the page's map box */
@@ -499,8 +575,8 @@ async function create(host, id, early) {
     },
     /* a fade in progress: [[number in the last list, how visible], ...] */
     labelStates(list) { for (const [id, o] of list) map.setFeatureState({source: 'labs', id}, {o}); },
-    /* the area under the pointer on the first view is outlined */
-    hover(n) { if (n !== S.hover) { S.hover = n; map.setFilter('hover-edge', ['all', ['!', ['has', 'kind']], ['==', name, n || '']]); } },
+    /* the area under the pointer on the first view is outlined: the outline fades in and out (120 ms) */
+    hover(n) { if (n !== S.hover) { const was = S.hover; S.hover = n; fade([was && ['areas', was, {h: 0}], n && ['areas', n, {h: 1}]].filter(Boolean), 120); } },
     /* what lies at a point of the box: a detailed area that selects a language, a broad area, or nothing of ours */
     hit(pt) {
       const alb = albMode();

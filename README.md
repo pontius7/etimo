@@ -521,7 +521,7 @@ every country of the map (each card named its place; no errors).
 
 ## Calmer phone map and cards, 2026-11-13
 
-Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js` (`?v=8`).
+Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js` (`?v=10`).
 
 | What | Phone | Desktop | Where |
 |---|---|---|---|

@@ -616,11 +616,14 @@ def main():
 
     feat = lambda p, typ, coords: {'type': 'Feature', 'properties': p, 'geometry': {'type': typ, 'coordinates': coords}}
     fc = lambda feats: {'type': 'FeatureCollection', 'features': feats}
-    zone = lambda n: {**props(n), **({'tint': tint[n]} if n in tint else {}), **({'hist': 1} if (langs.get(n) or {}).get('hist') else {}),
+    hist = lambda n: bool((langs.get(n) or {}).get('hist'))
+    # id: each area's own name for the engine's per-area state (promoteId in site/map-gl.js): the language for a broad
+    # area, kind:language for a detailed one, dia:family for a family's area outside its home areas
+    zone = lambda n: {**props(n), 'id': n, **({'tint': tint[n]} if n in tint else {}), **({'hist': 1} if hist(n) else {}),
                       **({'round': 1} if n in round_areas else {})}
     areas = [feat(zone(n), 'MultiPolygon', gj_polygons(g)) for n, g in sorted(fitted.items(), key=lambda kv: -kv[1].area)]
-    areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
-    areas += [feat({'kind': 'dia', 'fam': fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
+    areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n, 'id': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
+    areas += [feat({'kind': 'dia', 'fam': fam, 'id': 'dia:' + fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
     drawn_whole = {cname for _, cname in CENSUS_AREAS}     # covered by their census areas: no country tint under them
     land = [feat({'name': c['name'], **({'base': colours.get(c['lang'], '#8a93a3'), 'lang': c['lang'], 'bfam': props(c['lang'])['fam']} if c['lang'] and c['name'] not in drawn_whole else {})},
                  'MultiPolygon', gj_polygons(c['shape'])) for c in countries]
@@ -639,6 +642,13 @@ def main():
         'home': [min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs)],
         # the detailed areas, for the rules the page applies when a language or a family is chosen: [kind, language, family]
         'detail': sorted([k, n, props(n)['fam']] for k, n in detail),
+        # every other area by its id, so the engine can give each its strength when a language or a family is chosen:
+        # the broad areas by family, the historical ones, the families' areas outside their home areas, and the
+        # countries tinted with their main language [country, language, its family]
+        'zones': {f: sorted(n for n in fitted if props(n)['fam'] == f) for f in sorted({props(n)['fam'] for n in fitted})},
+        'hist': sorted(n for n in fitted if hist(n)),
+        'dia': sorted(dia),
+        'tint': sorted([c['name'], c['lang'], props(c['lang'])['fam']] for c in countries if c['lang'] and c['name'] not in drawn_whole),
     }
     sizes = {n: write(n, o) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
     meta['tiles'] = tiles()      # what the map loads: the tiles cut from the three files above (they stay for the checks)
