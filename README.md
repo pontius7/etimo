@@ -43,7 +43,7 @@ before (`./build` calls it one part at a time: `add-words.sh data`, `page`, `che
 | `reference/` | Untouched originals of the two apps the site was merged from | never |
 | `site/` | The website that gets published | no (see the table below) |
 | `docs/` | Merge spec, QA notes, screenshots | notes only |
-| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`) | when reusing them |
+| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`), what the 2026-11-14 clean-up removed (`removed-2026-11-14/`: two outline files, MapLibre's style sheet, the old map's code and unused style rules as patches). Rule: anything removed that could be reused goes here, not in the bin | when reusing them |
 
 What produces each part of `site/`:
 
