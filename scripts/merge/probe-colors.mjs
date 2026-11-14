@@ -7,6 +7,7 @@ const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/M
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const p = spawn(CHROME, ['--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',   // software WebGL2: the map engine needs it (the old SVG map was retired 2026-11-13)
   `--user-data-dir=${prof}`, `--remote-debugging-port=${port}`,
+  ...(process.env.ETIMO_CHROME_ARGS || '').split(/\s+/).filter(Boolean),   // e.g. --no-sandbox on a CI runner
   '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
 const die = (m) => { try { p.kill(); } catch {} console.error(m); process.exit(2); };
 let tabs;

@@ -17,6 +17,22 @@ Cloudflare serves the `site/` folder as it is. Nothing is built on Cloudflare's 
 - **Check** with `npx wrangler deployments list --name etimo` (newest entry should be minutes old) and by
   opening the live address. Build history: Cloudflare dashboard, Workers, etimo, Deployments.
 
+## Licence
+
+Etimo is a non-commercial project. The code is under the PolyForm Noncommercial License 1.0.0 ([LICENSE](LICENSE)); the
+owner's own content (word selections and glosses, traced language areas, colours, texts) is under CC BY-NC-SA 4.0
+([LICENSE-CONTENT.md](LICENSE-CONTENT.md)); third-party data keeps its own terms, listed with their sources in
+[DATA-SOURCES.md](DATA-SOURCES.md).
+
+## One command: `./build`
+
+`./build` runs every stage in order (data, page, map data and tiles, page again, checks) and only the stages whose inputs
+changed (fingerprints in `.cache/build-state.json`; the map's in `site/map-next/inputs.sha256`, committed with the site).
+`./build --all` forces everything; `./build --check` also exits 1 if `site/` differs from what is committed (this is what
+`.github/workflows/check.yml` runs on every pull request). The map stage needs `.venv` and `tippecanoe`; it fails with a
+message when the map data is older than its inputs and the tools are missing. `./scripts/add-words.sh` still works as
+before (`./build` calls it one part at a time: `add-words.sh data`, `page`, `checks`).
+
 ## Folders
 
 | folder | what it is | edit by hand? |
