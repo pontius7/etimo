@@ -38,7 +38,8 @@ RECORD = {'map': os.path.join(ROOT, 'site', 'map-next', 'inputs.sha256'),
 GENERATED_NAMES = {'import-report.txt', 'duplicates-report.txt', '.DS_Store', 'inputs.sha256'}
 SKIP_DIRS = {'__pycache__', '.git', 'node_modules'}
 DATA_BUILT = {'lexicon.json', 'languages.json', 'terr.json', 'dia.json', 'today.json', 'adm2.json', 'micro.json',
-              'ethno.json', 'region-langs.json'}      # site/data files scripts/merge writes (so not inputs of the data stage)
+              'ethno.json', 'region-langs.json',
+              'palette.json'}      # site/data files the build writes (scripts/merge; palette.json by build-page.py): not data-stage inputs
 # folders whose files carry a content hash in their name (or are cut by a tool): only the list of names counts
 NAMES_ONLY = ('site/map-next/tiles', 'site/h/dict', 'site/h/search', 'site/fonts')
 
