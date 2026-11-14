@@ -249,6 +249,23 @@ def own_files(hdir):
     return out
 
 
+def write_palette(shades):
+    """site/data/palette.json: THE palette, written by this build and read by the page (the colour table inline in the page is filled
+    from it), the colour check and the map build. light = every language's colour; dark = the same after the page's lift() (a colour
+    too dark for the dark theme is mixed 32% towards white); families = each family's colour in both themes. Not fetched by the page."""
+    def lift(h):
+        r, g, b = (int(h[i:i + 2], 16) for i in (1, 3, 5))
+        lin = lambda v: ((v / 255 / 12.92) if v / 255 <= .04045 else ((v / 255 + .055) / 1.055) ** 2.4)
+        if .2126 * lin(r) + .7152 * lin(g) + .0722 * lin(b) >= .2:
+            return h
+        return '#' + ''.join('%02x' % int(round(v + (255 - v) * .32)) for v in (r, g, b))
+    fams = {f: {th: (palette.ETIMO[th].get(f) or palette.FAM[th][f]) for th in ('light', 'dark')} for f in palette.VAR}
+    out = {'light': shades, 'dark': {n: lift(c) for n, c in shades.items()}, 'families': fams}
+    with open(os.path.join(ROOT, 'site', 'data', 'palette.json'), 'w', encoding='utf-8', newline='\n') as f:
+        json.dump(out, f, ensure_ascii=False, indent=0, sort_keys=False)
+        f.write('\n')
+
+
 def terr_split(data, hdir, hn):
     """terr.json in two parts. The copy the page waits for at start (h/terr.<hash>.json) keeps each language area's box (b),
     size (a) and h: 1 where it has an outline; the outlines themselves (d) go to h/terr-d.<hash>.json, fetched with the
@@ -379,8 +396,10 @@ def preloads(H):
 def placeholders():
     """name -> (text, how many times it must occur in the sources)"""
     H = hashed_copies()
-    shades = devter_language_shades()
+    shades = dict(palette.ORIGINALS)         # the 78 originals first, then the shades of the merged and your own languages
+    shades.update(devter_language_shades())
     shades.update(content_language_shades())
+    write_palette(shades)
     sr = ['slovenskih', 'iranskih', 'albanskih', 'grčkih', 'romanskih', 'kavkaskih', 'turkijskih', 'uralskih', 'mongolskih']
     sq = ['sllave', 'iraniane', 'shqipe', 'greke', 'romane', 'kaukaziane', 'turkike', 'uraliane', 'mongole']
     P = {
@@ -405,7 +424,7 @@ def placeholders():
         'EXTRA_DOT_SELECTORS': (''.join(f'.dot.{f},' for f in EXTRA), 1),
         'EXTRA_TREE_ORDER': (''.join(f'\ndetails.vb.d1:has(>summary .dot.{f}){{order:{10 + i}}}' for i, f in enumerate(EXTRA)), 1),
         # map colour of every language after Etimo's own 78: the merged ones, then yours
-        'LANG_COLOURS': (',' + jsdump(shades)[1:-1], 1),
+        'LANG_COLOURS': (jsdump(shades)[1:-1], 1),
     }
     for name, key in HASHED.items():
         P[key] = (jsdump(H[name]), 1)

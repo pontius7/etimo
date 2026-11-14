@@ -7,9 +7,9 @@ Run after the normal site build, with the project's Python (it has the geometry 
 Nothing here is typed in by hand. Everything the map shows comes from the files the site already uses:
   language areas     site/data/terr.json         (made by scripts/merge/merge-data.py from the sources and content/)
   language list      site/data/languages.json    (pin position, family, own name, census rows)
-  language colours   site/index.html             (the one colour table build-page.py writes from the palette and content/)
+  language colours   site/data/palette.json   (the one palette build-page.py writes from scripts/merge/palette.py and content/)
   main language of a country   the census rows above, plus the short list in site/regional-layer.js (same rule as the site)
-  family names       site/index.html (where each name sits) and scripts/merge/palette.py (its colour, light and dark)
+  family names       site/index.html (where each name sits); their colours: site/data/palette.json
   lighter tint       content/minority-areas.csv  (min / plu rows)
   detailed areas     site/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
                      montenegro-areas.json, and the census countries of CENSUS_AREAS (croatia-, bosnia-areas.json); which generic pins and zones they replace: the lists in site/regional-layer.js
@@ -50,7 +50,6 @@ OUT = os.path.join(ROOT, 'site', 'map-next', 'data')
 CACHE = os.path.join(ROOT, '.cache', 'map-next')
 WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-10m.json'
 sys.path.insert(0, os.path.join(ROOT, 'scripts', 'merge'))
-import palette  # noqa: E402
 import topo  # noqa: E402
 
 RELIEF = (-1490, -1670, 3150, 1660)      # x, y, width, height of the relief image in map units
@@ -202,15 +201,18 @@ def world(area_tree):
 
 
 # ------------------------------------------------------------------ languages
+def load_palette():
+    with open(os.path.join(ROOT, 'site', 'data', 'palette.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
 def colour_table():
-    """The language colour table from the built page (one palette for the whole site)."""
-    sys.path.insert(0, os.path.join(ROOT, 'scripts'))
-    import page_code  # noqa: E402  (index.html and its code file, h/app.<hash>.js)
-    html = page_code.read(ROOT)
-    m = re.search(r'\(function\(\)\{var P=(\{[^}]*\})', html)
-    if not m:
-        sys.exit('map-next: colour table not found in site/index.html (run scripts/build-page.py first)')
-    return json.loads(m.group(1))
+    """The language colour table: site/data/palette.json, written by scripts/build-page.py (one palette for the whole site)."""
+    path = os.path.join(ROOT, 'site', 'data', 'palette.json')
+    if not os.path.exists(path):
+        sys.exit('map-next: site/data/palette.json not found (run scripts/build-page.py first)')
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)['light']
 
 
 def main_languages(langs):
@@ -606,7 +608,8 @@ def main():
     own = unary_union([c['shape'] for c in countries if c['name'] in ('Montenegro', 'Greece')])
     fitted = {n: g for n, g in ((n, solid(g.difference(own))) for n, g in fitted.items()) if not g.is_empty}
     # where a family's speakers live outside its home areas (site/data/dia.json), one shape per family
-    fam_col = lambda fam: {th: palette.ETIMO[th].get(fam) or palette.FAM[th].get(fam) or '#8a93a3' for th in ('light', 'dark')}
+    fam_cols = load_palette()['families']
+    fam_col = lambda fam: {th: fam_cols.get(fam, {}).get(th) or '#8a93a3' for th in ('light', 'dark')}
     dia, _, _ = fit_areas({fam: g for fam, g in ((fam, area_shape(d)) for fam, d in load('dia.json')['fam'].items()) if g is not None}, countries)
 
     def props(name):

@@ -92,7 +92,7 @@ scripts/
     merge-data.py             all map and word data in site/data and site/h (areas, coast-gap fill, country clip)
     bulk_import.py            the large word lists: full dictionaries and the search index
     dedupe.py, fetch-sheets.py, topo.py   helpers for the two above
-    palette.py, families.py   the one source of colours and of the family list
+    palette.py, families.py   the sources of colours (the 78 originals, family colours, shade rules) and of the family list; the build writes them all into site/data/palette.json
     devter-synonyms.json      synonym table used when content/meanings.csv adds a meaning
     region-langs.py           languages with numbers per region (census tables + content/region-languages.csv)
     check-overlaps.py         check: no two language areas overlap
@@ -175,13 +175,13 @@ these names and none defines them again; the map engine (`site/map-gl.js`, `them
 the same file (the `THEMES` table there is only the fallback). Moving them there changed no colour: all values were
 compared in Chrome before and after, light, dark and high contrast.
 
-**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours come from.
+**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours are edited. The build writes the result to `site/data/palette.json` (every language and family, light and dark): the page's colour table, the colour check and the map build read that one file (the page gets it inline, it is not fetched).
 
 - A **family** has one colour per theme (light, dark). Five come from the original Etimo and never
   change, four were chosen for the merge, and any further family is defined in `content/families.json`.
-- A **language** has its own colour: Etimo's table for its 78 languages (in `src/app/7-language-colours.js`),
+- A **language** has its own colour: Etimo's table for its 78 languages (`ORIGINALS` in `scripts/merge/palette.py`; the old copy is in `archive/palette-originals/`),
   and for every other language a shade of its family colour. Override one with `"color": "#rrggbb"` in its JSON.
-- Changing one of the 78 original colours: edit it in `src/app/7-language-colours.js` and add the name to
+- Changing one of the 78 original colours: edit it in `ORIGINALS` in `scripts/merge/palette.py` and add the name to
   `RECOLOURED` in `scripts/merge/check-colors.py`, otherwise the check fails because it no longer matches `reference/`.
 - The build writes that one table into the page. Map areas, dialect areas, pins, the wheel, the tree,
   cards and dots all read it, in both themes.
@@ -315,7 +315,7 @@ the preview.
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
 | `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search; `kWin` draws only the rows near the screen on long lists (language page, A-Z) and keeps the page length with two spacers (written by hand, with readable names) |
 | `app/6-app-screens-and-startup.js` | language page, tree, wheel, the map (`Dp`), settings, startup |
-| `app/7-language-colours.js` | the colour of every language, and how colours are lifted for dark mode |
+| `app/7-language-colours.js` | how colours are lifted for dark mode and read by the page; the colours themselves are filled in from `site/data/palette.json`'s source (`scripts/merge/palette.py`) |
 
 Three things to know:
 
