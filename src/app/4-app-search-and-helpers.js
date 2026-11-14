@@ -1,10 +1,15 @@
 function Yh(e){return(0,f.jsxs)("div",{className:"fdw",children:[(0,f.jsx)(FDYh,e),(0,f.jsx)(FDresults,{q:e.q,fam:e.fam})]})}
 function FDYh({q:e,fam:t="all",onPick:n}){let r=ja(),
 [a,i]=(0,m.useState)(80),
-s=(0,m.useMemo)(()=>Ha(e),[e,r]),
-o=!s.hits.length&&s.dym.length?s.dym[0]:null,
+w=kSrW(),
+[,wk]=(0,m.useState)(0);
+/* results wait for the search warm-up (kSrW) instead of freezing the page while every word is prepared */
+(0,m.useEffect)(()=>{if(w)return;let live=1;kSrW(()=>live&&wk(e=>e+1));return()=>{live=0}},[w,r]);
+let s=(0,m.useMemo)(()=>w?Ha(e):null,[e,r,w]),
+o=s&&!s.hits.length&&s.dym.length?s.dym[0]:null,
 l=(0,m.useMemo)(()=>o?Object.assign({},s,{ms:[o],hits:Ha(La(o)).hits}):s,[s,o]);
 (0,m.useEffect)(()=>i(80),[e,t]);
+if(!l)return null;
 let u=e=>"all"===t?e:e.filter(e=>e.L.family===t),
 c=u(l.hits),
 d=u(l.sim);
@@ -16,6 +21,7 @@ function Jh(){let e=ja(),
 [i,s]=(0,m.useState)("all"),
 o=(0,m.useDeferredValue)(r.replace(/^\s+/,"").replace(/\s+$/," "));
 (0,m.useEffect)(()=>{mi.sq=r},[r]);
+(0,m.useEffect)(()=>{kSrW()},[]);
 let l=Za();
 return(0,f.jsxs)("div",{className:"view srch",children:[(0,f.jsx)(ui,{id:"sq",value:r,onChange:a,ph:"l"===t?e.ph.lang:e.ph.all,recent:"l"!==t,autoFocus:!0}),(0,f.jsx)(Tp,{v:t,on:e=>{mi.sm=e,n(e)}}),"l"===t?(0,f.jsx)(Ap,{q:o}):o?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("div",{className:"chips fchips",children:["all"].concat(la).map(t=>(0,f.jsx)("button",{type:"button","aria-pressed":i===t,onClick:()=>s(t),children:"all"===t?e.allF:(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("i",{className:"dot "+t}),Ca(t)]})},t))}),(0,f.jsx)(Yh,{q:o,fam:i,onPick:a})]}):(0,f.jsxs)("div",{className:"sidle",children:[l.length?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsx)("p",{className:"gh",children:e.recent}),(0,f.jsx)("div",{className:"chipsc",children:l.map(e=>(0,f.jsx)("button",{type:"button",className:"qchip",onClick:()=>a(e),children:e},e))})]}):null,(0,f.jsx)("div",{className:"sbg",children:aa.map(t=>(0,f.jsxs)("button",{type:"button",className:"kt sbt",onClick:e=>li(e,"c-"+t),children:[(0,f.jsx)("span",{className:"kn",children:e.cat[t]}),(0,f.jsx)("span",{className:"kb",children:rp(t)})]},t))})]})]})}
 function Xh(e){return e}
