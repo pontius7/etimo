@@ -3,8 +3,7 @@ name: check
 # Builds the site from content/ and src/ with every check, and fails if the committed site/ is not what the build makes.
 on:
   pull_request:
-  push:
-    branches-ignore: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,13 +31,14 @@ jobs:
           python -m venv .venv
           .venv/bin/pip install -r scripts/merge/requirements.txt
 
-      # ./build runs data, page and checks (scripts/add-words.sh parts). The map tiles stage needs tippecanoe (not installed here):
-      # ./build only verifies that site/map-next/inputs.sha256 still matches the map's inputs.
+      # --offline: nothing is fetched and no tiles are cut here. The data and map stages are verified by their committed
+      # fingerprints (site/data/inputs.sha256, site/map-next/inputs.sha256): the check fails if their inputs changed since
+      # site/ was built. The page is rebuilt and every check (search keys, overlaps, words report, colours in Chrome) runs.
       - name: Build with every check
         env:
           CHROME: /usr/bin/google-chrome
           ETIMO_CHROME_ARGS: --no-sandbox --disable-dev-shm-usage
-        run: ./build --check
+        run: ./build --check --offline
 
       - name: Show what differs from the committed site/
         if: failure()

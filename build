@@ -3,7 +3,9 @@
 
     ./build            run every stage whose inputs changed since it last ran (says so when nothing did)
     ./build --all      run every stage, changed or not
-    ./build --check    run what is needed, then exit 1 if site/ differs from what is committed (what CI does)
+    ./build --check    run what is needed, then exit 1 if site/ differs from what is committed
+    ./build --offline  never fetch anything and never cut tiles: a data or map stage whose inputs changed is an error
+                       (what the GitHub check runs, with --check: a fresh checkout has no downloads and no tippecanoe)
 
 Stages, in order (the commands are the ones in scripts/add-words.sh and scripts/map-next/build.py):
     data    fetch sheets, merge data, current regions, region languages   (scripts/add-words.sh data)
@@ -13,9 +15,11 @@ Stages, in order (the commands are the ones in scripts/add-words.sh and scripts/
     checks  search keys, overlaps, words report, colour check in Chrome   (scripts/add-words.sh checks)
 
 A stage's inputs are fingerprinted (SHA-1 of the file contents, cached by size and time in .cache/build-state.json);
-the stage is skipped when the fingerprint is the one it last ran with. The map stage keeps its fingerprint in
-site/map-next/inputs.sha256 (committed with the site), so "map data older than its inputs" is also found on a fresh
-checkout: ./build --check fails then, with or without tippecanoe. No dependencies beyond Python 3 and git.
+the stage is skipped when the fingerprint is the one it last ran with. The data and map stages also keep their
+fingerprint in a file committed with the site (site/data/inputs.sha256, site/map-next/inputs.sha256), so "older than
+its inputs" is found on a fresh checkout too, without downloading or cutting anything. Only files git knows or would
+add count as inputs (ignored files such as caches do not), so the fingerprint is the same on every machine.
+No dependencies beyond Python 3 and git.
 """
 import hashlib
 import json
@@ -27,7 +31,8 @@ import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATE = os.path.join(ROOT, '.cache', 'build-state.json')
-MAP_RECORD = os.path.join(ROOT, 'site', 'map-next', 'inputs.sha256')
+RECORD = {'map': os.path.join(ROOT, 'site', 'map-next', 'inputs.sha256'),
+          'data': os.path.join(ROOT, 'site', 'data', 'inputs.sha256')}
 
 # files the build itself writes inside an input folder: they must not count as inputs
 GENERATED_NAMES = {'import-report.txt', 'duplicates-report.txt', '.DS_Store', 'inputs.sha256'}
@@ -99,22 +104,20 @@ def file_hash(path, state, names_only):
     return h.hexdigest()
 
 
+def git_files(roots):
+    """Files under the roots that git tracks or would add (not ignored), still present on disk."""
+    out = subprocess.run(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--'] + roots,
+                         cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    return [f for f in out.split('\0') if f and os.path.lexists(os.path.join(ROOT, f))]
+
+
 def fingerprint(stage, state):
     cfg = STAGES[stage]
     skip = cfg.get('skip', lambda rel: False)
     h = hashlib.sha1()
-    seen = []
-    for root in cfg['roots']:
-        top = os.path.join(ROOT, root)
-        if os.path.isfile(top):
-            seen.append(root)
+    for rel in sorted(set(git_files(cfg['roots']))):
+        if os.path.basename(rel) in GENERATED_NAMES or any(part in SKIP_DIRS for part in rel.split('/')):
             continue
-        for d, dirs, files in os.walk(top):
-            dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
-            for fn in files:
-                if fn not in GENERATED_NAMES:
-                    seen.append(os.path.relpath(os.path.join(d, fn), ROOT))
-    for rel in sorted(set(seen)):
         if skip(rel) or os.path.islink(os.path.join(ROOT, rel)) and not os.path.exists(os.path.join(ROOT, rel)):
             continue
         names_only = any(rel.startswith(p + '/') for p in NAMES_ONLY) and not rel.startswith('site/map-next/tiles/3/')
@@ -160,12 +163,18 @@ def run_stage(stage):
     return code == 0
 
 
-def read_record():
+def read_record(stage):
     try:
-        with open(MAP_RECORD, encoding='utf-8') as f:
+        with open(RECORD[stage], encoding='utf-8') as f:
             return f.read().strip()
     except OSError:
         return None
+
+
+def write_record(stage, fp):
+    os.makedirs(os.path.dirname(RECORD[stage]), exist_ok=True)
+    with open(RECORD[stage], 'w', encoding='utf-8') as f:
+        f.write(fp + '\n')
 
 
 def site_differs():
@@ -189,11 +198,11 @@ def main(argv):
     if any(a in ('-h', '--help') for a in argv):
         print(__doc__)
         return 0
-    unknown = [a for a in argv if a not in ('--all', '--check')]
+    unknown = [a for a in argv if a not in ('--all', '--check', '--offline')]
     if unknown:
-        print(f'build: unknown option {unknown[0]} (use --all, --check or --help)')
+        print(f'build: unknown option {unknown[0]} (use --all, --check, --offline or --help)')
         return 2
-    force, check = '--all' in argv, '--check' in argv
+    force, check, offline = '--all' in argv, '--check' in argv, '--offline' in argv
     state = load_state()
     started, ran = time.time(), []
     sheets_live = False
@@ -205,12 +214,21 @@ def main(argv):
 
     for stage in ORDER:
         fp = fingerprint(stage, state)
-        if stage == 'map':
-            needed = force or read_record() != fp
+        if stage in RECORD and offline:
+            # nothing may be fetched or cut: the committed output must already match its inputs
+            if read_record(stage) != fp:
+                say(f'{stage}: its inputs changed since site/ was built ({os.path.relpath(RECORD[stage], ROOT)} does not match). '
+                    'Run ./build on a machine with the downloads and tippecanoe, and commit site/')
+                return 1
+            needed = False
+        elif stage == 'map':
+            needed = force or read_record(stage) != fp
         else:
             needed = force and not (stage == 'page' and 'page' in ran) or state['stages'].get(stage) != fp
-            if stage == 'data' and sheets_live:
-                needed = True         # the sheets live on the web: only a run can tell whether they changed
+            if stage == 'data':
+                needed = needed or read_record(stage) != fp
+                if sheets_live:
+                    needed = True     # the sheets live on the web: only a run can tell whether they changed
         if not needed:
             say(f'{stage}: inputs unchanged, skipped')
             save_state(state)
@@ -222,17 +240,17 @@ def main(argv):
             say(f'{stage}: FAILED')
             return 1
         ran.append(stage)
-        if stage == 'map':
-            os.makedirs(os.path.dirname(MAP_RECORD), exist_ok=True)
-            with open(MAP_RECORD, 'w', encoding='utf-8') as f:
-                f.write(fp + '\n')
-        else:
+        if stage == 'data':
+            fp = fingerprint(stage, state)      # the data stage also refreshes files among its own inputs: record the state it left
+        if stage in RECORD:
+            write_record(stage, fp)
+        if stage != 'map':
             state['stages'][stage] = fp
         save_state(state)
         say(f'{stage}: done in {time.time() - t:.0f} s')
 
     # a map older than its inputs (also found without tippecanoe, from the record that is committed with the site)
-    if read_record() != fingerprint('map', state):
+    if read_record('map') != fingerprint('map', state):
         say('map data is older than its inputs: run ./build --all with tippecanoe and commit site/map-next')
         return 1
     if not ran:
