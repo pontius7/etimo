@@ -193,3 +193,8 @@
 @keyframes kdetfade{from{opacity:0}to{opacity:1}}
 [data-motion=off] .lview .kdet-b{animation:none}
 [data-motion=off] .lview .kdet-c{transition:none}
+
+/* ---- D4: desktop map panel. The fixed "Words" bar at the bottom of the panel was see-through (a gradient), so the rows that scroll
+   under it ("Nearby in this family", census rows) showed behind and above the button. It now has its own opaque band with a hairline
+   on top: nothing is drawn through it, and scrolled to the end the last row sits fully above it. Phone sheet unchanged. */
+@media (width>=64rem){.mapbox .card.mcard.kpanel .acts{background:var(--bg)!important;border-top:1px solid var(--line)}}
