@@ -111,7 +111,7 @@ e.querySelectorAll(":scope > svg").forEach(x=>x.remove());
 let g0=Math.min(e.clientWidth,620,Math.max(280,innerHeight-150)),
 v=g0/2,
 R=v-3,
-PRV=null,LT=0,DN=0;
+PRV=null,LT=0,DN=0,ROT=0,RAF=0,GL=null,SNAP=!1,DR=null;
 e.style.height=g0+"px";
 let y=ws(e).insert("svg",":first-child").attr("viewBox",[-v,-v,g0,g0]).attr("width",g0).attr("height",g0).attr("role","group").attr("aria-label",l.nav.tree),
 arc=lh().startAngle(d=>d.a0).endAngle(d=>d.a1).padAngle(.007).padRadius(R*.6).innerRadius(d=>d.r0).outerRadius(d=>d.r1).cornerRadius(3.5),
@@ -138,7 +138,35 @@ sh=n.split(/[-\s]/)[0];
 return[n.toUpperCase(),n.replace(/^Northwest /,"NW ").toUpperCase()].concat(/^(north|south|east|west)/i.test(sh)?[]:[sh.toUpperCase()])},
 PT=(q,w)=>[q*Math.sin(w),-q*Math.cos(w)],
 FX=w=>w[0].toFixed(1)+","+w[1].toFixed(1),
-UID="w"+Math.random().toString(36).slice(2,6);
+UID="w"+Math.random().toString(36).slice(2,6),
+turn=d=>{ROT=d;GL.style.transformOrigin="0 0";GL.style.rotate=d.toFixed(2)+"deg"},
+spin=(to,D)=>{cancelAnimationFrame(RAF);
+let from=ROT,t0=performance.now(),k=t=>{let p=Math.min(1,(t-t0)/D);
+turn(from+(to-from)*(1-(1-p)**3));
+p<1&&(RAF=requestAnimationFrame(k))};
+RAF=requestAnimationFrame(k)};
+/* A4b, phones: a finger turns the wheel (one rotation on the layer group) and it glides on release. Vertical moves stay the page's
+   scroll (touch-action: pan-y in v62.css). A wheel with names outside its rim turns back to upright, the one angle where those
+   names were measured to clear the choice bar (D2). */
+y.on("pointerdown",ev=>{if("touch"!==ev.pointerType||matchMedia("(min-width: 64rem)").matches)return;
+cancelAnimationFrame(RAF);
+let c=i.getBoundingClientRect();
+DR={id:ev.pointerId,cx:c.left+c.width/2,cy:c.top+c.height/2,x:ev.clientX,y:ev.clientY,on:0,s:[]};
+DR.a=Math.atan2(ev.clientY-DR.cy,ev.clientX-DR.cx)}).on("pointermove",ev=>{if(!DR||ev.pointerId!==DR.id)return;
+if(!DR.on){if(Math.hypot(ev.clientX-DR.x,ev.clientY-DR.y)<8)return;
+DR.on=1;
+y.node().setPointerCapture(ev.pointerId)}
+let a2=Math.atan2(ev.clientY-DR.cy,ev.clientX-DR.cx),d=a2-DR.a;
+DR.a=a2;
+turn(ROT+(d+3*Math.PI)%TWO*180/Math.PI-180);
+DR.s.push([ev.timeStamp,ROT]);
+DR.s=DR.s.slice(-4)}).on("pointerup pointercancel",ev=>{if(!DR||ev.pointerId!==DR.id)return;
+let{on,s}=DR;
+DR=null;
+if(!on)return;
+let o=s.find(z=>ev.timeStamp-z[0]<100),l0=s[s.length-1],v=o&&ev.timeStamp-l0[0]<80&&l0[0]>o[0]?(ROT-o[1])/(l0[0]-o[0]):0,
+to=SNAP?Math.round(ROT/360)*360:ROT+v*180;
+rm?turn(SNAP?to:ROT):Math.abs(to-ROT)>.5&&spin(to,SNAP?220:540)});
 return{draw(root){
 /* the phone bar (wb) shows only once something has been chosen: a tap on a slice, or a move to another group */
 null===D0?D0=root:root!==D0&&(ACT=1);
@@ -231,6 +259,9 @@ SO=off||!dir?0:setO(G,.5),
 LB=G.append("g").attr("pointer-events","none"),
 OUTL=0,
 OUTS=[];
+cancelAnimationFrame(RAF);
+ROT=0;
+GL=G.node();
 P.append("title").text(q=>q.d.data.name+(q.d.data.L?"":" · "+q.d.value));
 arcs.forEach((q,ix)=>{if("tick"===q.kind||"rim"===q.kind)return;
 let nm="leaf"===q.kind?q.d.data.name:q.d.data.name.toUpperCase(),ph=(q.a0+q.a1)/2,sp=q.a1-q.a0;
@@ -259,6 +290,7 @@ let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd
 LB.append("path").attr("id",id).attr("fill","none").attr("d","M"+FX(A0)+"A"+rb.toFixed(1)+","+rb.toFixed(1)+" 0 0 "+(tp?1:0)+" "+FX(A1));
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
 P.attr("d",arc);
+SNAP=OUTS.length>0;
 {let T=0,
 B=0;
 if(OUTS.length){let FS=g0>560?13:12,
@@ -394,7 +426,7 @@ PRV={root,arcs};
 /* A4d: the first-draw sweep runs once per visit (WSW outlives this wheel), under 900 ms in all */
 TOP&&!rm&&!WSW&&(WSW=1,P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>500+40*j+"ms"));
 },
-destroy(){y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
+destroy(){cancelAnimationFrame(RAF),y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
 var Ep=null,WSW=0;
 function zp(e){if(!Ep)return e;
 let t=e.leaves().find(e=>e.data.L&&e.data.L.id===Ep);

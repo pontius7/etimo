@@ -36,6 +36,7 @@
    Going in: the old wheel grows and turns away from the slice while fading, the family's rings grow out of the slice.
    Going back: the reverse. Out 220 ms, in 300 ms starting at 60 ms: 360 ms in all. ---- */
 .sb svg g.lay,.sb svg g.lgone{transform-origin:0 0}
+.sb svg{touch-action:pan-y}
 .sb svg g.lay.win{animation:wIn .3s cubic-bezier(.2,.8,.2,1) .06s both}
 .sb svg g.lay.wout{animation:wBack .3s cubic-bezier(.2,.8,.2,1) .06s both}
 .sb svg g.lay.wfirst{animation:wFirst .5s cubic-bezier(.2,.8,.2,1) both}
