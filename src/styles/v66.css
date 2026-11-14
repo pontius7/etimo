@@ -119,8 +119,8 @@
 
 /* ---- Languages wheel: the chosen language (paint() in qp) comes a little out of the wheel with a soft shadow instead of a
    heavy outline; the other slices dim by family distance (inline opacity). Same on phone and desktop. */
-#langs .wa{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .28s ease,filter .15s}
-#langs .lay text{transition:translate .32s cubic-bezier(.2,.8,.2,1),opacity .28s ease}
+#langs .wa{transition:translate .12s cubic-bezier(.2,.8,.2,1),opacity .12s cubic-bezier(.2,.8,.2,1),filter .15s}
+#langs .lay text{transition:translate .12s cubic-bezier(.2,.8,.2,1),opacity .12s cubic-bezier(.2,.8,.2,1)}
 #langs .wa.sel{stroke:var(--bg);stroke-width:1.2px;filter:drop-shadow(0 3px 7px rgb(0 0 0 / .28))}
 #langs .wa.sel:focus-visible{stroke:var(--ink);stroke-width:2.4px}
 @media (prefers-reduced-motion:reduce){#langs .wa,#langs .lay text{transition:none}}
@@ -171,3 +171,10 @@
 @keyframes wbup{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 @media (prefers-reduced-motion:reduce){#langs .wbar{animation:none}}
 [data-motion=off] #langs .wbar{animation:none}
+
+/* ---- Home entrance (A6): one short staggered sequence instead of five to seven animations starting together. The blocks
+   (word card, the two list tiles, the eight category tiles) rise 14 px and fade in over 220 ms, 45 ms apart (the card and list tiles first, then the category tiles two at a time
+   by --i), the last starting at 180 ms: done by 400 ms. Same on phone and
+   desktop. The looping word card (tick, a-blur) and the ridge drawing (reveal) are unchanged. Reduced motion: main.css
+   already turns every animation off. */
+#heroSlot :is(.spec,.ut,.ctw,.ct-grid>.ct){animation-duration:.22s;animation-timing-function:cubic-bezier(.2,.8,.2,1);animation-delay:calc(min(max(var(--i,0) - 2,0),4)*45ms);animation-delay:calc(max(round(down,(var(--i,0) - 1) / 2,1),0)*45ms)}

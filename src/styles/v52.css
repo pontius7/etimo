@@ -61,7 +61,7 @@ html.mapfs .ktop{display:none}
 
 /* wheel: families first */
 .wa.tick{pointer-events:none}
-.wa.a.wpl{animation:wpl 1.6s ease-in-out 2}
+.wa.a.wpl{animation:wpl .36s cubic-bezier(.2,.8,.2,1) 1}
 @keyframes wpl{0%,100%{transform:scale(1)}
 45%{transform:scale(1.035)}
 }

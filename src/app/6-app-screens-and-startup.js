@@ -109,7 +109,8 @@ rm=Ya();
 e.querySelectorAll(":scope > svg").forEach(x=>x.remove());
 let g0=Math.min(e.clientWidth,620,Math.max(280,innerHeight-150)),
 v=g0/2,
-R=v-3;
+R=v-3,
+PRV=null,LT=0,DN=0;
 e.style.height=g0+"px";
 let y=ws(e).insert("svg",":first-child").attr("viewBox",[-v,-v,g0,g0]).attr("width",g0).attr("height",g0).attr("role","group").attr("aria-label",l.nav.tree),
 arc=lh().startAngle(d=>d.a0).endAngle(d=>d.a1).padAngle(.007).padRadius(R*.6).innerRadius(d=>d.r0).outerRadius(d=>d.r1).cornerRadius(3.5),
@@ -200,14 +201,32 @@ sm.onclick=()=>{sm.classList.remove("hit"),
 sm.offsetWidth,
 sm.classList.add("hit");
 root.depth&&setTimeout(()=>r(root.parent),rm?0:140)}}
-let dir=null==PD?0:root.depth>PD?1:root.depth<PD?-1:0;
+let off="off"===document.documentElement.getAttribute("data-motion"),
+red=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches),
+dir=null==PD?0:root.depth>PD?1:root.depth<PD?-1:0;
 PD=root.depth;
-if(rm||!dir)y.selectAll("g.lay,g.lgone").remove();
+DN++;
+/* A3, dive into a family: the outgoing layer and the incoming layer are two groups moved with transform and opacity only.
+   Origin = the tapped slice (going in: its place in the old wheel; going back: the family's place in the wheel that returns),
+   found from the angles of the layout that was on screen. A second tap before the first has settled drops the leftover
+   layers at once, so no half state stays. */
+let SP=(arr,nd)=>{let q=arr&&nd&&arr.find(z=>"rim"!==z.kind&&"tick"!==z.kind&&z.d===nd);
+for(let n=nd&&nd.parent;arr&&!q&&n;n=n.parent)q=arr.find(z=>"rim"!==z.kind&&"tick"!==z.kind&&z.d===n);
+if(!q)return null;
+let m=(q.a0+q.a1)/2;
+return{sx:Math.sin(m),sy:-Math.cos(m)}},
+OR=dir>0?SP(PRV&&PRV.arcs,root):dir<0?SP(arcs,PRV&&PRV.root):null,
+WR=OR?(OR.sx>=0?-9:9)+"deg":"-8deg",
+setO=(sel,k)=>sel.style("transform-origin",OR?(OR.sx*R*k).toFixed(1)+"px "+(OR.sy*R*k).toFixed(1)+"px":"0px 0px").style("--wr",WR);
+if(off||!dir||performance.now()-LT<320)y.selectAll("g.lay,g.lgone").remove();
 else{y.selectAll("g.lgone").remove();
-let og=y.selectAll("g.lay").attr("class","lgone"+(dir<0?" dn":""));
-setTimeout(()=>og.remove(),220)}
-let G=y.append("g").attr("class","lay"+(TOP?" wtop":"")+(rm?"":dir>0?" win":dir<0?" wout":" wfirst")),
+let og=y.selectAll("g.lay").attr("class","lgone"+(dir<0?" dn":"")+(red?" wrm":""));
+setO(og,dir>0?.6:.55);
+setTimeout(()=>og.remove(),red?140:260)}
+LT=performance.now();
+let G=y.append("g").attr("class","lay"+(TOP?" wtop":"")+(off?"":red?" wrm":dir>0?" win":dir<0?" wout":" wfirst")),
 P=G.append("g").selectAll("path").data(arcs).join("path").attr("class",q=>"wa "+q.kind).attr("fill",col).attr("tabindex",0).attr("role","button").attr("aria-label",q=>q.d.data.name+(q.d.data.L?"":" · "+q.d.value)),
+SO=off||!dir?0:setO(G,.5),
 LB=G.append("g").attr("pointer-events","none"),
 OUTL=0,
 OUTS=[];
@@ -235,7 +254,7 @@ let dg=ph*180/Math.PI,lf=ph>Math.PI;
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("dy","0.35em").attr("font-size",g2.f).attr("text-anchor","middle").attr("transform","rotate("+(dg-90)+") translate("+((q.r0+q.r1)/2).toFixed(1)+",0)"+(lf?" rotate(180)":"")).text(g2.t);
 return}
 if(!f)return;
-let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+ix;
+let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd):tp?rmid-.33*f.f:rmid+.33*f.f,A0=PT(rb,tp?ph-hw:ph+hw),A1=PT(rb,tp?ph+hw:ph-hw),id=UID+DN+"_"+ix;
 LB.append("path").attr("id",id).attr("fill","none").attr("d","M"+FX(A0)+"A"+rb.toFixed(1)+","+rb.toFixed(1)+" 0 0 "+(tp?1:0)+" "+FX(A1));
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
 P.attr("d",arc);
@@ -243,7 +262,7 @@ P.attr("d",arc);
 B=0;
 if(OUTS.length){let FS=g0>560?13:12,
 RH=FS+5,
-HW=Math.max(v,innerWidth/2-8),
+HW=(()=>{let bb=e.getBoundingClientRect(),c=bb.left+bb.width/2;return Math.max(60,Math.min(c-8,innerWidth-c-8))})(),
 cv=document.createElement("canvas").getContext("2d");
 cv.font="500 "+FS+"px Manrope, system-ui, sans-serif";
 let lay=(grp,sgn)=>{let L=grp.map(o=>{let x=R*Math.sin(o.ph),yr=-R*Math.cos(o.ph),w=cv.measureText(o.nm).width+2;
@@ -252,8 +271,8 @@ let placed=[];
 L.forEach(o=>{let cs=[];
 if(Math.abs(o.x)<.35*R){let c=Math.max(-HW+o.w/2,Math.min(HW-o.w/2,o.x));
 cs.push({an:"middle",tx:c,a0:c-o.w/2,a1:c+o.w/2})}
-if(o.x<0){let a0=Math.max(-HW,o.x-3);
-cs.push({an:"start",tx:a0,a0,a1:a0+o.w})}else{let a1=Math.min(HW,o.x+3);
+if(o.x<0){let a0=Math.min(HW-o.w,Math.max(-HW,o.x-3));
+cs.push({an:"start",tx:a0,a0,a1:a0+o.w})}else{let a1=Math.max(-HW+o.w,Math.min(HW,o.x+3));
 cs.push({an:"end",tx:a1,a0:a1-o.w,a1})}
 for(let r=0;r<14;r++)for(const c of cs){let a0=c.a0-5,a1=c.a1+5;
 let ok=placed.every(p=>{if(p.r===r&&!(a1<p.a0||a0>p.a1))return!1;
@@ -351,16 +370,19 @@ paint()}};
 P.on("click",(ev,q)=>act(q)).on("keydown",(ev,q)=>{("Enter"===ev.key||" "===ev.key)&&(ev.preventDefault(),act(q))}).on("pointerenter",(ev,q)=>{"mouse"===ev.pointerType&&(a.hidden=!1,a.textContent=q.d.data.name+(q.d.data.L?"":" · "+q.d.value))}).on("pointerleave",ev=>{"mouse"===ev.pointerType&&paint()});
 Ep&&arcs.some(x=>"leaf"===x.kind&&x.d.data.L.id===Ep)&&(SL=Ep,Ep=null),
 paint(),
-TOP&&!rm&&P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>1100+260*j+"ms");
+PRV={root,arcs};
+/* A4d: the first-draw sweep runs once per visit (WSW outlives this wheel), under 900 ms in all */
+TOP&&!rm&&!WSW&&(WSW=1,P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>500+40*j+"ms"));
 },
 destroy(){y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
-var Ep=null;
+var Ep=null,WSW=0;
 function zp(e){if(!Ep)return e;
 let t=e.leaves().find(e=>e.data.L&&e.data.L.id===Ep);
 return t&&(t.ancestors().find(e=>e.depth===Math.min(2,t.depth-1))||t.parent)||e}
-function Np({path:e,go:t,lbl:n}){let r=e.slice(1);
+function Np({path:e,go:t,lbl:n,back:bk}){let r=e.slice(1);
 return(0,f.jsx)("nav",{className:"kdep","aria-label":n,children:r.map((a,i)=>{let s=i===r.length-1,o=s?e[i]:a;
-return(0,f.jsx)("button",{type:"button",className:"kdp"+(s?" cur":""),style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":(s?"↑ ":"")+(o.depth?o.data.name:n),title:a.data.name,onClick:()=>t(o),children:(0,f.jsx)("i",{})},i)})})}
+/* D2: the last item goes back one level; it carries an arrow and the interface's "Back" so it reads as a control */
+return s?(0,f.jsxs)("button",{type:"button",className:"kdp cur kdb",style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":(bk||"Back")+" · "+(o.depth?o.data.name:n),title:a.data.name,onClick:()=>t(o),children:[(0,f.jsx)("svg",{viewBox:"0 0 24 24","aria-hidden":"true",children:(0,f.jsx)("path",{d:"M15 6l-6 6 6 6"})}),(0,f.jsx)("span",{children:bk||"Back"})]},i):(0,f.jsx)("button",{type:"button",className:"kdp",style:{"--dc":Mf(If(a.fam),a)||""},"aria-label":o.depth?o.data.name:n,title:a.data.name,onClick:()=>t(o),children:(0,f.jsx)("i",{})},i)})})}
 function Mp({root:e,cur:t,go:n}){let r=t.ancestors();
 return(0,f.jsx)("div",{className:"wfam",role:"tablist",children:(e.children||[]).map(a=>{let i=r.includes(a);
 return(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":i,onClick:()=>n(i&&t===a?e:a),style:{"--wf":Mf(If(a.fam),a)||""},children:[(0,f.jsx)("i",{}),(0,f.jsx)("span",{children:a.data.name})]},a.data.name)})})}
@@ -450,7 +472,7 @@ return e.observe(document.documentElement,{attributes:!0,attributeFilter:["data-
 let b=u.ancestors().reverse(),
 y=((u.children||[]).filter(e=>!e.data.L),Da(s.trim()));
 u.leaves().map(e=>e.data.L).sort((e,t)=>Na(e).localeCompare(Na(t),Ia())).filter(e=>!y||Da(Na(e)+" "+Ma(e)+" "+e.lang+" "+(e.info&&e.info.an||"")).indexOf(y)>-1);
-return(0,f.jsxs)("div",{className:"view"+("tree"===a?" tvtree":""),id:"langs",children:[(0,f.jsx)("div",{className:"lmrow",children:(0,f.jsxs)("div",{className:"lm tvs",role:"tablist",children:[(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"wheel"===a,onClick:()=>i("wheel"),children:[(0,f.jsx)(si,{n:"wheel"}),(0,f.jsx)("span",{children:r.wheel})]}),(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"tree"===a,onClick:()=>i("tree"),children:[(0,f.jsx)(si,{n:"tree"}),(0,f.jsx)("span",{children:r.tree})]})]})}),"tree"===a?(0,f.jsx)(Lp,{s:l}):(0,f.jsxs)("div",{className:"sbwrap",children:[(0,f.jsx)(Mp,{root:l,cur:u,go:c}),(0,f.jsx)(Np,{path:b,go:c,lbl:r.nav.tree}),(0,f.jsx)("div",{className:"sb",ref:d,children:(0,f.jsx)("div",{className:"sbc",ref:p})}),(0,f.jsx)("p",{className:"sbh",ref:h,hidden:!0,children:""})]}),null]})}
+return(0,f.jsxs)("div",{className:"view"+("tree"===a?" tvtree":""),id:"langs",children:[(0,f.jsx)("div",{className:"lmrow",children:(0,f.jsxs)("div",{className:"lm tvs",role:"tablist",children:[(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"wheel"===a,onClick:()=>i("wheel"),children:[(0,f.jsx)(si,{n:"wheel"}),(0,f.jsx)("span",{children:r.wheel})]}),(0,f.jsxs)("button",{type:"button",role:"tab","aria-selected":"tree"===a,onClick:()=>i("tree"),children:[(0,f.jsx)(si,{n:"tree"}),(0,f.jsx)("span",{children:r.tree})]})]})}),"tree"===a?(0,f.jsx)(Lp,{s:l}):(0,f.jsxs)("div",{className:"sbwrap",children:[(0,f.jsx)(Mp,{root:l,cur:u,go:c}),(0,f.jsx)(Np,{path:b,go:c,lbl:r.nav.tree,back:r.back}),(0,f.jsx)("div",{className:"sb",ref:d,children:(0,f.jsx)("div",{className:"sbc",ref:p})}),(0,f.jsx)("p",{className:"sbh",ref:h,hidden:!0,children:""})]}),null]})}
 d("aIIwE"),
 d("aIIwE"),
 m=d("aIIwE");
