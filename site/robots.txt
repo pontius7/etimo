@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://etimo.nikocevic7.workers.dev/sitemap.xml

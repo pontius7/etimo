@@ -8,6 +8,8 @@ import re
 import shutil
 import urllib.parse
 
+from bulk_import import slug     # the id of a language, as in the app's addresses (#l-<id>)
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 SITE = os.path.join(ROOT, 'site')
 SITE_URL = 'https://etimo.nikocevic7.workers.dev'    # the one place the site's address is written
@@ -26,12 +28,13 @@ def token(name):
 
 def write_manifest():
     """site/manifest.webmanifest and site/icon.svg: the page's own icon (the path in src/page.html), in the page's ink and background."""
-    html = open(os.path.join(ROOT, 'src', 'page.html'), encoding='utf-8').read()
-    d = re.search(r'%3Cpath%20d=\'([^\']+)\'', html).group(1)
+    page = open(os.path.join(ROOT, 'src', 'page.html'), encoding='utf-8').read()
+    d = re.search(r'%3Cpath%20d=\'([^\']+)\'', page).group(1)
+    description = re.search(r'<meta name="description" content="([^"]+)"', page).group(1)
     write('icon.svg', f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="{token("bg")}"/>'
                       f'<path fill="{token("ink")}" d="{urllib.parse.unquote(d)}"/></svg>\n')
     write('manifest.webmanifest', json.dumps({
-        'name': 'Etimo', 'short_name': 'Etimo', 'description': 'A dictionary and map of languages and their families.',
+        'name': 'Etimo', 'short_name': 'Etimo', 'description': description,
         'start_url': '/', 'display': 'standalone', 'background_color': token('bg'), 'theme_color': token('bg'),
         'icons': [{'src': '/icon.svg', 'sizes': 'any', 'type': 'image/svg+xml', 'purpose': 'any'}]}, indent=2) + '\n')
 
@@ -95,7 +98,7 @@ def write_readable():
     languages, lexicon, palette = load('languages.json'), load('lexicon.json'), load('palette.json')
     entries = {e['lang']: e['entries'] for e in lexicon}
     shutil.rmtree(os.path.join(SITE, 'l'), ignore_errors=True)
-    ids = {re.sub(r'^-|-$', '', re.sub(r'[^a-z0-9]+', '-', name.lower())): name for name in languages}   # oa() in the app
+    ids = {slug(name): name for name in languages}
     for ident in sorted(ids):
         name = ids[ident]
         os.makedirs(os.path.join(SITE, 'l', ident))
