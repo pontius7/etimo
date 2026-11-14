@@ -298,7 +298,26 @@ let H=g0+T+B;
 y.attr("viewBox",[-v,-v-T,g0,H]).attr("height",H);
 e.style.height=H+"px";
 i.style.top=(v+T)+"px";
-i.style.transform="translate(-50%,-50%)"}
+i.style.transform="translate(-50%,-50%)";
+/* D2, phones (<64rem): once a family is open, the wheel with its outside names must end above the choice bar (the fixed bar over the
+   tab bar). If it would not, the whole drawing is scaled down to the room (svg size only, viewBox unchanged; the empty band above
+   the wheel is used first), measured at scroll position 0. The page's own scroll is not involved. */
+{let wr=e.parentNode,sc=1;
+wr.style.paddingTop="";
+if(root.depth&&window.matchMedia&&!matchMedia("(min-width: 64rem)").matches){let pr=document.createElement("div");
+pr.style.cssText="position:fixed;visibility:hidden;pointer-events:none;left:0;width:1px;height:54px;bottom:calc(4.5rem + .75rem + env(safe-area-inset-bottom,0px))";
+document.body.appendChild(pr);
+let bt=pr.getBoundingClientRect().top;
+pr.remove();
+let rm2=()=>(bt-8-(e.getBoundingClientRect().top+window.scrollY))/H;
+sc=Math.min(1,rm2());
+if(sc<1){wr.style.paddingTop=".25rem";
+sc=Math.max(.3,Math.min(1,rm2()))}}
+y.attr("width",g0);
+if(sc<1){y.attr("width",(g0*sc).toFixed(1)).attr("height",(H*sc).toFixed(1));
+e.style.height=(H*sc).toFixed(1)+"px";
+i.style.top=((v+T)*sc).toFixed(1)+"px";
+i.style.transform="translate(-50%,-50%) scale("+sc.toFixed(3)+")"}}}
 let pk=i.querySelector(".wpk")||(()=>{let z=document.createElement("span");
 z.className="wpk";
 i.appendChild(z);
