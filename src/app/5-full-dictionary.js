@@ -30,6 +30,9 @@ const FDt = k => {
    An element with data-d is a repeated heading (A-Z); its height is subtracted from the top spacer by the caller (KWD).
    When a measured height moves rows above the screen the scroll position is corrected by the shift, so nothing jumps. */
 let KWC = {k: '', w: 0, h: []}, KWD = 0;
+/* On a scroll the new rows are drawn at once, in the same frame (the browser sends one scroll event per frame, before it paints):
+   a fast drag of the scrollbar never shows an empty screen. React's flushSync; a plain call if it is ever missing. */
+const KWF = f => { let s = d("2b9p0").flushSync; s ? s(f) : f(); };
 function kWin(n, key, est) {
   let ref = (0, m.useRef)(null), an = (0, m.useRef)(null), cur = (0, m.useRef)(null), [rg, setRg] = (0, m.useState)([0, 40, key]), [, tick] = (0, m.useState)(0);
   if (KWC.k !== key || KWC.w !== innerWidth) KWC = {k: key, w: innerWidth, h: []};
@@ -41,14 +44,14 @@ function kWin(n, key, est) {
     if (!el) return;
     for (let e of el.children) if (e.dataset.i != null && !e.classList.contains('letter')) { let q = e.getBoundingClientRect(); if (q.bottom > 0) { an.current = {i: e.dataset.i, y: q.top, s: scrollY}; return; } }
   };
-  let calc = () => {
+  let calc = now => {
     let el = ref.current, C = cur.current;
     if (!el || !C) return;
     let q = el.getBoundingClientRect(), vh = innerHeight, lo = -q.top - vh * 1.5, hi = -q.top + vh * 2.5, v = avg(), y = 0, x = -1, z = C.n;
     for (let i = 0; i < C.n; i++) { let h = KWC.h[i] || v; if (x < 0 && y + h > lo) x = i; if (y > hi) { z = i; break; } y += h; }
     if (x < 0) x = Math.max(0, C.n - 30);
     x = Math.floor(x / 8) * 8; z = Math.min(C.n, Math.max(Math.ceil(z / 8) * 8, x + 8));
-    if (x !== Math.min(C.r[0], C.n) || z !== Math.min(C.r[1], C.n) || C.r[2] !== C.key) { cap(); setRg([x, z, C.key]); }
+    if (x !== Math.min(C.r[0], C.n) || z !== Math.min(C.r[1], C.n) || C.r[2] !== C.key) { cap(); now ? KWF(() => setRg([x, z, C.key])) : setRg([x, z, C.key]); }
   };
   (0, m.useLayoutEffect)(() => {
     let el = ref.current;
@@ -67,10 +70,10 @@ function kWin(n, key, est) {
     if (ch) { cap(); tick(x => x + 1); } else calc();
   });
   (0, m.useEffect)(() => {
-    let q = 0, go = () => { q || (q = requestAnimationFrame(() => { q = 0; calc(); })); };
+    let q = 0, go = () => { q || (q = requestAnimationFrame(() => { q = 0; calc(); })); }, sc = () => calc(1);
     document.documentElement.style.overflowAnchor = 'none'; /* the browser's own scroll anchoring would correct a second time */
-    addEventListener('scroll', go, {passive: true}); addEventListener('resize', go);
-    return () => { document.documentElement.style.overflowAnchor = ''; removeEventListener('scroll', go); removeEventListener('resize', go); cancelAnimationFrame(q); };
+    addEventListener('scroll', sc, {passive: true}); addEventListener('resize', go);
+    return () => { document.documentElement.style.overflowAnchor = ''; removeEventListener('scroll', sc); removeEventListener('resize', go); cancelAnimationFrame(q); };
   }, []);
   return {ref, a, b, top: t, bot: u};
 }
