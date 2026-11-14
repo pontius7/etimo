@@ -1111,6 +1111,12 @@ let v=GM.view(),k=v.s/M;
 return Fh.translate(b/2-k*(v.x*M+C[0]),y/2-k*(v.y*M+C[1])).scale(k)}
 function kGo(T,ms){gT=T;
 GM?GM.jump({s:T.k*M,x:((b/2-T.x)/T.k-C[0])/M,y:((y/2-T.y)/T.k-C[1])/M},f?0:ms||0):(kTick(T),clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&bt()},0))}
+/* a flight (to a language, a region, a family, a pin, or back home: Wt, Qt, Ut): 400 to 700 ms by how far it goes, the zoom
+   steps it takes plus the screens it pans; the engine flies it with the site's easing. 0 stays a jump. */
+function kFly(T,ms){let c=ms&&kV();
+if(!c)return ms||0;
+let z=Math.abs(Math.log2(T.k/c.k)),d=Math.hypot((b/2-T.x)/T.k-(b/2-c.x)/c.k,(y/2-T.y)/T.k-(y/2-c.y)/c.k)*Math.min(T.k,c.k)/Math.max(b,y);
+return Math.round(400+300*Math.min(1,(z+d)/3))}
 function kTick(T){let t=T.k,z=t>=11?2:t>=6?1:0;
 Rt&&Rt.classList.toggle("on",!Gt(T)||!!nt||!!te);
 /* GL: while the engine moves the map it also draws the names and dots (gLab below), so the page's own unseen copies are not
@@ -1251,7 +1257,7 @@ d.innerHTML='<div class="knm"><svg viewBox="0 0 24 24" aria-hidden="true"><path 
 d.querySelector(".knl").onclick=()=>Ja("languages"),d.querySelector(".knr").onclick=()=>location.reload(),box.appendChild(d)}
 function gStart(){let gDead=!1,gBad=err=>{gDead||(gDead=!0,clearTimeout(gTm),console.warn("Etimo: the map engine could not start",err),GM&&GM.off(),GM=null,window.__etimoMap&&window.__etimoMap.drop(),kNoMap(e),window.__kMapReady||(window.__kMapReady=!0,window.dispatchEvent(new Event("etimo:mapready"))))},/* a start that takes longer than 20 seconds (a stalled download) also ends in the note */
 gTm=setTimeout(()=>{q.node().isConnected&&!GM&&gBad(Error("the map engine took too long"))},2e4);
-(window.__etimoMap?Promise.resolve(window.__etimoMap):import(new URL("map-gl.js?v=9",document.baseURI).href).then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
+(window.__etimoMap?Promise.resolve(window.__etimoMap):import(new URL("map-gl.js?v=10",document.baseURI).href).then(m=>window.__etimoMap=m)).then(m=>m.attach(e,{languages:x,color:Vf,parent:E.node(),px:u=>[u[0]*M+C[0],u[1]*M+C[1]],k:()=>kV().k})).then(g=>{if(clearTimeout(gTm),gDead||!q.node().isConnected)return;
 let T0=gT;
 GM=g,e.querySelectorAll("canvas[aria-label]").forEach(c=>c.setAttribute("aria-label",Ea({sq:"Harta e gjuhëve",sr:"Mapa jezika"}[ya()]||"Map of languages"))),GM.limits(M,.8*gOne,150),GM.overlay(q.node(),Q2.node()),kGo(T0,0),GM.on({move:()=>kTick(kV()),/* the names are laid out again once the map has really come to rest: a wheel or pinch stops and starts many times a second */
 start:()=>{clearTimeout(Mt),clearTimeout(gB),De(null),gMv||(gMv=!0,q.classed("zooming",!0)),X=!1,J()},end:()=>{clearTimeout(gB),gB=setTimeout(()=>{q.node().isConnected&&(gMv=!1,q.classed("zooming",!1),kTick(kV()),bt(),gLabSync())},140)},click:gClick,hover:gHover,fail:gBad,leave:()=>{X||J(),De(null),GM.hover(null)}}),Ve.selectAll("g.pin").each(function(d){GM.hidePin.has(d.lang)&&(this.style.display="none")}),Q2.selectAll("text.plabel.ln").each(function(d){d&&GM.hidePin.has(d.lang)&&(this.style.display="none")}),gSync(),
@@ -1425,12 +1431,12 @@ let Kt=(i=x.map(e=>e._xy[0]),s=x.map(e=>e._xy[1]),o=Math.min(...i),l=Math.max(..
 GL&&(Kt=gHome(),gOne=Math.min(1,gFit||Kt.k));
 function phoneHome(){let ys=x.filter(e=>e._xy[0]>0&&e._xy[0]<b).map(e=>e._xy[1]),u=Math.min(...ys),c=Math.max(...ys),top=64,free=y-top-12,k=Math.max(1,Math.min(1.15,.8*free/Math.max(1,c-u)));
 return Fh.translate(b/2,top+free/2).scale(k).translate(-b/2,-(u+c)/2)}
-function Ut(e){GL?kGo(Kt,e||620):q.transition().duration(f?0:e||620).ease(Po).call(Dt.transform,Kt)}
+function Ut(e){GL?kGo(Kt,kFly(Kt,e||620)):q.transition().duration(f?0:e||620).ease(Po).call(Dt.transform,Kt)}
 function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,i=Math.max(n[2]-n[0],b/c),s=Math.max(n[3]-n[1],y/c);
 Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
 let TT=Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2);
-GL?kGo(TT,a):q.transition().duration(f?0:a).ease(Po).call(Dt.transform,TT)}
+GL?kGo(TT,kFly(TT,a)):q.transition().duration(f?0:a).ease(Po).call(Dt.transform,TT)}
 function $t(e){nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
 let t=kV().k;
 Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&!GL&&(T(e)?O.append("path").attr("class","terr "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].d).each(function(){let c=Vf(e);
@@ -1443,7 +1449,7 @@ g.forEach(t=>{if(t!==e){let r=Math.hypot(t._xy[0]-e._xy[0],t._xy[1]-e._xy[1]);
 r<n&&(n=r)}});
 let r=Math.min(40,Math.max(5,30/Math.max(n,.3))),a=52+(y-52-w())/2;
 let TT=Fh.translate(b/2,a).scale(r).translate(-e._xy[0],-e._xy[1]);
-GL?kGo(TT,t):q.transition().duration(f?0:t).ease(Po).call(Dt.transform,TT)}
+GL?kGo(TT,kFly(TT,t)):q.transition().duration(f?0:t).ease(Po).call(Dt.transform,TT)}
 function Yt(e,t){(e!==Vt||t)&&(Vt=e,k.forEach((t,n)=>{t.classList.toggle("on",n===e),t.setAttribute("aria-selected",n===e)}),$t(g[e]),t&&Qt(g[e],560))}
 function Jt(e,t){let n=k[e];
 v.scrollTo({left:n.offsetLeft-(v.clientWidth-n.offsetWidth)/2,behavior:t&&!f?"smooth":"auto"})}
