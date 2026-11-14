@@ -178,3 +178,18 @@
    desktop. The looping word card (tick, a-blur) and the ridge drawing (reveal) are unchanged. Reduced motion: main.css
    already turns every animation off. */
 #heroSlot :is(.spec,.ut,.ctw,.ct-grid>.ct){animation-duration:.22s;animation-timing-function:cubic-bezier(.2,.8,.2,1);animation-delay:calc(min(max(var(--i,0) - 2,0),4)*45ms);animation-delay:calc(max(round(down,(var(--i,0) - 1) / 2,1),0)*45ms)}
+
+/* ---- D1: language page hero. The census and dialect list sit behind a "Details" button (closed by default, phone and
+   desktop alike) so the words start on the first screen. Opening fades and rises 6 px over 200 ms (opacity + transform
+   only); reduced motion: a 100 ms fade, no movement. The state lives in the component (and in mi per language). */
+.lview .kdet{margin:.2rem 0 0}
+.lview .kdet-t{display:inline-flex;align-items:center;gap:.5rem;min-height:44px;margin:0 0 0 -.35rem;padding:0 .35rem;background:none;border:0;color:inherit;font:600 .9375rem/1 var(--sans);cursor:pointer;border-radius:8px;-webkit-tap-highlight-color:transparent}
+.lview .kdet-t:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+.lview .kdet-c{width:.5rem;height:.5rem;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.lview .kdet.open .kdet-c{transform:translateY(1px) rotate(-135deg)}
+.lview .kdet-b{animation:kdetin .2s cubic-bezier(.2,.8,.2,1)}
+@keyframes kdetin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lview .kdet-b{animation:kdetfade .1s linear}.lview .kdet-c{transition:none}}
+@keyframes kdetfade{from{opacity:0}to{opacity:1}}
+[data-motion=off] .lview .kdet-b{animation:none}
+[data-motion=off] .lview .kdet-c{transition:none}
