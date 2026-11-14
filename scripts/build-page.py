@@ -193,6 +193,7 @@ def devter_language_shades():
 # ---------------------------------------------------------------- hashed startup files
 # today.json stays at data/today.json: regional-layer.js fetches the same URL, so both share one download
 # (the relief has no hashed copy: the engine fetches data/shade*.avif itself, see site/map-gl.js)
+OWN = {'map-gl.js': 'H_MAPGL', 'country-sources.js': 'H_CSRCJS', 'country-sources.css': 'H_CSRCCSS', 'country-data.js': 'H_CDATA'}
 HASHED = {'lexicon.json': 'H_LEXICON', 'languages.json': 'H_LANGUAGES', 'world-50s.json': 'H_WORLD', 'terr.json': 'H_TERR'}
 
 
@@ -203,7 +204,7 @@ def hashed_copies():
     for old in os.listdir(hdir):
         if os.path.isfile(os.path.join(hdir, old)):
             os.remove(os.path.join(hdir, old))
-    out = {}
+    out = own_files(hdir)
     for name in HASHED:
         src = os.path.join(ROOT, 'site', 'data', name)
         with open(src, 'rb') as f:
@@ -216,6 +217,35 @@ def hashed_copies():
             out['_starts'] = home_starters(data, hdir)
         if name == 'terr.json':
             out['_terrd'] = terr_split(data, hdir, hn)
+    return out
+
+
+def own_files(hdir):
+    """The site's hand-edited map and country files, copied to site/h/<name>.<hash>.<ext> (cached for a year). The sources stay
+    where they are and stay editable (site/map-gl.js, site/regional-layer.js, site/country-*.js/css); the copies are build output.
+    regional-layer.js goes first: map-gl.js imports it, so its copy is written with the hashed name of that one (and, living
+    one folder down, with the vendor folder as ../map-next/vendor/), which makes map-gl's own hash change with it."""
+    out = {}
+
+    def put(name, text):
+        data = text.encode('utf-8')
+        base, ext = os.path.splitext(name)
+        hn = f'{base}.{hashlib.sha1(data).hexdigest()[:10]}{ext}'
+        with open(os.path.join(hdir, hn), 'wb') as f:
+            f.write(data)
+        out[name] = 'h/' + hn
+        return hn
+    site = os.path.join(ROOT, 'site')
+    read = lambda n: open(os.path.join(site, n), encoding='utf-8', newline='').read()
+    rl = put('regional-layer.js', read('regional-layer.js'))
+    eng = read('map-gl.js')
+    for old, new in (("'./regional-layer.js'", f"'./{rl}'"),
+                     ("'./map-next/vendor/maplibre-gl.mjs?v=", "'../map-next/vendor/maplibre-gl.mjs?v=")):
+        assert eng.count(old) == 1, f'site/map-gl.js: expected one import {old}'
+        eng = eng.replace(old, new)
+    put('map-gl.js', eng)
+    for name in ('country-sources.js', 'country-sources.css', 'country-data.js'):
+        put(name, read(name))
     return out
 
 
@@ -306,12 +336,11 @@ def preloads(H):
     the lexicon (8 MB of words, fetched once the map has drawn: kLexWhen in the page code); every other screen needs the
     lexicon (the home page first one of its small starter files, home_starters()), and there the map engine is fetched quietly once the lexicon is in (before that it would slow the lexicon
     on a slow connection), so opening the map is quick.
-    The engine addresses are read from the import lines themselves, so a new ?v= there is never missed here."""
-    app = open(os.path.join(SRC, 'app', '6-app-screens-and-startup.js'), encoding='utf-8').read()
+    The engine's own files are the hashed copies (own_files()); MapLibre's version is read from the import line."""
     eng = open(os.path.join(ROOT, 'site', 'map-gl.js'), encoding='utf-8').read()
-    mapjs = re.search(r'import\(new URL\("(map-gl\.js\?v=\d+)",document\.baseURI\)\.href\)', app).group(1)
+    mapjs = H['map-gl.js']
     mlib, mver = re.search(r"from '\./(map-next/vendor/maplibre-gl\.mjs\?v=([\d.]+))'", eng).groups()
-    rl = re.search(r"from '\./(regional-layer\.js\?v=\d+)'", eng).group(1)      # the engine's own rules (map-gl.js imports them)
+    rl = H['regional-layer.js']      # the engine's own rules (the hashed map-gl.js imports them)
     worker = f'map-next/vendor/maplibre-gl-worker.mjs?v={mver}'     # MapLibre adds ?v=<its version> to its worker itself
     js = ('(function(){var h=location.hash,d=document,a=function(r,u,f){var l=d.createElement("link");l.rel=r;l.href=u;'
           'if(f){l.as="fetch";l.crossOrigin="anonymous"}d.head.appendChild(l)},map=/^#(map|mm-)/.test(h);'
@@ -380,6 +409,9 @@ def placeholders():
     }
     for name, key in HASHED.items():
         P[key] = (jsdump(H[name]), 1)
+    # the hand-edited files: the page names them by their hashed copy
+    for name, key in OWN.items():
+        P[key] = (H[name], 1)
     P['H_TERRD'] = (jsdump(H['_terrd']), 1)
     return P, len(shades)
 

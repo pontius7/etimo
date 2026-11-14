@@ -51,10 +51,10 @@ What produces each part of `site/`:
 |---|---|
 | `index.html` | `scripts/build-page.py`, from the files in `src/` |
 | `data/languages.json`, `lexicon.json`, `terr.json`, `dia.json` and the other map data | `scripts/merge/merge-data.py` |
-| `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` |
+| `h/` (startup files, full dictionaries, search index, and the copies of `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`; all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` (`own_files()`) |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
-| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
+| `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
@@ -104,9 +104,10 @@ scripts/
 
 site/                         the published website (Cloudflare serves this folder as it is)
   index.html                  built from src/
-  regional-layer.js           by hand: the rules the map engine and its data build share (which areas the
+  map-gl.js                   by hand: the map engine. THE SOURCE: edit this file; the page loads its hashed copy h/map-gl.<hash>.js
+  regional-layer.js           by hand (source of h/regional-layer.<hash>.js): the rules the map engine and its data build share (which areas the
                               detailed layers stand for, how strong areas are drawn, each country's main language)
-  country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources
+  country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources (sources of the hashed copies in h/)
   search-key.js               by hand: turns any script into Latin search keys (also part of the page)
   _headers                    by hand: caching rules for Cloudflare
   data/                       map data
@@ -521,7 +522,7 @@ every country of the map (each card named its place; no errors).
 
 ## Calmer phone map and cards, 2026-11-13
 
-Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js` (`?v=10`).
+Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js`.
 
 | What | Phone | Desktop | Where |
 |---|---|---|---|
