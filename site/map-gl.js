@@ -13,7 +13,7 @@
 /* ?v= is MapLibre's version: the vendor folder is cached for a year (site/_headers), so a new MapLibre needs a new ?v= here
    (its worker file gets the version from MapLibre itself; the page's first-moment fetches read this line: scripts/build-page.py) */
 import * as maplibregl from './map-next/vendor/maplibre-gl.mjs?v=6.18.0';
-import {GHEG, TOSKS, ADIAL, ALBSET, ARO, MEG, VSET, HIDEPIN, PAR, OP, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js';
+import {ADIAL, ALBSET, VSET, HIDEPIN, PAR, OP, viewOf, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js';
 
 const DATA = 'map-next/data/';
 /* Sea, land and line colours: the same values as the site's stylesheet (--sea, --land, --coast, --bord2, relief opacity). */
@@ -116,7 +116,7 @@ async function create(host, id, early) {
   const relief = () => reliefP || (reliefP = picture('data/' + (small ? 'shade-s.avif' : 'shade.avif')).catch(() => picture('data/shade.webp'))
     .catch(e => { console.warn('Etimo: the relief could not be loaded, the map is drawn without it', e); return null; }));
 
-  const [meta, index, meValues] = await Promise.all([json(DATA + 'meta.json'), get('regional/index.json'), get('regional/ME.json')]);
+  const [meta, index] = await Promise.all([json(DATA + 'meta.json'), get('regional/index.json')]);
   const {cx, cy, c} = meta.unit;
   /* map units <-> the coordinates MapLibre is given (same formula as fake() in scripts/map-next/build.py) */
   const at = (x, y) => [(x - cx) * c * 360, Math.atan(Math.sinh(-2 * Math.PI * (y - cy) * c)) * 180 / Math.PI];
@@ -438,6 +438,10 @@ async function create(host, id, early) {
     }
     return rowsOf.get(key);
   }
+  /* a country whose own table lists every answer by region (census-top.json "ids": Montenegro, regional/ME.json): loaded like the
+     language rows, once a language is chosen; every one of its regions is drawn */
+  const tables = new Map(), tabOf = new Map();
+  const tableFor = cc => { if (!tabOf.has(cc)) tabOf.set(cc, get('regional/' + cc + '.json').then(t => { tables.set(cc, t); }).catch(e => { tabOf.delete(cc); throw e; })); return tabOf.get(cc); };
   /* stripes in the chosen language's colour: where it is a minority, over the colour of the majority. One picture per colour,
      made once (a picture redrawn in place would keep its old colour along its edges in the engine's picture sheet: seams) */
   const hatches = new Set();
@@ -491,8 +495,9 @@ async function create(host, id, early) {
     const sel = S.sel, alb = albMode(), n = ++S.n;
     const again = p => p && p.then(() => { if (n === S.n) census(); }, () => {});
     if (!sel) { cenShow(new Set(), new Set()); return; }
-    const key = ALBSET.has(sel.lang) ? 'Albanian' : sel.lang;
-    const eff = ALBSET.has(sel.lang) ? ctx.languages.find(l => l.lang === 'Albanian') || sel : sel;
+    /* a detail view can show another language's figures (the Albanian dialects: Albanian's) and leave countries out */
+    const v = viewOf(sel, S.fam), key = v && v.census || sel.lang, skip = new Set(v && v.noCensus || []);
+    const eff = v && v.census ? ctx.languages.find(l => l.lang === v.census) || sel : sel;
     const want = new Map(), wantH = new Map(), put = (m, cc, i, s) => { let w = m.get(cc); if (!w) m.set(cc, w = new Map()); w.set(i, s); };
     const row = (cc, i, col, o, h) => { put(want, cc, i, {c: col || '#8a93a3', o}); if (h) put(wantH, cc, i, {h}); };
     if (!ready.has(key)) again(rowsFor(key));
@@ -507,12 +512,16 @@ async function create(host, id, early) {
       const lang = over ? big : eff;
       row(cc, i, ctx.color(lang), censusOp(pct, over, t ? t[1] : 0, lang.family, alb, S.fam), over ? hatchOp(pct) : 0);
     };
-    for (const r of ready.get(key) || []) if (!(alb && ['AL', 'XK', 'MK', 'GR'].includes(r.cc))) paintRow(r.cc, r.i, r.pct, top && top[r.cc] && top[r.cc].get(r.i) || null);
-    /* Montenegro: its own table has every language for every municipality (regional/ME.json), so every municipality is drawn */
-    for (const [i, rid] of (ids.ME || []).entries()) {
-      if (rid == null) continue;
-      const own = (meValues[rid] || []).find(o => o.percentage != null && o.language_id === eff.lang);
-      paintRow('ME', i, own ? own.percentage : null, top && top.ME && top.ME.get(i) || null);
+    for (const r of ready.get(key) || []) if (!skip.has(r.cc) && !ids[r.cc]) paintRow(r.cc, r.i, r.pct, top && top[r.cc] && top[r.cc].get(r.i) || null);
+    /* a country with a table of every answer (Montenegro): every region is drawn, a language without a figure there faintly */
+    for (const [cc, rids] of Object.entries(ids)) {
+      const tab = tables.get(cc);
+      if (!tab) { again(tableFor(cc)); continue; }
+      rids.forEach((rid, i) => {
+        if (rid == null) return;
+        const own = (tab[rid] || []).find(o => o.percentage != null && o.language_id === eff.lang);
+        paintRow(cc, i, own ? own.percentage : null, top[cc] && top[cc].get(i) || null);
+      });
     }
     /* only what changed: regions no longer drawn lose their state, the others get theirs */
     setStates(cen, want, 'census-');
@@ -520,23 +529,20 @@ async function create(host, id, early) {
     cenShow(new Set(want.keys()), new Set(wantH.keys()), wantH.size ? hatch(ctx.color(eff) || '#9e2b2b') : null);
   }
 
-  /* ---------------------------------------------------------------- legend of the Albanian and Vlach views */
+  /* ---------------------------------------------------------------- legend of a detail view (VIEWS in regional-layer.js) */
   function showLegend() {
-    const sel = S.sel, alb = albMode(), vSel = !!(sel && VSET.has(sel.lang)), host = box.parentNode;
+    const v = viewOf(S.sel, S.fam), host = box.parentNode;
     if (!host) return;
     legend = host.querySelector('.alb-legend');
-    if (!(alb || vSel)) { if (legend) legend.hidden = true; return; }
+    if (!v) { if (legend) legend.hidden = true; return; }
     if (!legend) { legend = document.createElement('div'); legend.className = 'alb-legend'; host.appendChild(legend); }
     const dn = n => window.__dn ? window.__dn(n) : n, lt = key => window.__lt ? window.__lt(key) : key;
-    const item = (n, kd, label) => '<li style="opacity:' + (S.rules[kd](n) > .4 ? 1 : .38) + '"><i style="background:' + (colour(n) || '#888') + '"></i>' + (label || dn(n)) + '</li>';
-    if (alb) {
-      legend.setAttribute('aria-label', 'Albanian dialects');
-      legend.innerHTML = '<b>' + lt('ad') + '</b><div><span>' + lt('gh') + '</span><ul>' + [...GHEG].map(n => item(n, 'dial')).join('') + '</ul></div><div><span>' + lt('to') + '</span><ul>' + [...TOSKS].map(n => item(n, 'dial')).join('') + '</ul></div><small>Areas after Gjinari 1988 and later work, via Wikimedia Commons (Karadakli230, CC BY-SA 4.0; ArnoldPlaton, CC BY-SA 3.0)</small>';
-    } else {
-      legend.setAttribute('aria-label', 'Vlach languages');
-      const short = n => dn(n).replace(/Megleno-Romanian \((.*)\)/, (m, a) => a[0].toUpperCase() + a.slice(1));
-      legend.innerHTML = '<b>' + lt('vl') + '</b><div><span>' + lt('na') + '</span><ul>' + ARO.slice(0, 3).map(n => item(n, 'vlach')).join('') + '</ul></div><div><span>' + lt('sa') + '</span><ul>' + ARO.slice(3).map(n => item(n, 'vlach')).join('') + '</ul></div><div><span>' + lt('me') + '</span><ul>' + MEG.map(n => item(n, 'meg', short(n))).join('') + '</ul></div><small>Areas after Koryakov 2001 (Atlas of Romance languages), via Wikimedia Commons, CC BY-SA 3.0</small>';
-    }
+    /* short: only the part in brackets ("Megleno-Romanian (northern)" -> "Northern") */
+    const name = (n, g) => g.short ? dn(n).replace(/Megleno-Romanian \((.*)\)/, (m, a) => a[0].toUpperCase() + a.slice(1)) : dn(n);
+    const item = (n, g) => '<li style="opacity:' + (S.rules[g.kind](n) > .4 ? 1 : .38) + '"><i style="background:' + (colour(n) || '#888') + '"></i>' + name(n, g) + '</li>';
+    legend.setAttribute('aria-label', lt(v.title));
+    legend.innerHTML = '<b>' + lt(v.title) + '</b>' + v.groups.map(g => '<div><span>' + lt(g.label) + '</span><ul>' + g.names.map(n => item(n, g)).join('') + '</ul></div>').join('') +
+      '<small>' + lt(v.credit[0]) + v.credit[1] + '</small>';
     legend.hidden = false;
   }
 

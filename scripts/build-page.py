@@ -362,7 +362,7 @@ def preloads(H):
     js = ('(function(){var h=location.hash,d=document,a=function(r,u,f){var l=d.createElement("link");l.rel=r;l.href=u;'
           'if(f){l.as="fetch";l.crossOrigin="anonymous"}d.head.appendChild(l)},map=/^#(map|mm-)/.test(h);'
           f'if(map){{a("modulepreload","{mapjs}");a("modulepreload","{mlib}");a("preload","map-next/data/meta.json",1);'
-          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);a("preload","data/regional/ME.json",1);'
+          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);'
           # the worker and, on phones, the first view's four tiles: fetched (into the HTTP cache: both are cached for a year)
           f'[{json.dumps(worker)}].concat(matchMedia("(max-width: 63.99rem)").matches?{json.dumps(first_tiles())}:[]).forEach(function(u){{fetch(u).then(function(r){{return r.arrayBuffer()}}).catch(function(){{}})}});'
           f'import("./{mapjs}").then(function(m){{window.__etimoMap=m;var go=function(){{m.prewarm&&m.prewarm()}};d.body?go():addEventListener("DOMContentLoaded",go,{{once:true}})}}).catch(function(){{}});'

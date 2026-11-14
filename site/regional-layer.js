@@ -17,6 +17,19 @@ const HIDEPIN=new Set([...ADIAL,'Albanian',...ARO,...MEG]);
 const PAR={'Sandžak Bosniak':'Bosnian'};const isSel=(r,sel)=>!!sel&&(r.name===sel.lang||PAR[r.name]===sel.lang);
 const HIDEZONE=new Set([...HIDEPIN,'Arvanitika','Aromanian',...Object.keys(PAR)]);
 const OP={rest:.78,sel:.9,fam:.3,other:.07,filterOther:.14};
+// The detail views: while one of a view's languages (or, with nothing chosen, its family) is chosen, its finer areas show and a
+// legend lists them. One entry per view; the engine (site/map-gl.js: showLegend(), census()) has no branch of its own for any.
+// title, label and credit[0] are keys of the interface texts (window.__lt in src/app/7-language-colours.js, every interface
+// language); credit[1] is the part that is never translated (authors, licences). kind = the strength rule of a group's areas.
+// census = the language whose census figures the view shows; noCensus = the countries whose census regions it leaves out
+// (its own areas stand there instead).
+const VIEWS=[
+ {key:'alb',langs:ALBSET,family:'Albanian',title:'ad',groups:[{label:'gh',kind:'dial',names:[...GHEG]},{label:'to',kind:'dial',names:[...TOSKS]}],
+  credit:['cra',' (Karadakli230, CC BY-SA 4.0; ArnoldPlaton, CC BY-SA 3.0)'],census:'Albanian',noCensus:['AL','XK','MK','GR']},
+ {key:'vlach',langs:VSET,title:'vl',groups:[{label:'na',kind:'vlach',names:ARO.slice(0,3)},{label:'sa',kind:'vlach',names:ARO.slice(3)},{label:'me',kind:'meg',names:MEG,short:1}],
+  credit:['crv',', CC BY-SA 3.0']}];
+// the view a choice switches on: the first whose languages hold the chosen one, or whose family is the chosen family
+const viewOf=(sel,fam)=>VIEWS.find(v=>(sel&&v.langs.has(sel.lang))||(!!v.family&&fam===v.family))||null;
 // How strong an area is drawn. The only copy: this map (below) and the engine-drawn one (site/map-gl.js) both call these.
 // dfam / lfam = the family of the area's language, sel = the selected language, fam = the family filter, alb = the Albanian dialect view is on.
 // restOp: one rule for every detailed area layer (Albanian dialects, Vlach, Serbia, Montenegro):
@@ -45,4 +58,4 @@ const censusOp=(pct,over,top,lfam,alb,fam)=>(alb?(lfam==='Albanian'?1:over?.5:.2
 const hatchOp=pct=>Math.min(.85,.2+pct/40);
 // Each country's main language where the census does not settle it (the data build reads this list).
 const MAIN_LANG={Albania:'Albanian',Kosovo:'Albanian',France:'French',Spain:'Spanish',Portugal:'Portuguese',Italy:'Italian',Romania:'Romanian',Moldova:'Romanian',Ukraine:'Ukrainian',Russia:'Russian',Poland:'Polish','Czech Republic':'Czech',Slovakia:'Slovak',Iran:'Persian'};
-export {DNAME,GHEG,TOSKS,ADIAL,ALBSET,ARO,MEG,VSET,HIDEPIN,HIDEZONE,PAR,OP,MAIN_LANG,restOp,dialOp,vlachOp,censusOp,hatchOp,get};
+export {DNAME,GHEG,TOSKS,ADIAL,ALBSET,ARO,MEG,VSET,HIDEPIN,HIDEZONE,PAR,OP,MAIN_LANG,VIEWS,viewOf,restOp,dialOp,vlachOp,censusOp,hatchOp,get};

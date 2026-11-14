@@ -115,8 +115,14 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   a new picture for the stripe layers, which reads only the stripe sources again.
 - **Hit testing**: the tiles hold every region, so a region counts as census only where the choice draws it (`hit()`).
 - **Montenegro** keeps its own table (`regional/ME.json`, every language for every municipality, so every municipality is
-  drawn); its largest language per municipality and its region ids now come from `census-top.json` (`ids`), as the other
-  countries' largest language does.
+  drawn); its largest language per municipality and its region ids come from `census-top.json` (`ids`), as the other
+  countries' largest language does. The table is loaded like a language's rows, once a language is chosen (it used to hold
+  back the making of the map and was fetched from the page's first lines); any country listed under `ids` is read the same way.
+- **Detail views.** The Albanian dialect view and the Vlach view are entries of one list, `VIEWS` in `site/regional-layer.js`
+  (which languages switch it on, its legend groups, its credit, the language whose census figures it shows and the countries
+  it leaves out of the census). The engine draws the legend and the census from that list, with no branch of its own for
+  either. The legend's heading, groups and credit go through the interface texts (`window.__lt` in
+  `src/app/7-language-colours.js`: English, Albanian, Serbian Latin and Cyrillic); authors and licences stay as written.
 - Checked against the old way (24 views: every census country with a language that has rows there, stripes, the Albanian
   view, a far language, light and dark; phone and desktop): the same picture except single pixels along region borders
   (0.001 to 0.18% of the screen; the old cut simplified borders by up to a quarter pixel and left one-pixel slivers between
