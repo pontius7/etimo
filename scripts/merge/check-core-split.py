@@ -56,7 +56,7 @@ def main():
     want_ids = {}
     for R in L:
         if R['entries']:
-            want_ids[bp.oa(R['lang'])] = R
+            want_ids[bp.slug(R['lang'])] = R
     if set(want_ids) != set(K['l']):
         bad.append(f'languages: with words but no file {sorted(set(want_ids) - set(K["l"]))[:5]}, '
                    f'file but no words {sorted(set(K["l"]) - set(want_ids))[:5]}')

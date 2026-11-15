@@ -1573,8 +1573,33 @@ addEventListener("etimo:mapready",go)})}
    nobody has touched the page for 2 s (then when the browser is idle), so it never competes with the page's first rows or
    with a scroll. Going to a "now" screen fetches it at once; so does a part that fails to arrive (kLexGo). */
 let kLexGo=null;
-function kLexKind(){let x=location.hash.replace("#",""),m;
-return/^(map|map-.+|mm-.+)$/.test(x)?"map":/^(languages|tree)$/.test(x)?"wheel":fa[x]||(m=/^[dw]\d+-(.+)$/.exec(x))&&fa["l-"+m[1]]||/^c-/.test(x)&&aa.indexOf(x.slice(2))>-1||/^m-/.test(x)&&ma(x.slice(2))?"part":"now"}
+/* The address (without #) as a screen: the router's one parser (Up), also asked by the loader (kParts, kLexKind). */
+function kRoute(e){if(fa[e])return{v:"lang",
+L:fa[e]};
+let FDm=/^d(\d+)-(.+)$/.exec(e);
+if(FDm&&fa["l-"+FDm[2]])return{v:"lang",
+L:fa["l-"+FDm[2]],
+d:+FDm[1]};
+let t=/^w(\d+)-(.+)$/.exec(e);
+if(t){let e=fa["l-"+t[2]],
+n=e&&e.entries[+t[1]];
+if(e&&!kLangOk(e))return{v:"word",
+L:e,
+e:null};
+if(n)return{v:"word",
+L:e,
+e:n}}
+if(e.startsWith("m-")){let t=ma(e.slice(2));
+if(t)return{v:"concept",
+c:t}}
+if(e.startsWith("mm-")){let t=ma(e.slice(3));
+if(t)return{v:"map",
+conc:t}}
+return e.startsWith("c-")&&aa.indexOf(e.slice(2))>-1?{v:"cat",
+cat:e.slice(2)}:"languages"===e||"tree"===e?{v:"langs"}:"map"===e?{v:"map"}:e.startsWith("map-")?{v:"map",
+sel:e.slice(4)}:"az"===e?{v:"az"}:"search"===e?{v:"search"}:{v:"home"}}
+function kLexKind(){let v=kRoute(location.hash.replace("#","")).v;
+return"map"===v?"map":"langs"===v?"wheel":/^(lang|word|cat|concept)$/.test(v)?"part":"now"}
 function kLexWhen(){let k=kLexKind();if("now"===k)return Promise.resolve();
 return new Promise(res=>{let on=1,qt=0,ev=["scroll","pointerdown","keydown","touchstart","wheel"],
 go=()=>{if(!on)return;on=0,kLexGo=null,clearTimeout(qt),removeEventListener("hashchange",chk),ev.forEach(e=>removeEventListener(e,poke,!0)),res()},
@@ -1605,21 +1630,23 @@ let by={},H={};ua.forEach(e=>{by[e.lang]=e}),ra[c].forEach(s=>s[1].forEach(m=>{H
 for(const R of S){let e=by[R.lang];if(!e)continue;for(const k in R.e){let t=kPut(e,+k,R.e[k]);t.cs.forEach(n=>{H[n]&&H[n].push({L:e,e:t})})}}
 for(const m in H){let a=ha[m]||(ha[m]=[]);a.length=0;for(const x of H[m])a.push(x)}
 kCD.add(c),window.dispatchEvent(new Event("etimo:lexpart"))})}
-/* the part(s) the screen in the address shows from (a word: its language, then its first meaning's category) */
-function kPartP(){let x=location.hash.replace("#",""),m,e;
-return(e=fa[x])?kLang(e):(m=/^([dw])(\d+)-(.+)$/.exec(x))&&(e=fa["l-"+m[3]])?kLang(e).then(()=>{let t="w"===m[1]&&e.entries[+m[2]];return t&&t.cs[0]?kCat(ia[t.cs[0]]):0}):/^c-/.test(x)&&aa.indexOf(x.slice(2))>-1?kCat(x.slice(2)):/^m-/.test(x)&&(m=ma(x.slice(2)))?kCat(ia[m]):Promise.resolve()}
-/* what a screen (the router's b) needs before it shows: true when it is in; otherwise its parts are asked for */
-function kNeed(b){if(window.__lexReady)return!0;
-let c=b.v,P=[];
-if("home"===c)return window.__lexStart||kStartGet(),!!window.__lexStart;
-if("search"===c||"az"===c)return!1;
+/* What a screen (the router's b, kRoute) needs before it shows: one item per part, true when it is in, otherwise the promise
+   of it (a word that is not in yet: false, its category follows once its language is in); home needs a starter, search and A-Z
+   the whole lexicon (false). */
+function kParts(b){let c=b.v,P=[];
+if("home"===c)return window.__lexStart||kStartGet(),[!!window.__lexStart];
+if("search"===c||"az"===c)return[!1];
 "lang"===c&&P.push(kLangOk(b.L)||kLang(b.L)),
-"word"===c&&(P.push(kLangOk(b.L)||kLang(b.L)),b.e&&b.e.cs[0]&&P.push(kCatOk(ia[b.e.cs[0]])||kCat(ia[b.e.cs[0]]))),
-"word"===c&&!b.e&&P.push(!1),
+"word"===c&&(P.push(kLangOk(b.L)||kLang(b.L)),b.e?b.e.cs[0]&&P.push(kCatOk(ia[b.e.cs[0]])||kCat(ia[b.e.cs[0]])):P.push(!1)),
 "cat"===c&&P.push(kCatOk(b.cat)||kCat(b.cat)),
 "concept"===c&&P.push(kCatOk(ia[b.c])||kCat(ia[b.c]));
+return P}
+function kNeed(b){if(window.__lexReady)return!0;
+let P=kParts(b);
 P.forEach(p=>p&&p.catch&&p.catch(()=>{kLexGo&&kLexGo()}));
 return P.every(p=>!0===p)}
+function kPartP(){let h=()=>kParts(kRoute(location.hash.replace("#",""))),P=h();
+return Promise.all(P).then(()=>P.includes(!1)?Promise.all(h()):0)}
 /* The home page's starter (a file of home_starters() in scripts/build-page.py, chosen in the page's first lines): the same
    lists as kLexBuild makes, from its few words, each at its place in its language's list. The home page shows from these
    (window.__lexStart) and keeps what it shows; kLexBuild then puts the full lists in place. A word a part has already put in
@@ -1706,30 +1733,7 @@ return window.addEventListener("hashchange",e),()=>window.removeEventListener("h
 return window.addEventListener("etimo:lex",e),window.addEventListener("etimo:lexstart",e),window.addEventListener("etimo:lexpart",e),()=>{window.removeEventListener("etimo:lex",e),window.removeEventListener("etimo:lexstart",e),window.removeEventListener("etimo:lexpart",e)}},[]),
 (0,m.useEffect)(()=>{let e=window.matchMedia("(prefers-color-scheme: dark)"),t=()=>o(Gp()?"dark":"light");
 return e.addEventListener?.("change",t),()=>e.removeEventListener?.("change",t)},[]);
-let b=function(e){if(fa[e])return{v:"lang",
-L:fa[e]};
-let FDm=/^d(\d+)-(.+)$/.exec(e);
-if(FDm&&fa["l-"+FDm[2]])return{v:"lang",
-L:fa["l-"+FDm[2]],
-d:+FDm[1]};
-let t=/^w(\d+)-(.+)$/.exec(e);
-if(t){let e=fa["l-"+t[2]],
-n=e&&e.entries[+t[1]];
-if(e&&!kLangOk(e))return{v:"word",
-L:e,
-e:null};
-if(n)return{v:"word",
-L:e,
-e:n}}
-if(e.startsWith("m-")){let t=ma(e.slice(2));
-if(t)return{v:"concept",
-c:t}}
-if(e.startsWith("mm-")){let t=ma(e.slice(3));
-if(t)return{v:"map",
-conc:t}}
-return e.startsWith("c-")&&aa.indexOf(e.slice(2))>-1?{v:"cat",
-cat:e.slice(2)}:"languages"===e||"tree"===e?{v:"langs"}:"map"===e?{v:"map"}:e.startsWith("map-")?{v:"map",
-sel:e.slice(4)}:"az"===e?{v:"az"}:"search"===e?{v:"search"}:{v:"home"}}(n),
+let b=kRoute(n),
 y=ja();
 function k(e){ga.ui=e;
 try{localStorage.setItem("khl-ui",e)}catch{}
@@ -1814,7 +1818,8 @@ n=document.getElementById("root");
 n&&new MutationObserver(()=>{t||(t=requestAnimationFrame(()=>{t=0,e()}))}).observe(n,{childList:!0,subtree:!0}),
 addEventListener("resize",()=>document.querySelectorAll(".kmtn").forEach(e=>e.remove())||e())}catch(e){}}();
 /* a meaning (#m-) asks for its category's part now, while the start-up files come: the first lines cannot (they do not
-   know the taxonomy); a language or category part is already on its way from them */
+   know the taxonomy); a language or category part is already on its way from them. Not kParts(kRoute(..)): kCat
+   needs the language list (ua), which is not there yet, so this only starts the fetch. */
 (function(){let m=/^#m-(.+)$/.exec(location.hash);m&&(m=ma(m[1]))&&kCM.c[ia[m]]&&kCoreGet("c",ia[m]).catch(()=>{})})();
 let Hp=document.getElementById("root");
 Hp.innerHTML='<div class="wrap"><p class="boot">'+ja().loading+"</p></div>",

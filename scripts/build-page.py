@@ -29,6 +29,7 @@ MERGE = os.path.join(HERE, 'merge')
 sys.path.insert(0, MERGE)
 import palette  # noqa: E402
 import families  # noqa: E402
+from bulk_import import slug  # noqa: E402  (a language's page id without its 'l-', as oa() in the page code)
 
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'site', 'index.html')
@@ -285,11 +286,6 @@ def terr_split(data, hdir, hn):
     return 'h/' + dn
 
 
-def oa(name):
-    """A language's page id without its 'l-' (oa() in the page code: lower case, every run of other than a-z0-9 one '-')."""
-    return re.sub(r'^-|-$', '', re.sub(r'[^a-z0-9]+', '-', name.lower()))
-
-
 def core_cs(meaning, ia, sa):
     """A word's meanings that the taxonomy knows, synonyms resolved, in order (t.cs in the page code: kPut, kLexBuild)."""
     out = []
@@ -328,7 +324,7 @@ def core_split(data, hdir, ra, sa):
     for R in L:
         if not R['entries']:
             continue
-        i = oa(R['lang'])
+        i = slug(R['lang'])
         assert i and i not in out['l'], f'lexicon.json: language {R["lang"]!r} has no page id of its own ({i!r})'
         out['l'][i] = put(f'lang/{i}.json', R['entries'])
         per = {c: {} for c in ra}
