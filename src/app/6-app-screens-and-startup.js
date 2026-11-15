@@ -53,17 +53,14 @@ l=l.filter(e=>0>u.indexOf(e)),
 s&&new Set(ha[s].map(e=>e.L.id)).size;
 let d=({x:e})=>(0,f.jsxs)("button",{type:"button",className:"wr",onClick:()=>Ja(hi(e.L,e.e)),children:[(0,f.jsxs)("span",{className:"wk",children:[(0,f.jsx)("i",{className:"dot "+e.L.family}),Na(e.L)]}),(0,f.jsxs)("span",{className:"wv",children:[(0,f.jsx)("b",{children:e.e.word}),ai(e.e)?(0,f.jsx)("small",{className:"pr",children:ai(e.e)}):null]})]});
 return(0,f.jsxs)("div",{className:"view wordp",children:[(0,f.jsxs)("section",{className:"wcard",children:[(0,f.jsxs)("div",{className:"wcard-h",children:[(0,f.jsxs)("span",{className:"pill",children:[(0,f.jsx)("span",{className:"dot "+e.family}),Ca(e.family)]}),(0,f.jsx)("span",{className:"wmean",children:Ta(t.meaning)})]}),(0,f.jsxs)("div",{className:"wcard-b",children:[(0,f.jsx)("p",{className:"wbig",children:t.word}),ai(t)?(0,f.jsx)("p",{className:"wlat pr",children:ai(t)}):null,(0,f.jsxs)("p",{className:"worg",children:[(0,f.jsx)("i",{className:"dot "+e.family}),Na(e)," · ",Ma(e)]})]})]}),t.et||t.loan?(0,f.jsxs)("section",{className:"wety",children:[(0,f.jsx)("p",{className:"gh",children:n.etym}),t.et?(0,f.jsxs)("p",{className:"et",children:[n.etRoot," ",(0,f.jsx)("b",{className:"root",children:t.et.root})," · ",t.et.lang,t.et.gloss?" (“"+t.et.gloss+"”)":""]}):null,t.loan?(0,f.jsxs)("p",{className:"et",children:[n.etLoan," ",(0,f.jsx)("b",{children:t.loan.from}),t.loan.form?" · "+t.loan.form:""]}):null]}):null,(0,f.jsxs)("div",{className:"wacts",children:[s?(0,f.jsx)("button",{type:"button",className:"lt on",onClick:()=>Ja("m-"+oa(s)),children:n.seeAll}):null,(0,f.jsx)("button",{type:"button",className:"lt",onClick:()=>Ja(e.id),children:Na(e)}),s?(0,f.jsx)("button",{type:"button",className:"lt",onClick:()=>Ja("mm-"+oa(s)),children:n.explore}):null,(0,f.jsx)("button",{type:"button",className:"lt",onClick:()=>i(Oa(e,t)),children:a?n.copied:n.copy1})]}),(0,f.jsx)("button",{type:"button",className:"minimap",ref:r,"aria-label":n.showMap,onClick:()=>Ja("map-"+e.id.slice(2)),children:(0,f.jsxs)("span",{className:"tag",children:[(0,f.jsx)(si,{n:"map"}),n.showMap]})}),u.length?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsxs)("p",{className:"gh",children:[n.cogT," · ",u.length]}),(0,f.jsx)("div",{children:u.map((e,t)=>(0,f.jsx)(d,{x:e},t))})]}):null,l.length?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsxs)("p",{className:"gh",children:[n.similar||"Similar form"," · ",l.length]}),(0,f.jsx)("div",{children:l.map((e,t)=>(0,f.jsx)(d,{x:e},t))})]}):null,c.length?(0,f.jsxs)(f.Fragment,{children:[(0,f.jsxs)("p",{className:"gh",children:[n.otherL||"Other languages"," · ",c.length]}),(0,f.jsx)("div",{children:c.map((e,t)=>(0,f.jsx)(d,{x:e},t))})]}):null,(0,f.jsxs)("p",{className:"note",children:[n.sources,": ",t.src.join(" · ")]})]})}
+const kHide=/*@TREE_HIDDEN@*/,kNr=/*@NAME_RULES@*/.map(r=>({...r,replace:r.replace.map(([p,t])=>[new RegExp(p),t])})),kPro=/*@PROMOTED@*/,kTidy=(e,n,w)=>{for(const r of kNr)if(r.in.includes(w)&&(!r.family||e.family===r.family)&&(!r.path||(e.info&&e.info.path||[]).indexOf(r.path)>-1)&&!(r.except||[]).includes(e.lang)){for(const[p,t]of r.replace)n=n.replace(p,t);r.capitalise&&(n=n.charAt(0).toUpperCase()+n.slice(1))}return n};window.__kTidy=(l,n,w)=>{const e=fa["l-"+oa(l)];return e?kTidy(e,n,w):n};
 function jp(){let e={name:"",
 kids:{},
 langs:[]};
-ua.forEach(t=>{if("Albanian"===t.lang)return;
+ua.forEach(t=>{if(kHide.includes(t.lang))return;
 let n=e;
 (t.info&&t.info.path||[]).forEach(e=>{n.kids[e]=n.kids[e]||{name:e,kids:{},langs:[]},n=n.kids[e]}),n.langs.push(t)});
-let t=jd(function e(t,n){let r=Object.keys(t.kids).map(r=>e(t.kids[r],n+1)).concat(t.langs.map(e=>({name:(_n=>{if("Albanian"!==e.family)return _n;
-_n=_n.replace(/ (Albanian|albanski|албански)$/,"");
-if((e.info&&e.info.path||[]).indexOf("Gheg")>-1&&"Gheg Albanian"!==e.lang){_n=_n.replace(/ (Gheg|gegijski|гегијски)$/,"").replace(/ (dijalekat|дијалекат)$/,"").replace(/^Gegnishtja e Rekës së Epërme$/,"Reka e Epërme").replace(/^Gegnishtja /,"");
-_n=_n.charAt(0).toUpperCase()+_n.slice(1)}
-return _n})(Na(e)),en:e.lang,L:e}))),a={name:n?Pa(t.name):t.name,en:t.name,children:r};
+let t=jd(function e(t,n){let r=Object.keys(t.kids).map(r=>e(t.kids[r],n+1)).concat(t.langs.map(e=>({name:kTidy(e,Na(e),"tree"),en:e.lang,L:e}))),a={name:n?Pa(t.name):t.name,en:t.name,children:r};
 return n>1&&1===r.length?r[0]:a}(e,0)).sum(e=>+!!e.L).sort((e,t)=>t.value-e.value||(e.data.en>t.data.en?1:-1));
 return Cd().size([2*Math.PI,t.height+1])(t),
 t.each(e=>{let t=e.data.L?e.data.L:e.leaves()[0].data.L;
@@ -659,7 +656,7 @@ return a.r.forEach(e=>{e[0]<s&&(s=e[0]),e[0]>l&&(l=e[0]),e[1]<o&&(o=e[1]),e[1]>u
 let $=E2.append("g").attr("class","regs"),fA={};
 x.forEach(e=>{T(e)&&(fA[e.family]=(fA[e.family]||0)+(da[e.lang].a||0))});
 let fV=Object.values(fA).filter(e=>e>0).map(Math.log),f0=Math.min(...fV),f1=Math.max(...fV);
-$.selectAll("text").data([["Slavic",33,53.5],["Romance",.5,44.6],["Iranian",54,33],["Greek",24.6,37],["Albanian",20.1,41.1],["Uralic",62,63.6],["Turkic",70,47.5],["Caucasian",44.6,44.15],["Mongolic",106,45.2]/*@EXTRA_FAM_LABELS@*/]).join("text").attr("class",e=>"regn fam "+e[0]).style("--fk",e=>fA[e[0]]>0&&f1>f0?((Math.log(fA[e[0]])-f0)/(f1-f0)).toFixed(3):0).attr("x",e=>j([e[1],e[2]])[0]).attr("y",e=>j([e[1],e[2]])[1]).text(e=>Ca(e[0]).toLocaleUpperCase());
+$.selectAll("text").data([/*uniform-table*/["Slavic",33,53.5],["Romance",.5,44.6],["Iranian",54,33],["Greek",24.6,37],["Albanian",20.1,41.1],["Uralic",62,63.6],["Turkic",70,47.5],["Caucasian",44.6,44.15],["Mongolic",106,45.2]/*end-uniform-table*//*@EXTRA_FAM_LABELS@*/]).join("text").attr("class",e=>"regn fam "+e[0]).style("--fk",e=>fA[e[0]]>0&&f1>f0?((Math.log(fA[e[0]])-f0)/(f1-f0)).toFixed(3):0).attr("x",e=>j([e[1],e[2]])[0]).attr("y",e=>j([e[1],e[2]])[1]).text(e=>Ca(e[0]).toLocaleUpperCase());
 !function(e,t,n,r,a,i,s){op().then(o=>{if(!o||!e.node().isConnected)return;
 let l=++sp,u=t.scale()/1e3,c=t.translate(),d="translate("+c[0]+","+c[1]+") scale("+u/o.u+")",h=e.insert("g","path.coast").attr("class","topo").attr("pointer-events","none");
 h.append("path").attr("class","tland").attr("d",s);
@@ -705,7 +702,7 @@ a.r&&/^(Autonomous Republic of Crimea|Sevastopol)$/.test(a.r.properties.n)&&(o={
 let u=ie&&ie.nm||s;
 return function(e,t,n,r,a){let i=(e,t)=>{let n=e.map(Na);
 return n.slice(0,t).join(", ")+(n.length>t?" +"+(n.length-t):"")},s=(e,t)=>{let n=ae&&Kf&&Kf.M[e.lang];
-return!!(n&&n[t]&&n[t].some(e=>e[0]===ae._i))},MN="MNE"===(e.c||e.r)?.properties.c,o=x.filter(t=>ce(t,"d",a)||s(t,"h")||MN&&"Bosnian"===t.lang&&ce(t,"x",a)),l=x.filter(e=>!o.includes(e)&&(ce(e,"x",a)||s(e,"x"))),u=e=>e===nt?-1:0;
+return!!(n&&n[t]&&n[t].some(e=>e[0]===ae._i))},MN=kPro[(e.c||e.r)?.properties.c]||[],o=x.filter(t=>ce(t,"d",a)||s(t,"h")||MN.includes(t.lang)&&ce(t,"x",a)),l=x.filter(e=>!o.includes(e)&&(ce(e,"x",a)||s(e,"x"))),u=e=>e===nt?-1:0;
 o.sort((e,t)=>u(e)-u(t)),l.sort((e,t)=>u(e)-u(t)),Ct={t:t||n,s:t&&n?r||n:"",hl:o,dl:l,eth:ie&&ie.d,country:(e.c||e.r)?.properties.c,countryName:e.c?.properties.n,rid:e.r?.properties.region_id,rf:e.r||null,cd:n,dd:ae&&ae.properties.n||""};
 let c="<b>"+ei(t||n)+(t&&n?"<em> · "+ei(r||n)+"</em>":"")+"</b>";
 if((o.length||l.length)&&(c+='<span class="hm">'+ei(i(o.concat(l),12))+"</span>"),ie&&ie.d){let e=ie.d.g,t=e[0];

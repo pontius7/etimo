@@ -218,3 +218,5 @@ entry that has the field:
 | a detailed layer of areas (traced or from a file) | an entry of `layers` (`source`, `kind`; `censusReplaces`, `underCensus`) |
 | a finer view with a legend (dialects, varieties) | an entry of `views` (`languages`, `groups`, `strength`, `credit`) |
 | a language's own area to hide the pin or the broad area, to count as another language's, or to show under another name | `hidePin`, `hideZone`, `parent`, `shownAs` (and `sourceName` for a name the source spells differently) on its entry of `languages` |
+| a language left out of the tree and the wheel, its family's names tidied, a language a country lists among its main ones | `notInTree` on the language; `nameRules` (`family`, `path`, `except`, `replace`, `capitalise`); `iso3` and `mainAlso` on the country (read by the page code through `TREE_HIDDEN`, `NAME_RULES`, `PROMOTED` in `scripts/build-page.py`) |
+| where a name rule applies | `in` on each entry of `nameRules`: `tree` (the tree and wheel names) and/or `legend` (the map legend's short names); `kTidy(language, name, where)` applies only the rules that list `where` |
