@@ -373,7 +373,7 @@ g=!L&&root.depth?root:null;
 mb.hidden=!L&&!g;
 wb.hidden=mb.hidden||!ACT;
 if(mb.hidden)return;
-mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em>"+ei(L?q.d.data.name:root.data.name)+"</em>";
+mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em><i></i>"+ei(L?q.d.data.name:root.data.name)+"</em>";
 mb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||"");
 mb.onclick=()=>{if(L){Ja("map-"+L.id.slice(2));
 return}
@@ -1672,7 +1672,8 @@ let kHN=0;
    from the tapped place to its place on the next screen (kVTP: what is tapped, the element it carries, where it lands, its name;
    the element is named at the tap). Where unsupported, or with reduced motion, the screen changes at once; so it does to and from
    the map unless something is carried (the browser must picture the old screen first, which costs the map screens a noticeable delay). */
-const kVTP=[[".row,.rt,.wr",".t>span:nth-child(2),.kw,.wv b",".wbig","kwt"]];
+const kVTP=[[".row,.rt,.wr",".t>span:nth-child(2),.kw,.wv b",".wbig","kwt"],
+[".wbm,.wmap",".wbo i,.wmap em i",".card .pill .dot","kdot"]];
 let kVS=null;
 const kVM=/#(map|mm-)/;
 document.addEventListener("click",e=>{kVS&&(kVS.el.style.viewTransitionName="");
