@@ -201,3 +201,16 @@
 /* Tree counts (phone and desktop alike): a group's number shows only while it is closed. Opening a group hides its own number and
    every number inside it (sub-groups, nested groups), so an open list reads as names only. */
 details.vb[open] .vc,.vtree .vgn .vc{display:none}
+
+/* Map names (phone and desktop): a language must read as the map's subject and a city as background. Cities were bolder than
+   languages (600 vs 500); now a city is small, regular and muted with a muted dot, a language name bold in full ink, so the two
+   are told apart at a glance by weight, size and tone (the engine draws both from these styles, gLabRead). */
+.mapbox .city text{font-weight:400;font-size:10.5px;fill:var(--mut);letter-spacing:.01em}
+.mapbox .city circle{fill:var(--mut)}
+.mapbox .plabel{font-weight:650;fill:var(--ink)}
+.mapbox .plabel.act{font-weight:750}
+
+/* Desktop (64rem and up) side panel: a little wider (380 -> 440 px), so the region wheel and its names are drawn larger and a
+   name beside a thin slice stays readable, for every region and language. Phone: unchanged (bottom sheet). */
+@media (width>=64rem){.mapbox .card.mcard.kpanel,.mapbox .card.kpanel{width:min(440px,38%)!important;max-width:none!important}
+.card.kpanel .rgwh .rgwl text{font-size:13px}}
