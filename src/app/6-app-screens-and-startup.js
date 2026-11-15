@@ -1621,7 +1621,23 @@ addEventListener("etimo:mapready",go)})}
    with a scroll. Going to a "now" screen fetches it at once; so does a part that fails to arrive (kLexGo). */
 let kLexGo=null;
 /* The address (without #) as a screen: the router's one parser (Up), also asked by the loader (kParts, kLexKind). */
-function kRoute(e){if(fa[e])return{v:"lang",
+/* Old addresses: before 2026-11-15 a language id dropped accented letters (#l-arb-resh); now they keep their base letter
+   (#l-arberesh, oa()). An address that ends in an old id is read as the new one, so shared links keep working. */
+let kOldM=null;
+function kOld(e){if(fa[e])return e;
+if(!kOldM){let k=Object.keys(fa);if(!k.length)return e;kOldM={};
+for(let i of k){let o=fa[i].lang.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");"l-"+o!==i&&(kOldM[o]=i.slice(2))}}
+for(let o in kOldM)if(e===o||e.endsWith("-"+o))return e.slice(0,e.length-o.length)+kOldM[o];
+return e}
+/* Cmd/Ctrl+F on a screen with a windowed list (only the rows near the screen exist, so the browser's own find misses the rest):
+   the first press goes to the site's own filter, which searches every word and finds other scripts from Latin typing (the
+   language page's field, else the find field in the bar, else the Search screen); a second press while a field has focus is the browser's find. */
+function kFind(ev){if(!(ev.metaKey||ev.ctrlKey)||ev.altKey||ev.shiftKey||"f"!==ev.key.toLowerCase()||!document.querySelector("[data-kwin]"))return;
+let q=[document.getElementById("wq"),document.querySelector(".kfil input")].find(x=>x&&x.getClientRects().length);
+if(document.activeElement&&"INPUT"===document.activeElement.tagName)return;
+ev.preventDefault();if(!q)return Ja("search");q.focus({preventScroll:!0});q.scrollIntoView({block:"nearest"});q.select()}
+document.addEventListener("keydown",kFind);
+function kRoute(e){e=kOld(e);if(fa[e])return{v:"lang",
 L:fa[e]};
 let FDm=/^d(\d+)-(.+)$/.exec(e);
 if(FDm&&fa["l-"+FDm[2]])return{v:"lang",

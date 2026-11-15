@@ -268,21 +268,21 @@
    "sourceName": "Tosk"
   },
   {
-   "name": "Labërisht",
+   "name": "Labërisht", "englishName": "Lab Albanian",
    "hidePin": true,
    "hideZone": true,
    "shownAs": "Albanian",
    "sourceName": "Lab"
   },
   {
-   "name": "Çam Albanian",
+   "name": "Çam Albanian", "englishName": "Cham Albanian",
    "hidePin": true,
    "hideZone": true,
    "shownAs": "Albanian",
    "sourceName": "Çam"
   },
   {
-   "name": "Arbëresh"
+   "name": "Arbëresh", "englishName": "Arberesh"
   },
   {
    "name": "Arvanitika",

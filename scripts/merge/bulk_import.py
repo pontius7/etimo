@@ -275,6 +275,13 @@ def import_words(root, langs, lex, extra_meanings, romanize):
 
 # ---------------------------------------------------------------- outputs
 def slug(name):
+    """A language's id in addresses and file names: accents dropped (Arbëresh -> arberesh), anything else not a-z or 0-9 -> '-'.
+    The app's oa() in src/app/2-app-text-and-tables.js does the same; old_slug() is the rule before 2026-11-15 (site_pages.py redirects it)."""
+    name = ''.join(c for c in unicodedata.normalize('NFKD', name) if not unicodedata.combining(c))
+    return old_slug(name)
+
+
+def old_slug(name):
     return re.sub(r'^-|-$', '', re.sub(r'[^a-z0-9]+', '-', name.lower()))
 
 
