@@ -16,7 +16,7 @@ Stages, in order (the commands are the ones in scripts/add-words.sh and scripts/
 
 A stage's inputs are fingerprinted (SHA-1 of the file contents, cached by size and time in .cache/build-state.json);
 the stage is skipped when the fingerprint is the one it last ran with. The data and map stages also keep their
-fingerprint in a file committed with the site (site/data/inputs.sha256, site/map-next/inputs.sha256), so "older than
+fingerprint in a file committed with the site (data-src/data/inputs.sha256, data-src/map/inputs.sha256), so "older than
 its inputs" is found on a fresh checkout too, without downloading or cutting anything. Only files git knows or would
 add count as inputs (ignored files such as caches do not), so the fingerprint is the same on every machine.
 No dependencies beyond Python 3 and git.
@@ -31,39 +31,39 @@ import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATE = os.path.join(ROOT, '.cache', 'build-state.json')
-RECORD = {'map': os.path.join(ROOT, 'site', 'map-next', 'inputs.sha256'),
-          'data': os.path.join(ROOT, 'site', 'data', 'inputs.sha256')}
+RECORD = {'map': os.path.join(ROOT, 'data-src', 'map', 'inputs.sha256'),
+          'data': os.path.join(ROOT, 'data-src', 'data', 'inputs.sha256')}
 
 # files the build itself writes inside an input folder: they must not count as inputs
 GENERATED_NAMES = {'import-report.txt', 'duplicates-report.txt', '.DS_Store', 'inputs.sha256'}
 SKIP_DIRS = {'__pycache__', '.git', 'node_modules'}
 DATA_BUILT = {'lexicon.json', 'languages.json', 'terr.json', 'dia.json', 'today.json', 'adm2.json', 'micro.json',
               'ethno.json', 'region-langs.json',
-              'palette.json'}      # site/data files the build writes (scripts/merge; palette.json by build-page.py): not data-stage inputs
+              'palette.json'}      # data files the build writes (scripts/merge; palette.json by build-page.py): not data-stage inputs
 # folders whose files carry a content hash in their name (or are cut by a tool): only the list of names counts
 NAMES_ONLY = ('site/map-next/tiles', 'site/map-next/census-tiles', 'site/h/dict', 'site/h/search', 'site/h/core', 'site/fonts')
 
 STAGES = {
     'data': {
-        'roots': ['content', 'reference', 'scripts/merge', 'site/data'],
-        'skip': lambda rel: rel.startswith('site/data/') and rel.count('/') == 2 and os.path.basename(rel) in DATA_BUILT,
+        'roots': ['content', 'data-src/original', 'scripts/merge', 'site/data', 'data-src/data'],
+        'skip': lambda rel: rel.startswith(('site/data/', 'data-src/data/')) and rel.count('/') == 2 and os.path.basename(rel) in DATA_BUILT,
     },
     'page': {
         'roots': ['content', 'src', 'scripts/build-page.py', 'scripts/site_pages.py', 'scripts/page_code.py', 'scripts/merge/palette.py',
-                  'scripts/merge/families.py', 'site/data', 'site/h/dict', 'site/h/search', 'site/fonts',
+                  'scripts/merge/families.py', 'site/data', 'data-src/data', 'site/h/dict', 'site/h/search', 'site/fonts',
                   'site/map-gl.js', 'site/regional-layer.js', 'site/search-key.js', 'site/_headers',
                   'site/country-data.js', 'site/country-sources.js', 'site/country-sources.css',
                   'site/map-next/data/meta.json', 'site/map-next/tiles/3'],
     },
     'map': {
-        # what scripts/map-next/build.py reads (see its docstring): site/data, the map's special cases, the minority list, and the
+        # what scripts/map-next/build.py reads (see its docstring): site/data and data-src/data, the map's special cases, the minority list, and the
         # colour table and family names that build-page.py writes into the page (content/languages, families, src/app, palette)
-        'roots': ['site/data', 'content/map', 'content/minority-areas.csv', 'content/families.json',
+        'roots': ['site/data', 'data-src/data', 'content/map', 'content/minority-areas.csv', 'content/families.json',
                   'content/languages', 'src/app', 'scripts/map-next', 'scripts/build-page.py', 'scripts/page_code.py',
                   'scripts/merge/palette.py', 'scripts/merge/families.py', 'scripts/merge/topo.py'],
     },
     'checks': {
-        'roots': ['content', 'reference', 'scripts', 'src', 'site'],
+        'roots': ['content', 'scripts', 'src', 'site', 'data-src'],
     },
 }
 ORDER = ['data', 'page', 'map', 'page', 'checks']

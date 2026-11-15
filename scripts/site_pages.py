@@ -12,6 +12,7 @@ from bulk_import import slug     # the id of a language, as in the app's address
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 SITE = os.path.join(ROOT, 'site')
+DATA_SRC = os.path.join(ROOT, 'data-src', 'data')       # the build's own data, not served (README "data-src/")
 SITE_URL = 'https://etimo.nikocevic7.workers.dev'    # the one place the site's address is written
 
 
@@ -94,7 +95,7 @@ def readable_page(name, info, entries, colours, ident):
 
 def write_readable():
     """Every language's page, their stylesheet, robots.txt and sitemap.xml. Reads the data files the build already has on disk."""
-    load = lambda n: json.load(open(os.path.join(SITE, 'data', n), encoding='utf-8'))
+    load = lambda n: json.load(open(os.path.join(DATA_SRC, n), encoding='utf-8'))
     languages, lexicon, palette = load('languages.json'), load('lexicon.json'), load('palette.json')
     entries = {e['lang']: e['entries'] for e in lexicon}
     shutil.rmtree(os.path.join(SITE, 'l'), ignore_errors=True)

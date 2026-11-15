@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Data for the MapLibre map (site/map-next/).
+"""Data for the MapLibre map (site/map-next/). What the page fetches goes to site/map-next/data/, the shapes the tiles are cut from to data-src/map/.
 
 Run after the normal site build, with the project's Python (it has the geometry library):
     python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py
 
 Nothing here is typed in by hand. Everything the map shows comes from the files the site already uses:
-  language areas     site/data/terr.json         (made by scripts/merge/merge-data.py from the sources and content/)
-  language list      site/data/languages.json    (pin position, family, own name, census rows)
-  language colours   site/data/palette.json   (the one palette build-page.py writes from scripts/merge/palette.py and content/)
+  language areas     data-src/data/terr.json         (made by scripts/merge/merge-data.py from the sources and content/)
+  language list      data-src/data/languages.json    (pin position, family, own name, census rows)
+  language colours   data-src/data/palette.json   (the one palette build-page.py writes from scripts/merge/palette.py and content/)
   main language of a country   the census rows above, plus the "mainLanguage" entries of content/map/areas.json (same rule as the site)
-  family names       site/index.html (where each name sits); their colours: site/data/palette.json
+  family names       site/index.html (where each name sits); their colours: data-src/data/palette.json
   lighter tint       content/minority-areas.csv  (min / plu rows)
-  detailed areas     site/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
+  detailed areas     data-src/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
                      montenegro-areas.json, and the census countries of CENSUS_AREAS (croatia-, bosnia-areas.json); which generic pins and zones they replace and how each area is treated: content/map/areas.json
   region lines       site/data/today.json        (regions inside a country)
   district lines     site/data/adm2.json
@@ -45,8 +45,10 @@ except ImportError:
     sys.exit('map-next: run with the project Python:  .venv/bin/python scripts/map-next/build.py')
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA = os.path.join(ROOT, 'site', 'data')
-OUT = os.path.join(ROOT, 'site', 'map-next', 'data')
+DATA = os.path.join(ROOT, 'site', 'data')                  # data the page fetches
+SRC = os.path.join(ROOT, 'data-src', 'data')               # data only the build reads
+MAP_SRC = os.path.join(ROOT, 'data-src', 'map')            # what this script makes for the tiles (shapes, census regions)
+OUT = os.path.join(ROOT, 'site', 'map-next', 'data')       # what the page fetches (meta.json, census-names.json, census-top.json)
 CACHE = os.path.join(ROOT, '.cache', 'map-next')
 with open(os.path.join(ROOT, 'content', 'map', 'areas.json'), encoding='utf-8') as f:
     AREAS = json.load(f)        # the map's special cases, as data (README "How to give one country something special")
@@ -70,8 +72,8 @@ BASE_MIN = 40     # a country is tinted with its main language when that languag
 CIRCLE_KM = ((1e3, 15), (1e4, 25), (1e5, 40), (1e6, 70), (1e7, 140), (float('inf'), 200))
 
 
-def load(name):
-    with open(os.path.join(DATA, name), encoding='utf-8') as f:
+def load(name, d=DATA):
+    with open(os.path.join(d, name), encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -204,15 +206,15 @@ def world(area_tree):
 
 # ------------------------------------------------------------------ languages
 def load_palette():
-    with open(os.path.join(ROOT, 'site', 'data', 'palette.json'), encoding='utf-8') as f:
+    with open(os.path.join(SRC, 'palette.json'), encoding='utf-8') as f:
         return json.load(f)
 
 
 def colour_table():
-    """The language colour table: site/data/palette.json, written by scripts/build-page.py (one palette for the whole site)."""
-    path = os.path.join(ROOT, 'site', 'data', 'palette.json')
+    """The language colour table: data-src/data/palette.json, written by scripts/build-page.py (one palette for the whole site)."""
+    path = os.path.join(SRC, 'palette.json')
     if not os.path.exists(path):
-        sys.exit('map-next: site/data/palette.json not found (run scripts/build-page.py first)')
+        sys.exit('map-next: data-src/data/palette.json not found (run scripts/build-page.py first)')
     with open(path, encoding='utf-8') as f:
         return json.load(f)['light']
 
@@ -282,7 +284,7 @@ def detailed_areas(lists):
         return next((g.get('kind') for g in v['groups'] if n in group_names(g) and g.get('kind')), v['kind'])
 
     def add(name, layer):
-        for n, rings in load(name).items():
+        for n, rings in load(name, SRC).items():
             n = lists['source_name'].get(n, n)
             g = rings_shape([[project(p[0], p[1]) for p in r] for r in rings])
             k = kind_of(layer, n)
@@ -315,7 +317,7 @@ def census_countries(fitted, detail, countries):
         c = next((c for c in countries if c['name'] == cname), None)
         if c is None:
             sys.exit(f'map-next: {name}: no country called {cname} on the map')
-        cs, drawn = c['shape'], set(load(name))
+        cs, drawn = c['shape'], set(load(name, SRC))
         fitted = {n: g for n, g in ((n, solid(g.difference(cs)) if n in drawn else g) for n, g in fitted.items()) if not g.is_empty}
         mine = [k for k, g in detail.items() if k[0] == 'area' and k[1] in drawn and g.intersects(cs)]
         for piece in polys(solid(cs.difference(unary_union([detail[k] for k in mine])))):
@@ -357,15 +359,15 @@ def census_regions(countries, ctree):
     the same country shapes as everything else. A feature keeps its place in the source file (`i`), which is how
     the census rows refer to it, and carries the point where its name is written (`at`, map units)."""
     src = os.path.join(DATA, 'regional', 'geo')
-    os.makedirs(os.path.join(OUT, 'regions'), exist_ok=True)
+    os.makedirs(os.path.join(MAP_SRC, 'regions'), exist_ok=True)
     done = []
     for fn in sorted(os.listdir(src)):
         cc = fn[:-5]
         if not fn.endswith('.json') or '-' in cc:      # GR-regions: no counts, nothing is drawn from it
             continue
-        out, world_file = os.path.join(OUT, 'regions', cc + '.json'), os.path.join(CACHE, 'countries-10m.json')
+        out, world_file = os.path.join(MAP_SRC, 'regions', cc + '.json'), os.path.join(CACHE, 'countries-10m.json')
         if os.path.exists(out) and os.path.getmtime(out) > max(os.path.getmtime(os.path.join(src, fn)), os.path.getmtime(world_file)):
-            done.append(cc + ' unchanged')      # delete site/map-next/data/regions/ to have them all cut again
+            done.append(cc + ' unchanged')      # delete data-src/map/regions/ to have them all cut again
             continue
         t = Topo(load(os.path.join('regional', 'geo', fn)))
         regs = [(i, g['properties'], s) for i, (g, parts) in enumerate(t.geoms('regions')) for s in [t.shape(parts)] if s is not None]
@@ -383,7 +385,7 @@ def census_regions(countries, ctree):
             c = max(polys(g), key=lambda q: q.area).representative_point()
             feats.append({'type': 'Feature', 'properties': {'i': i, 'id': props.get('region_id'), 'name': props.get('name'), 'at': [round(c.x, 2), round(c.y, 2)]},
                           'geometry': {'type': 'MultiPolygon', 'coordinates': gj_polygons(g)}})
-        size = write(os.path.join('regions', cc + '.json'), {'type': 'FeatureCollection', 'features': feats})
+        size = write(os.path.join('regions', cc + '.json'), {'type': 'FeatureCollection', 'features': feats}, MAP_SRC)
         done.append(f'{cc} {len(feats)} regions {size // 1024} KB')
     return done
 
@@ -476,8 +478,8 @@ def trimmed(arcs, countries, tree):
     return out
 
 
-def write(name, obj):
-    path = os.path.join(OUT, name)
+def write(name, obj, d=OUT):
+    path = os.path.join(d, name)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
     return os.path.getsize(path)
@@ -503,13 +505,13 @@ def tiles():
         sys.exit('map-next: tippecanoe is needed for the map tiles:  brew install tippecanoe')
     h = hashlib.sha1(f'z{TILE_Z}d14'.encode())
     for n in ('land.json', 'areas.json', 'lines.json'):
-        with open(os.path.join(OUT, n), 'rb') as f:
+        with open(os.path.join(MAP_SRC, n), 'rb') as f:
             h.update(f.read())
     tmp = TILES + '.new'
     shutil.rmtree(tmp, ignore_errors=True)
     subprocess.run([tool, '-q', '-e', tmp, '-Z0', f'-z{TILE_Z}', '-d14', '--no-feature-limit', '--no-tile-size-limit',
                     '--no-tile-compression', '--no-simplification-of-shared-nodes', '--no-tiny-polygon-reduction', '--force',
-                    *[x for n in ('land', 'areas', 'lines') for x in ('-L', f'{n}:{os.path.join(OUT, n + ".json")}')]], check=True)
+                    *[x for n in ('land', 'areas', 'lines') for x in ('-L', f'{n}:{os.path.join(MAP_SRC, n + ".json")}')]], check=True)
     with open(os.path.join(tmp, 'metadata.json'), encoding='utf-8') as f:
         bounds = [float(v) for v in json.load(f)['bounds'].split(',')]
     os.remove(os.path.join(tmp, 'metadata.json'))
@@ -540,7 +542,7 @@ def census_tiles():
     tool = shutil.which('tippecanoe')
     if not tool:
         sys.exit('map-next: tippecanoe is needed for the map tiles:  brew install tippecanoe')
-    ccs = sorted(fn[:-5] for fn in os.listdir(os.path.join(OUT, 'regions')) if fn.endswith('.json'))
+    ccs = sorted(fn[:-5] for fn in os.listdir(os.path.join(MAP_SRC, 'regions')) if fn.endswith('.json'))
     h = hashlib.sha1(f'z{CENSUS_Z}d14'.encode())
     tmp = CENSUS_TILES + '.new'
     shutil.rmtree(tmp, ignore_errors=True)
@@ -548,7 +550,7 @@ def census_tiles():
     bounds = {}
     with tempfile.TemporaryDirectory() as work:
         for cc in ccs:
-            with open(os.path.join(OUT, 'regions', cc + '.json'), encoding='utf-8') as f:
+            with open(os.path.join(MAP_SRC, 'regions', cc + '.json'), encoding='utf-8') as f:
                 feats = [{'type': 'Feature', 'id': ft['properties']['i'], 'properties': {}, 'geometry': ft['geometry']} for ft in json.load(f)['features']]
             text = json.dumps({'type': 'FeatureCollection', 'features': feats}, separators=(',', ':'))
             h.update(cc.encode() + text.encode('utf-8'))
@@ -599,9 +601,9 @@ def census_extras():
             langs[lang] = len(top['langs'])
             top['langs'].append(lang)
         return langs[lang]
-    for fn in sorted(os.listdir(os.path.join(OUT, 'regions'))):
+    for fn in sorted(os.listdir(os.path.join(MAP_SRC, 'regions'))):
         cc, fix = fn[:-5], NAME_FIX.get(fn[:-5], {})
-        with open(os.path.join(OUT, 'regions', fn), encoding='utf-8') as f:
+        with open(os.path.join(MAP_SRC, 'regions', fn), encoding='utf-8') as f:
             feats = json.load(f)['features']
         if cc in STRICT_NAMES:
             bad = sorted({ft['properties']['name'] for ft in feats} - set(fix))
@@ -643,7 +645,7 @@ def census_extras():
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    terr, langs, colours = load('terr.json'), load('languages.json'), colour_table()
+    terr, langs, colours = load('terr.json', SRC), load('languages.json', SRC), colour_table()
     today = Topo(load('today.json'))
     original = {n: g for n, g in ((n, area_shape(t.get('v') or t['d'])) for n, t in terr.items()) if g is not None}
     w = world(STRtree(list(original.values())))
@@ -675,7 +677,7 @@ def main():
     # where a family's speakers live outside its home areas (site/data/dia.json), one shape per family
     fam_cols = load_palette()['families']
     fam_col = lambda fam: {th: fam_cols.get(fam, {}).get(th) or '#8a93a3' for th in ('light', 'dark')}
-    dia, _, _ = fit_areas({fam: g for fam, g in ((fam, area_shape(d)) for fam, d in load('dia.json')['fam'].items()) if g is not None}, countries)
+    dia, _, _ = fit_areas({fam: g for fam, g in ((fam, area_shape(d)) for fam, d in load('dia.json', SRC)['fam'].items()) if g is not None}, countries)
 
     def props(name):
         info = langs.get(name, {})
@@ -724,7 +726,7 @@ def main():
                   'shownAs': {e['name']: e['shownAs'] for e in AREAS['languages'] if e.get('shownAs')},
                   'hidePin': sorted(lists['hide_pin'])},
     }
-    sizes = {n: write(n, o) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
+    sizes = {n: write(n, o, MAP_SRC) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
     meta['tiles'] = tiles()      # what the map loads: the tiles cut from the three files above (they stay for the checks)
     print('map-next: census regions: ' + ', '.join(census_regions(countries, ctree)))
     meta['census'] = census_tiles()      # the census view's own tiles, cut from regions/ (which stay for census_extras)

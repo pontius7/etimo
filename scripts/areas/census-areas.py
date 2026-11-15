@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Language areas of a country from its census by municipality: site/data/<country>-areas.json.
+"""Language areas of a country from its census by municipality: data-src/data/<country>-areas.json.
 
 Each municipality takes the language most of its people speak (the largest census figure among the site's languages;
 answers such as "Serbo-Croatian" or "other" do not count). Municipalities with the same language are joined into one
@@ -22,6 +22,7 @@ from shapely.ops import unary_union
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(ROOT, 'site', 'data')
+SRC = os.path.join(ROOT, 'data-src', 'data')
 
 # Per country, from its entry in content/map/areas.json ("censusAreas"): the output file, the census levels used, the outlines
 # and (outlineNames) the census names whose outline has another name; [name, 'north'/'south'] picks one of two outlines.
@@ -62,7 +63,7 @@ def topo_shapes(path):
 def main(cc):
     src = SOURCES[cc]
     table = json.load(open(os.path.join(DATA, 'tables', cc + '.json'), encoding='utf-8'))
-    site = set(json.load(open(os.path.join(DATA, 'languages.json'), encoding='utf-8')))
+    site = set(json.load(open(os.path.join(SRC, 'languages.json'), encoding='utf-8')))
     labels = {}
     with open(os.path.join(ROOT, 'content', 'census-language-names.csv'), encoding='utf-8') as f:
         for r in csv.DictReader(l for l in f if l.strip() and not l.startswith('#')):
@@ -141,7 +142,7 @@ def main(cc):
             for r in [p.exterior, *p.interiors]:
                 rings.append([[round(x, 4), round(y, 4)] for x, y in r.coords])
         out[n] = rings
-    dest = os.path.join(DATA, src['out'])
+    dest = os.path.join(SRC, src['out'])
     json.dump(out, open(dest, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('%s: %d municipalities -> %s; %s' % (cc, sum(count.values()), src['out'], ', '.join('%s %d' % kv for kv in sorted(count.items(), key=lambda kv: -kv[1]))))
     if missing:

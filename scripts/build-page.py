@@ -34,7 +34,8 @@ from bulk_import import slug  # noqa: E402  (a language's page id without its 'l
 
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'site', 'index.html')
-D_DATA = os.path.join(ROOT, 'reference', 'devter-artifact', 'data')
+DATA_SRC = site_pages.DATA_SRC
+D_DATA = os.path.join(ROOT, 'data-src', 'original', 'devter', 'data')
 NEW, OLD, EXTRA, VAR = families.NEW, families.ETIMO, families.EXTRA, palette.VAR
 LAST = families.DEVTER[-1]   # the frozen styles hold rules for every family up to this one
 
@@ -209,7 +210,7 @@ def hashed_copies(tv):
             os.remove(os.path.join(hdir, old))
     out = own_files(hdir)
     for name in HASHED:
-        src = os.path.join(ROOT, 'site', 'data', name)
+        src = os.path.join(DATA_SRC, name)
         with open(src, 'rb') as f:
             data = f.read()
         base, ext = os.path.splitext(name)
@@ -254,7 +255,7 @@ def own_files(hdir):
 
 
 def write_palette(shades):
-    """site/data/palette.json: THE palette, written by this build and read by the page (the colour table inline in the page is filled
+    """data-src/data/palette.json: THE palette, written by this build and read by the page (the colour table inline in the page is filled
     from it), the colour check and the map build. light = every language's colour; dark = the same after the page's lift() (a colour
     too dark for the dark theme is mixed 32% towards white); families = each family's colour in both themes. Not fetched by the page."""
     def lift(h):
@@ -265,7 +266,7 @@ def write_palette(shades):
         return '#' + ''.join('%02x' % int(round(v + (255 - v) * .32)) for v in (r, g, b))
     fams = {f: {th: (palette.ETIMO[th].get(f) or palette.FAM[th][f]) for th in ('light', 'dark')} for f in palette.VAR}
     out = {'light': shades, 'dark': {n: lift(c) for n, c in shades.items()}, 'families': fams}
-    with open(os.path.join(ROOT, 'site', 'data', 'palette.json'), 'w', encoding='utf-8', newline='\n') as f:
+    with open(os.path.join(DATA_SRC, 'palette.json'), 'w', encoding='utf-8', newline='\n') as f:
         json.dump(out, f, ensure_ascii=False, indent=0, sort_keys=False)
         f.write('\n')
 

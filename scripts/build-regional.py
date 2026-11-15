@@ -13,7 +13,7 @@ Reads the original (monolithic) files and writes small, on-demand files:
   site/data/tables/<CC>/<n>.json         region detail chunks {region_id: observations}
 
 Source directory: --src (default: site/data if the originals are still there,
-otherwise reference/etimo-artifact/data, which is an untouched copy).
+otherwise archive/reference/etimo-artifact/data, which is an untouched copy).
 Geometry is simplified with mapshaper (Douglas-Peucker, --interval metres,
 default 3 m: ~0.15 device px at the app's maximum zoom of 150x) and quantised.
 """
@@ -21,7 +21,7 @@ import argparse, json, os, shutil, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.join(ROOT, 'site', 'data')
-REF = os.path.join(ROOT, 'reference', 'etimo-artifact', 'data')
+REF = os.path.join(ROOT, 'archive', 'reference', 'etimo-artifact', 'data')
 CHUNKED_MIN = 200_000      # tables bigger than this get an index + detail chunks
 CHUNK_TARGET = 300_000     # bytes per detail chunk (raw JSON)
 DROP_OBS = ('language_id', 'status', 'threshold')   # unused by country-data.js

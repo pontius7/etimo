@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Colour consistency check. Serves site/ and reference/etimo-artifact, paints both in a headless Chrome
+"""Colour consistency check. Serves site/ and data-src/original/etimo, paints both in a headless Chrome
 (dark + light) and asserts:
   (a) every language's map fill equals its palette value (the `P` table in site/index.html, lifted in dark mode)
   (b) the wheel segment colour equals the map colour, for every language the wheel names
@@ -14,6 +14,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 import palette  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+SRC = os.path.join(ROOT, 'data-src', 'data')
+ORIGINAL = os.path.join(ROOT, 'data-src', 'original', 'etimo')
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHOTS = sys.argv[sys.argv.index('--shots') + 1] if '--shots' in sys.argv else None
 
@@ -65,7 +67,7 @@ RECOLOURED = {'Croatian', 'Bosnian', 'Montenegrin', 'Serbian'}
 
 def main():
     site = serve(os.path.join(ROOT, 'site'))
-    ref = serve(os.path.join(ROOT, 'reference', 'etimo-artifact'))
+    ref = serve(ORIGINAL)
     tmp = tempfile.mkdtemp(prefix='etimo-colors-')
     jobs = {}
     port = 9500 + os.getpid() % 300
@@ -82,10 +84,10 @@ def main():
         data[k] = json.load(open(out))
     shutil.rmtree(tmp, ignore_errors=True)
 
-    langs = json.load(open(os.path.join(ROOT, 'site', 'data', 'languages.json')))
-    ref_langs = json.load(open(os.path.join(ROOT, 'reference', 'etimo-artifact', 'data', 'languages.json')))
-    # the palette: site/data/palette.json (written by build-page.py). The page's own inline table must be the same one.
-    pal = json.load(open(os.path.join(ROOT, 'site', 'data', 'palette.json'), encoding='utf-8'))
+    langs = json.load(open(os.path.join(SRC, 'languages.json')))
+    ref_langs = json.load(open(os.path.join(ORIGINAL, 'data', 'languages.json')))
+    # the palette: data-src/data/palette.json (written by build-page.py). The page's own inline table must be the same one.
+    pal = json.load(open(os.path.join(SRC, 'palette.json'), encoding='utf-8'))
     P = pal['light']
     sys.path.insert(0, os.path.join(ROOT, 'scripts'))
     import page_code  # noqa: E402  (index.html and its code file, h/app.<hash>.js)
@@ -93,7 +95,7 @@ def main():
     inline = json.loads(re.search(r'var P=(\{.*?\});\s*function hx', html, re.S).group(1))
     if inline != P:
         errors0 = [n for n in set(inline) | set(P) if inline.get(n) != P.get(n)]
-        print('FAIL: the page\'s colour table differs from site/data/palette.json for:', errors0[:10])
+        print('FAIL: the page\'s colour table differs from data-src/data/palette.json for:', errors0[:10])
         sys.exit(1)
     for n, c in P.items():
         if pal['dark'][n] != lift(c.lower(), True):

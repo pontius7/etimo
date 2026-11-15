@@ -168,7 +168,7 @@ def paint(dr, geom, fill):
         dr.polygon([m2px(x, y) for x, y in g.exterior.coords], fill=fill)
 right = Image.new('RGB', (w * K, h * K), (94, 99, 95)); dr = ImageDraw.Draw(right)
 paint(dr, land, (208, 185, 109)); paint(dr, unary_union(parts), (190, 57, 13))
-old = json.load(open(REPO + '/site/data/greece-areas.json'))['Arvanitika']
+old = json.load(open(REPO + '/data-src/data/greece-areas.json'))['Arvanitika']
 mid = Image.new('RGB', (w * K, h * K), (94, 99, 95)); dm = ImageDraw.Draw(mid)
 paint(dm, land, (208, 185, 109))
 for r in old: dm.polygon([m2px(lo, my(la)) for lo, la in r], fill=(190, 57, 13))

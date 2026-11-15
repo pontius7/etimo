@@ -17,6 +17,7 @@ import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 SITE = os.path.join(ROOT, 'site')
+SRC = os.path.join(ROOT, 'data-src', 'data')
 
 
 def load(path):
@@ -32,10 +33,10 @@ def main():
         print('core split: FAILED: site/index.html has no window.__kCore (run scripts/build-page.py)')
         return 1
     K = json.loads(m.group(1))
-    L = load(os.path.join(SITE, 'data', 'lexicon.json'))
+    L = load(os.path.join(SRC, 'lexicon.json'))
     lx = re.search(r'"(h/lexicon\.[0-9a-f]{10}\.json)"', html)
     if not lx or load(os.path.join(SITE, lx.group(1))) != L:
-        bad.append('the page\'s lexicon file is not site/data/lexicon.json')
+        bad.append('the page\'s lexicon file is not data-src/data/lexicon.json')
 
     # the page's own tables and ids, as build-page.py makes them
     spec = importlib.util.spec_from_file_location('build_page', os.path.join(ROOT, 'scripts', 'build-page.py'))
