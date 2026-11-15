@@ -111,7 +111,7 @@ e.querySelectorAll(":scope > svg").forEach(x=>x.remove());
 let g0=Math.min(e.clientWidth,620,Math.max(280,innerHeight-150)),
 v=g0/2,
 R=v-3,
-PRV=null,LT=0,DN=0;
+PRV=null,LT=0,DN=0,ROT=0,RAF=0,GL=null,SNAP=!1,DR=null,SW=!1;
 e.style.height=g0+"px";
 let y=ws(e).insert("svg",":first-child").attr("viewBox",[-v,-v,g0,g0]).attr("width",g0).attr("height",g0).attr("role","group").attr("aria-label",l.nav.tree),
 arc=lh().startAngle(d=>d.a0).endAngle(d=>d.a1).padAngle(.007).padRadius(R*.6).innerRadius(d=>d.r0).outerRadius(d=>d.r1).cornerRadius(3.5),
@@ -138,7 +138,39 @@ sh=n.split(/[-\s]/)[0];
 return[n.toUpperCase(),n.replace(/^Northwest /,"NW ").toUpperCase()].concat(/^(north|south|east|west)/i.test(sh)?[]:[sh.toUpperCase()])},
 PT=(q,w)=>[q*Math.sin(w),-q*Math.cos(w)],
 FX=w=>w[0].toFixed(1)+","+w[1].toFixed(1),
-UID="w"+Math.random().toString(36).slice(2,6);
+UID="w"+Math.random().toString(36).slice(2,6),
+turn=d=>{ROT=d;GL.style.rotate=d.toFixed(2)+"deg"},
+spin=(to,D)=>{cancelAnimationFrame(RAF);
+let from=ROT,t0=performance.now(),k=t=>{let p=Math.min(1,(t-t0)/D);
+turn(from+(to-from)*(1-(1-p)**3));
+RAF=p<1?requestAnimationFrame(k):0};
+RAF=requestAnimationFrame(k)};
+/* A4b, phones: a finger turns the wheel (one rotation on the layer group) and it glides on release. Vertical moves stay the page's
+   scroll (touch-action: pan-y in v62.css). A wheel with names outside its rim turns back to upright, the one angle where those
+   names were measured to clear the choice bar (D2). */
+y.on("click",ev=>{SW&&(SW=!1,ev.stopPropagation(),ev.preventDefault())},!0).on("pointerdown",ev=>{if("touch"!==ev.pointerType||matchMedia("(min-width: 64rem)").matches)return;
+SW=RAF!==0;
+cancelAnimationFrame(RAF);
+RAF=0;
+let c=i.getBoundingClientRect();
+DR={id:ev.pointerId,cx:c.left+c.width/2,cy:c.top+c.height/2,x:ev.clientX,y:ev.clientY,on:0,s:[]};
+DR.a=Math.atan2(ev.clientY-DR.cy,ev.clientX-DR.cx)}).on("pointermove",ev=>{if(!DR||ev.pointerId!==DR.id)return;
+if(!DR.on){if(Math.hypot(ev.clientX-DR.x,ev.clientY-DR.y)<8)return;
+DR.on=1;
+SW=!1;
+y.node().setPointerCapture(ev.pointerId)}
+let a2=Math.atan2(ev.clientY-DR.cy,ev.clientX-DR.cx),d=a2-DR.a;
+DR.a=a2;
+turn(ROT+(d+3*Math.PI)%TWO*180/Math.PI-180);
+DR.s.push([ev.timeStamp,ROT]);
+DR.s=DR.s.slice(-4)}).on("pointerup pointercancel",ev=>{"pointercancel"===ev.type&&(SW=!1);
+if(!DR||ev.pointerId!==DR.id)return;
+let{on,s}=DR;
+DR=null;
+if(!on)return;
+let o=s.find(z=>ev.timeStamp-z[0]<100),l0=s[s.length-1],v=o&&ev.timeStamp-l0[0]<80&&l0[0]>o[0]?(ROT-o[1])/(l0[0]-o[0]):0,
+to=SNAP?Math.round(ROT/360)*360:ROT+v*180;
+rm?turn(SNAP?to:ROT):Math.abs(to-ROT)>.5&&spin(to,SNAP?220:540)});
 return{draw(root){
 /* the phone bar (wb) shows only once something has been chosen: a tap on a slice, or a move to another group */
 null===D0?D0=root:root!==D0&&(ACT=1);
@@ -231,6 +263,10 @@ SO=off||!dir?0:setO(G,.5),
 LB=G.append("g").attr("pointer-events","none"),
 OUTL=0,
 OUTS=[];
+cancelAnimationFrame(RAF);
+ROT=0;
+GL=G.node();
+GL.style.transformOrigin="0 0";
 P.append("title").text(q=>q.d.data.name+(q.d.data.L?"":" · "+q.d.value));
 arcs.forEach((q,ix)=>{if("tick"===q.kind||"rim"===q.kind)return;
 let nm="leaf"===q.kind?q.d.data.name:q.d.data.name.toUpperCase(),ph=(q.a0+q.a1)/2,sp=q.a1-q.a0;
@@ -259,6 +295,7 @@ let tp=Math.cos(ph)>=0,pd=Math.max(9,.55*f.f),rb=TOP?(tp?q.r1-pd-.72*f.f:q.r1-pd
 LB.append("path").attr("id",id).attr("fill","none").attr("d","M"+FX(A0)+"A"+rb.toFixed(1)+","+rb.toFixed(1)+" 0 0 "+(tp?1:0)+" "+FX(A1));
 LB.append("text").attr("class",cl).call(__lab,col(q)).each(function(){(q.lts=q.lts||[]).push(this)}).attr("font-size",f.f).attr("text-anchor","middle").append("textPath").attr("href","#"+id).attr("startOffset","50%").text(f.t)});
 P.attr("d",arc);
+SNAP=OUTS.length>0;
 {let T=0,
 B=0;
 if(OUTS.length){let FS=g0>560?13:12,
@@ -341,7 +378,7 @@ g=!L&&root.depth?root:null;
 mb.hidden=!L&&!g;
 wb.hidden=mb.hidden||!ACT;
 if(mb.hidden)return;
-mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em>"+ei(L?q.d.data.name:root.data.name)+"</em>";
+mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em><i></i>"+ei(L?q.d.data.name:root.data.name)+"</em>";
 mb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||"");
 mb.onclick=()=>{if(L){Ja("map-"+L.id.slice(2));
 return}
@@ -394,7 +431,7 @@ PRV={root,arcs};
 /* A4d: the first-draw sweep runs once per visit (WSW outlives this wheel), under 900 ms in all */
 TOP&&!rm&&!WSW&&(WSW=1,P.filter(".a").classed("wpl",!0).style("animation-delay",(q,j)=>500+40*j+"ms"));
 },
-destroy(){y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
+destroy(){cancelAnimationFrame(RAF),y.remove(),a&&a.parentNode&&a.parentNode.querySelectorAll(".wbar").forEach(z=>z.remove())}}}
 var Ep=null,WSW=0;
 function zp(e){if(!Ep)return e;
 let t=e.leaves().find(e=>e.data.L&&e.data.L.id===Ep);
@@ -1321,6 +1358,20 @@ Ve.selectAll("g.pin").on("pointerenter.gl",(e,d)=>{gPh=d,gPinSync(80)}).on("poin
    kTick leaves them exactly as they are (not moved, not hidden, so the browser has nothing to lay out again). Pins are not in it: the engine has them already (gPinStep).
    An engine file without labels() (an old copy in a browser's cache) leaves everything to the page, as before. */
 let gLt=0,gLr=0,gLo=null,gLkey="",gLops=[],gLwait=0;
+/* A2, word spread: the first time the word view hands its names to the engine they appear in order of distance from the chosen
+   language (or the middle of the map), 12 ms apart and 400 ms in all, through the engine's per-name opacity (labelStates). */
+let kSP=Xe,kSR=0;
+function kSpread(L){cancelAnimationFrame(kSR);
+let I=[];
+L.forEach((q,i)=>"l"!==q.k&&I.push(i));
+if(!kSP||!I.length||Ya())return;
+kSP=!1;
+let B=Q2.node().getBoundingClientRect(),T=kV(),o=nt?[B.left+T.applyX(nt._xy[0]),B.top+T.applyY(nt._xy[1])]:[B.left+B.width/2,B.top+B.height/2],st=Math.min(12,250/I.length),t0=performance.now(),
+dist=i=>Math.hypot(L[i].x-o[0],L[i].y-o[1]),
+go=t=>{GM&&GM.labelStates(I.map((i,r)=>[i,L[i].o*Math.min(1,Math.max(0,(t-t0-st*r)/150))]));
+t-t0<st*I.length+150&&(kSR=requestAnimationFrame(go))};
+I.sort((a,b)=>dist(a)-dist(b));
+go(t0)}
 const gR2=v=>Math.round(100*v)/100;
 function gLabSync(ms){if(!GM||!GM.labels||!q.node().isConnected)return;
 gLo||(gLon=!1,gLo=new MutationObserver(()=>{gMv||gLabSync()}),[q.node(),Q2.node()].forEach(n=>gLo.observe(n,{subtree:!0,childList:!0,characterData:!0,attributes:!0,attributeFilter:["class","style","transform","x","y","r","display","opacity","data-off"]})),
@@ -1333,7 +1384,7 @@ let now=performance.now();
 if(now<gLwait)return void(gLr=requestAnimationFrame(gLabStep));
 gLwait=now+90;
 let L=gLabRead(),key=JSON.stringify(L.map(({o,...p})=>p));
-if(key!==gLkey)gLkey=key,gLops=L.map(p=>p.o),GM.labels(L);
+if(key!==gLkey)gLkey=key,gLops=L.map(p=>p.o),GM.labels(L),kSpread(L);
 else{let a=[];
 L.forEach((p,i)=>{p.o!==gLops[i]&&(gLops[i]=p.o,a.push([i,p.o]))}),a.length&&GM.labelStates(a)}
 gLon||(gLon=!0,[q,Q2].forEach(s=>s.attr("data-glab","")));
@@ -1421,7 +1472,7 @@ Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
 let TT=Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2);
 kGo(TT,kFly(TT,a))}
-function $t(e){nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
+function $t(e){e&&e!==nt&&GM&&GM.pulse&&!Ya()&&GM.pulse(gPx.get(e)),nt=e,kn=null,q.classed("hsel",!!e&&!p).attr("data-sf",e&&!p&&e.family||null);
 let t=kV().k;
 Ve.selectAll("g.pin").classed("sel",t=>t===e).classed("fade",t=>!!e&&!p&&t!==e),ot(t),e&&Ve.selectAll("g.pin").filter(t=>t===e).raise(),$e.selectAll("circle").data(e?[e]:[],e=>e.id).join("circle").attr("class",e=>"ring "+e.family).attr("cx",e=>e._xy[0]).attr("cy",e=>e._xy[1]).attr("r",11.76/Math.pow(t,.96)),R.selectAll("path.terr").remove(),e&&T(e)&&da[e.lang].x&&O.append("path").attr("class","terr dia2 "+e.family).attr("fill-rule","evenodd").attr("d",da[e.lang].x),kn=e&&!p?nearMap(e):null,lt(e),Fe(e),bt(),Ae()}
 Rt&&(Rt.onclick=()=>Te()),window.__kMapHome=Te;
@@ -1721,6 +1772,26 @@ function kMeta(b,y){let v=b.v,L=b.L||b.sel&&fa["l-"+b.sel],t,k;
 "lang"===v?(t=Na(L),k="lang"):"word"===v?(t=b.e.word,k="word"):"cat"===v?(t=y.cat[b.cat],k="cat"):"concept"===v?(t=La(b.c),k="concept"):"map"===v?b.conc?(t=La(b.conc),k="mapword"):L?(t=Na(L),k="maplang"):(t=y.explore,k="map"):"langs"===v?(t=y.nav.lang,k="langs"):"az"===v?(t=y.nav.all,k="az"):"search"===v?(t=y.searchT,k="search"):k="home";
 document.title="home"===k?y.title:t+" \u00b7 "+y.title;
 document.querySelector('meta[name=description]').content=y.meta(k,t,L&&("word"===k?Na(L):Ca(L.family)))}
+/* A5, screen to screen: the browser's View Transitions cross-fade the old and the new screen (150 ms, main.css) and carry an element
+   from the tapped place to its place on the next screen (kVTP: what is tapped, the element it carries, where it lands, its name;
+   the element is named at the tap). Where unsupported, or with reduced motion, the screen changes at once; so it does to and from
+   the map unless something is carried (the browser must picture the old screen first, which costs the map screens a noticeable delay). */
+const kVTP=[[".row,.rt,.wr",".t>span:nth-child(2),.kw,.wv b",".wbig","kwt"],
+[".wbm,.wmap",".wbo i,.wmap em i",".card .pill .dot","kdot"]];
+let kVS=null;
+const kVM=/#(map|mm-)/;
+document.addEventListener("click",e=>{kVS&&(kVS.el.style.viewTransitionName="");
+kVS=null;
+for(let[tap,src,to,nm]of kVTP){let t=e.target.closest&&e.target.closest(tap),el=t&&(t.querySelector(src)||t.parentNode.querySelector(src));
+if(el){el.style.viewTransitionName=nm;
+kVS={el,to,nm};
+break}}},!0);
+function kVT(go,from){if(!document.startViewTransition||Ya()||!kVS&&(kVM.test(from)||kVM.test(location.href)))return go();
+let o=kVS,n=null;
+kVS=null;
+document.startViewTransition(()=>{d("395Dg").flushSync(go);
+(n=o&&document.querySelector(o.to))&&(n.style.viewTransitionName=o.nm)}).finished.finally(()=>{o&&(o.el.style.viewTransitionName="");
+n&&(n.style.viewTransitionName="")})}
 function Up(){var e,
 t;
 let[n,r]=(0,m.useState)(location.hash.replace("#","")),
@@ -1731,7 +1802,7 @@ let[n,r]=(0,m.useState)(location.hash.replace("#","")),
 [h,p]=(0,m.useState)(0),
 {done:g,
 copy:v}=pi();
-(0,m.useEffect)(()=>{let e=()=>{kHN++,r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)};
+(0,m.useEffect)(()=>{let e=ev=>kVT(()=>{kHN++,r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)},ev.oldURL);
 return window.addEventListener("hashchange",e),()=>window.removeEventListener("hashchange",e)},[]),
 (0,m.useEffect)(()=>{let e=()=>p(e=>e+1);
 return window.addEventListener("etimo:lex",e),window.addEventListener("etimo:lexstart",e),window.addEventListener("etimo:lexpart",e),()=>{window.removeEventListener("etimo:lex",e),window.removeEventListener("etimo:lexstart",e),window.removeEventListener("etimo:lexpart",e)}},[]),
