@@ -103,6 +103,7 @@ scripts/
     search_keys.js, test-search-key.js  check: Latin typing finds other scripts
   relief/                     builds the mountain shading images from elevation data (build.sh)
   areas/                      traces language areas from reference map images (Arvanitika, Montenegro)
+  checks/tour.mjs             smoke test: opens every screen at phone or desktop size, fails on a page error (not part of ./build)
 
 site/                         the published website (Cloudflare serves this folder as it is)
   index.html                  built from src/
@@ -182,6 +183,16 @@ a colour check fails. First run sets up Python in `.venv` (needs Python 3, Node 
 | `check-overlaps.py` | no two language areas on the map overlap |
 | `words-report.py` | every new word landed in a language, a family and a category |
 | `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like the original app in `data-src/original/etimo/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
+
+The interface has one more check, run by hand because it takes a minute and needs a served site: `scripts/checks/tour.mjs` opens
+every screen (home, a category, a meaning, search, A-Z, a language page, the full dictionary, wheel, tree, the map with a language, a
+region, zoom, a word, settings, dark mode, keyboard, map search) and exits 1 on any page error or step it cannot do. Needs Node 22 and
+Google Chrome, nothing else:
+
+```
+python3 -m http.server 8092 -d site &
+node scripts/checks/tour.mjs http://127.0.0.1:8092 phone      # and: desktop. A third argument saves a screenshot per step
+```
 
 ## Colours: one source
 
