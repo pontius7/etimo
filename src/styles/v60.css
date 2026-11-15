@@ -9,7 +9,7 @@
 
 .pr,.wlat,.st.pr{font-style:italic}
 /* ---- hero pill rides the ridge ---- */
-.kpill{left:-10px;top:-2.5px;width:20px;height:5px;border-radius:3px;box-shadow:0 0 0 2.5px var(--bg);transition:opacity .35s,background-color .6s!important;transform-origin:50% 50%;will-change:transform}
+
 .spec .ridge path{stroke-opacity:.5;stroke-width:1.5px;stroke-linejoin:round}
 .spec .ridge{height:2.4rem}
 @media (width>=64rem){.spec .ridge{height:4.2rem}

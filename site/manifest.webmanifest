@@ -1,0 +1,17 @@
+{
+  "name": "Etimo",
+  "short_name": "Etimo",
+  "description": "A dictionary and map of languages and their families.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f8f6",
+  "theme_color": "#f8f8f6",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

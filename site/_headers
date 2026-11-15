@@ -2,7 +2,8 @@
   Cache-Control: public, max-age=86400
   Access-Control-Allow-Origin: *
 
-# content-hashed files (name changes whenever the content does): cache for a year
+# content-hashed files (name changes whenever the content does): cache for a year. Includes the map engine, its rules and the
+# country files (copies of site/map-gl.js, regional-layer.js, country-*.js/css, written by scripts/build-page.py)
 /h/*
   Cache-Control: public, max-age=31536000, immutable
   Access-Control-Allow-Origin: *
@@ -15,6 +16,12 @@
 
 # map tiles: the address carries the build's version (?v=), so a new build never meets an old cached tile
 /map-next/tiles/*
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: application/x-protobuf
+  Access-Control-Allow-Origin: *
+
+# the census view's own tiles (scripts/map-next/build.py census_tiles()): versioned the same way
+/map-next/census-tiles/*
   Cache-Control: public, max-age=31536000, immutable
   Content-Type: application/x-protobuf
   Access-Control-Allow-Origin: *

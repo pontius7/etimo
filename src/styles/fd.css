@@ -152,7 +152,7 @@ details.vb.d1:has(>summary .dot.Mongolic){order:9}
 /* desktop panel: the family label carries the family colour, as the phone popup and the search chip do */
 .kpanel .phd .pfam i.dot{background:var(--fc,currentColor)!important}
 .kpanel .pfam i{width:8px!important;height:8px!important;border-radius:50%!important;flex:none}
-.kpanel .prn small{display:none!important}
+
 @media (width<64rem){.card.kpanel .psec.pwh{display:none!important}
 }
 .card.kpanel{scrollbar-width:none!important;scrollbar-gutter:auto!important}

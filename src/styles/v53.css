@@ -9,7 +9,7 @@
 .wmap[hidden]{display:none}
 .wmap svg{width:20px;height:20px;flex:none}
 .wmap em{font-style:normal;font-weight:500;color:var(--hd-muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:11rem}
-.wmap em:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--wf,var(--hd-muted));margin:0 .45rem 1px 0;vertical-align:middle}
+.wmap em i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--wf,var(--hd-muted));margin:0 .45rem 1px 0;vertical-align:middle}
 .wmap:active{transform:scale(.96)}
 @keyframes wmin{from{opacity:0;transform:translateY(6px) scale(.94)}
 to{opacity:1;transform:none}

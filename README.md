@@ -17,6 +17,22 @@ Cloudflare serves the `site/` folder as it is. Nothing is built on Cloudflare's 
 - **Check** with `npx wrangler deployments list --name etimo` (newest entry should be minutes old) and by
   opening the live address. Build history: Cloudflare dashboard, Workers, etimo, Deployments.
 
+## Licence
+
+Etimo is a non-commercial project. The code is under the PolyForm Noncommercial License 1.0.0 ([LICENSE](LICENSE)); the
+owner's own content (word selections and glosses, traced language areas, colours, texts) is under CC BY-NC-SA 4.0
+([LICENSE-CONTENT.md](LICENSE-CONTENT.md)); third-party data keeps its own terms, listed with their sources in
+[DATA-SOURCES.md](DATA-SOURCES.md).
+
+## One command: `./build`
+
+`./build` runs every stage in order (data, page, map data and tiles, page again, checks) and only the stages whose inputs
+changed (fingerprints in `.cache/build-state.json`; the data stage's and the map's in `data-src/data/inputs.sha256` and `data-src/map/inputs.sha256`, committed with the site).
+`./build --all` forces everything; `./build --check` also exits 1 if `site/` differs from what is committed (this is what
+`.github/workflows/check.yml` runs on every pull request). The map stage needs `.venv` and `tippecanoe`; it fails with a
+message when the map data is older than its inputs and the tools are missing. `./scripts/add-words.sh` still works as
+before (`./build` calls it one part at a time: `add-words.sh data`, `page`, `checks`).
+
 ## Folders
 
 | folder | what it is | edit by hand? |
@@ -24,21 +40,22 @@ Cloudflare serves the `site/` folder as it is. Nothing is built on Cloudflare's 
 | `content/` | **Your additions**: words, languages, dialects, families, meanings | yes, this is where you work |
 | `src/` | **The page's source**: the page, its styles and the app script, as ordinary files | yes, to change how the site looks or behaves |
 | `scripts/` | The build (`add-words.sh`) and its checks | only to change how the site is built |
-| `reference/` | Untouched originals of the two apps the site was merged from | never |
-| `site/` | The website that gets published | no (see the table below) |
-| `docs/` | Merge spec, QA notes, screenshots | notes only |
-| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`) | when reusing them |
+| `site/` | The website that gets published: only what a visitor's browser can fetch | no (see the table below) |
+| `data-src/` | What the build reads and writes but nobody fetches: the merged word list and language areas, the traced area files, the map shapes the tiles are cut from (same names as before, one folder over), and `original/`: the few files of the two original apps that the build and the colour check read, frozen | no, built (the traced area files by hand, `scripts/areas/`) |
+| `docs/` | Merge spec and QA notes | notes only |
+| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`), what the 2026-11-14 clean-up removed (`removed-2026-11-14/`: two outline files, MapLibre's style sheet, the old map's code and unused style rules as patches), the two original apps the site was merged from (`reference/`, 133 MB, untouched; only the few files the build reads are kept, in `data-src/original/`), and the old screenshots of the QA notes (`docs-screenshots/`). Rule: anything removed that could be reused goes here, not in the bin | when reusing them |
 
 What produces each part of `site/`:
 
 | path in `site/` | produced by |
 |---|---|
 | `index.html` | `scripts/build-page.py`, from the files in `src/` |
-| `data/languages.json`, `lexicon.json`, `terr.json`, `dia.json` and the other map data | `scripts/merge/merge-data.py` |
-| `h/` (startup files, full dictionaries, search index, all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` |
+| `l/<language>/index.html` (a plain readable page per language, for search engines and sharing), `l/page.css`, `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `icon.svg` | `scripts/site_pages.py`, called by `build-page.py`; the site address is `SITE_URL` there |
+| `data/` (the map data the page fetches: `today.json`, `adm2.json`, `micro.json`, `ethno.json`, `world-50m.json`, `region-langs.json`) and, in `data-src/data/`, `languages.json`, `lexicon.json`, `terr.json`, `dia.json` (the page fetches hashed copies from `h/`) | `scripts/merge/merge-data.py` |
+| `h/` (startup files, full dictionaries, search index, and the copies of `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`; all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` (`own_files()`) |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
-| `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
+| `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers` | written by hand; these are the only files in `site/` you edit directly (the traced area files are in `data-src/data/`) |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
@@ -68,6 +85,7 @@ src/                          the page's source (see "How the page is built")
 scripts/
   add-words.sh                THE build: fetch sheets, merge data, build the page, run every check
   build-page.py               joins src/ into site/index.html and fills the placeholders
+  site_pages.py               the readable language pages, robots.txt, sitemap.xml, manifest and icon
   build-regional.py           census and regional tables (run only when that source data changes)
   watch.py, watch.sh          rebuild whenever a file in content/ or src/ is saved
   hooks/                      optional commit check (refuses a commit if site/ is out of date)
@@ -76,7 +94,7 @@ scripts/
     merge-data.py             all map and word data in site/data and site/h (areas, coast-gap fill, country clip)
     bulk_import.py            the large word lists: full dictionaries and the search index
     dedupe.py, fetch-sheets.py, topo.py   helpers for the two above
-    palette.py, families.py   the one source of colours and of the family list
+    palette.py, families.py   the sources of colours (the 78 originals, family colours, shade rules) and of the family list; the build writes them all into data-src/data/palette.json
     devter-synonyms.json      synonym table used when content/meanings.csv adds a meaning
     region-langs.py           languages with numbers per region (census tables + content/region-languages.csv)
     check-overlaps.py         check: no two language areas overlap
@@ -85,31 +103,47 @@ scripts/
     search_keys.js, test-search-key.js  check: Latin typing finds other scripts
   relief/                     builds the mountain shading images from elevation data (build.sh)
   areas/                      traces language areas from reference map images (Arvanitika, Montenegro)
+  checks/tour.mjs             smoke test: opens every screen at phone or desktop size, fails on a page error (not part of ./build)
 
 site/                         the published website (Cloudflare serves this folder as it is)
   index.html                  built from src/
-  regional-layer.js           by hand: the rules the map engine and its data build share (which areas the
-                              detailed layers stand for, how strong areas are drawn, each country's main language)
-  country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources
+  map-gl.js                   by hand: the map engine. THE SOURCE: edit this file; the page loads its hashed copy h/map-gl.<hash>.js
+  regional-layer.js           by hand (source of h/regional-layer.<hash>.js): how strong areas and census regions are drawn and which view a choice
+                              switches on (the special cases themselves are data: `content/map/areas.json`)
+  country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources (sources of the hashed copies in h/)
   search-key.js               by hand: turns any script into Latin search keys (also part of the page)
   _headers                    by hand: caching rules for Cloudflare
-  data/                       map data
-    languages.json, lexicon.json, terr.json, dia.json, micro.json, ethno.json, adm2.json   built by merge-data.py
+  data/                       map data the page fetches
+    micro.json, ethno.json, adm2.json                                                      built by merge-data.py
     region-langs.json         built by region-langs.py: languages, speakers and shares per region (region card)
-    world-50m.json, world-50s.json, borders-10m.json, today.json, greece-10m.json          outlines and borders
-    albanian-dialects.json, vlach-areas.json, serbia-areas.json                            traced area layers
-    greece-areas.json, montenegro-areas.json, athos.json                                   traced (scripts/areas/)
-    montenegro-municipalities.geojson, country-sources.json, regional-sources.json         census geography and sources
+    world-50m.json, today.json                                                             outlines and borders
+    country-sources.json                                                                   census sources
     shade.avif, shade-s.avif, shade.webp                                                   relief (scripts/relief/)
     regional/, tables/        built by build-regional.py: census data per country
   h/                          built: copies with a content hash in the name, cached for a year
     dict/                     full dictionary of each language that has one
     search/                   the search index, in small pieces
+    core/                     the core word list (lexicon.json) in parts: lang/<id> per language, <category> per category
+                              (build-page.py core_split(); the page's first lines name them, window.__kCore)
 
-reference/                    untouched originals of the two apps the site was merged from; the build still
-                              reads their data files, and the colour check compares against them
-docs/                         merge spec, QA notes, screenshots (history, not needed to build)
-archive/                      kept from retired parts (German words, old-map files); not published, not built
+data-src/                     read by the build, never fetched by the page (the same names as in site/, one folder over)
+  data/                       languages.json, lexicon.json, terr.json, dia.json   built by merge-data.py
+                              palette.json              built by build-page.py (the one palette)
+                              world-50s.json            outlines (the page fetches its hashed copy)
+                              albanian-dialects.json, vlach-areas.json, serbia-areas.json   traced area layers
+                              greece-areas.json, montenegro-areas.json                      traced (scripts/areas/)
+                              bosnia-areas.json, croatia-areas.json                         made from census numbers (scripts/areas/census-areas.py)
+                              montenegro-municipalities.geojson                             census geography
+                              inputs.sha256             fingerprint of the data stage's inputs (./build)
+  map/                        areas.json, land.json, lines.json   the map shapes the tiles are cut from (map-next/build.py)
+                              regions/                  the census regions the census tiles are cut from
+                              inputs.sha256             fingerprint of the map stage's inputs (./build)
+
+  original/                   frozen from the two original apps (etimo/, devter/): merge-data.py merges them, the colour
+                              check opens etimo/ and compares colours with it. Never edit.
+docs/                         merge spec and QA notes (history, not needed to build)
+archive/                      kept from retired parts (German words, old-map files, the original apps in reference/,
+                              the old screenshots in docs-screenshots/); not published, not built
 ```
 
 ## Everyday tasks
@@ -148,7 +182,17 @@ a colour check fails. First run sets up Python in `.venv` (needs Python 3, Node 
 | `region-langs.py` | every row of `content/region-languages.csv` and `region-aliases.csv` names a country and a region the map has (a misspelling stops the build and suggests the closest names) and gives a number, a year and a source |
 | `check-overlaps.py` | no two language areas on the map overlap |
 | `words-report.py` | every new word landed in a language, a family and a category |
-| `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like `reference/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
+| `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like the original app in `data-src/original/etimo/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
+
+The interface has one more check, run by hand because it takes a minute and needs a served site: `scripts/checks/tour.mjs` opens
+every screen (home, a category, a meaning, search, A-Z, a language page, the full dictionary, wheel, tree, the map with a language, a
+region, zoom, a word, settings, dark mode, keyboard, map search) and exits 1 on any page error or step it cannot do. Needs Node 22 and
+Google Chrome, nothing else:
+
+```
+python3 -m http.server 8092 -d site &
+node scripts/checks/tour.mjs http://127.0.0.1:8092 phone      # and: desktop. A third argument saves a screenshot per step
+```
 
 ## Colours: one source
 
@@ -158,14 +202,14 @@ these names and none defines them again; the map engine (`site/map-gl.js`, `them
 the same file (the `THEMES` table there is only the fallback). Moving them there changed no colour: all values were
 compared in Chrome before and after, light, dark and high contrast.
 
-**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours come from.
+**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours are edited. The build writes the result to `data-src/data/palette.json` (every language and family, light and dark): the page's colour table, the colour check and the map build read that one file (the page gets it inline, it is not fetched).
 
 - A **family** has one colour per theme (light, dark). Five come from the original Etimo and never
   change, four were chosen for the merge, and any further family is defined in `content/families.json`.
-- A **language** has its own colour: Etimo's table for its 78 languages (in `src/app/7-language-colours.js`),
+- A **language** has its own colour: Etimo's table for its 78 languages (`ORIGINALS` in `scripts/merge/palette.py`; the old copy is in `archive/palette-originals/`),
   and for every other language a shade of its family colour. Override one with `"color": "#rrggbb"` in its JSON.
-- Changing one of the 78 original colours: edit it in `src/app/7-language-colours.js` and add the name to
-  `RECOLOURED` in `scripts/merge/check-colors.py`, otherwise the check fails because it no longer matches `reference/`.
+- Changing one of the 78 original colours: edit it in `ORIGINALS` in `scripts/merge/palette.py` and add the name to
+  `RECOLOURED` in `scripts/merge/check-colors.py`, otherwise the check fails because it no longer matches `data-src/original/etimo/`.
 - The build writes that one table into the page. Map areas, dialect areas, pins, the wheel, the tree,
   cards and dots all read it, in both themes.
 - Rule for dots: a dot beside a **family name** is the family colour; a language's **area, pin and
@@ -271,7 +315,13 @@ decided that they should follow 64rem.
 ## Speed: rules that keep the phone fast
 Measured and fixed on 2026-11-13 (details: `scripts/map-next/README.md`, "Tiles and loading order").
 - Map shapes go to the engine as tiles (`site/map-next/tiles/`, cut by `scripts/map-next/build.py`; needs `brew install tippecanoe`).
+  The census regions too, per country (`site/map-next/census-tiles/<CC>/`): a choice sends each region's colour and strength
+  as numbers, never its shape (`scripts/map-next/README.md`, "Census view as tiles plus state").
 - A map screen loads the map first and the lexicon after it; other screens the other way round (`preloads()` in `scripts/build-page.py`).
+- The word list also comes in parts (`core_split()` in `scripts/build-page.py`, `site/h/core/`): a language page and its words
+  fetch only that language's words (`core/lang/<id>`), a category and a meaning only that category's
+  (`core/<category>`); the whole lexicon follows once the page is idle (`kLexWhen`). Home, search and A-Z use the whole
+  lexicon, as before. `scripts/merge/check-core-split.py` (part of the build's checks) proves the parts equal the list.
 - The map engine starts from the page's first lines (`prewarm()`); the home page shows from a small starter file (`home_starters()`).
 - The page's code is its own file, `h/app.<hash>.js` (`split_app()` in `scripts/build-page.py`), cached for a year; tools that
   read its tables use `scripts/page_code.py`. Nothing is fetched at low priority: the map shows only once the page's code has
@@ -296,9 +346,9 @@ the preview.
 | `app/1-libraries-ui.js`, `app/3-libraries-map.js` | other people's libraries (React and the interface kit; d3 for the map). Not meant to be edited |
 | `app/2-app-text-and-tables.js` | every interface text in each language (`Zr`), the word categories, language and place names, region tabs |
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
-| `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search (written by hand, with readable names) |
+| `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search; `kWin` draws only the rows near the screen on long lists (language page, A-Z) and keeps the page length with two spacers (written by hand, with readable names) |
 | `app/6-app-screens-and-startup.js` | language page, tree, wheel, the map (`Dp`), settings, startup |
-| `app/7-language-colours.js` | the colour of every language, and how colours are lifted for dark mode |
+| `app/7-language-colours.js` | how colours are lifted for dark mode and read by the page; the colours themselves are filled in from `data-src/data/palette.json`'s source (`scripts/merge/palette.py`) |
 
 Three things to know:
 
@@ -341,7 +391,7 @@ Each was reproduced in Chrome before it was changed and re-measured after.
 | Blank land at the coast that read as sea (the Karaburun peninsula by Izmir, strips along many coasts): hand-drawn areas stop short of the coastline | `merge-data.py` (`fill_coast_gaps`) gives narrow blank coastal land to the nearest drawn area, only inside countries that are at least 60% mapped. 921 pieces, 29 languages. The result is cached in `.cache/` until an area changes |
 | Mount Athos (328 km2) showed as a crude dark shape: it is missing from the Greek regions file | `site/data/athos.json` is added to Central Macedonia when the map loads |
 | The hand-drawn Montenegrin area reached 710 km2 past Montenegro's border and cut strips out of the Bosnian, Serbian and Albanian areas there | `merge-data.py` (`clip_to_country`) keeps it inside Montenegro's outline |
-| Arvanitika was one rough blob | redrawn from the owner's reference map (`site/data/greece-areas.json`) |
+| Arvanitika was one rough blob | redrawn from the owner's reference map (`data-src/data/greece-areas.json`) |
 
 Checked and found correct (not changed): language areas, pins and wheel slices match in both
 themes on a fresh load; no console errors on the home, map, language, dictionary and wheel screens;
@@ -382,12 +432,12 @@ Each was checked in Chrome at phone size (390 x 844) and desktop (1440 x 900), l
 
 ## Montenegro and Arvanitika: areas traced from reference maps
 
-- **Montenegro** (`site/data/montenegro-areas.json`): four broad areas (Serbian, Montenegrin, Albanian,
+- **Montenegro** (`data-src/data/montenegro-areas.json`): four broad areas (Serbian, Montenegrin, Albanian,
   Bosnian) generalised from the 2011 census settlement map on Wikimedia Commons. They span municipalities
   and carry the colour while no language is selected. The 25 municipalities stay as they were, on top:
   borders, labels, hover and click. Selecting a language shows its census share per municipality, as before.
   Romani and the no-data classes are left out; Bosniak counts as Bosnian.
-- **Arvanitika** (`site/data/greece-areas.json`): traced from the owner's reference map.
+- **Arvanitika** (`data-src/data/greece-areas.json`): traced from the owner's reference map.
 
 How they are traced, and how to re-trace from another image: `scripts/areas/README.md`.
 
@@ -429,9 +479,9 @@ Command line: `wrangler deployments list --name etimo` shows recent deploys.
   (`phoneHome` in the same file, screens under 640 px only). Desktop is unchanged.
 - **Sandžak Bosniak** is a language entry in `content/languages/sandzak-bosniak.json` with the same `path`
   as Bosnian. Its area is not a new drawing: the settlement areas that were labelled Bosnian in
-  `site/data/serbia-areas.json` (161 areas, Serbia census 2022) and `site/data/montenegro-areas.json`
+  `data-src/data/serbia-areas.json` (161 areas, Serbia census 2022) and `data-src/data/montenegro-areas.json`
   (Plav-Gusinje and Rožaje-Petnjica, 2011 settlement map) all lie inside Sandžak and now carry this name.
-  `PAR` in `site/regional-layer.js` names the parent, so the same areas also light up when Bosnian is
+  `parent` in the language's entry of `content/map/areas.json` names the parent, so the same areas also light up when Bosnian is
   picked. The speaker figure is the sum of the two whole-country census counts for Bosnian as mother
   tongue (Serbia 145,329 in 2022, Montenegro 43,470 in 2023). It has no word list yet, like Bosnian.
 
@@ -445,7 +495,7 @@ The SVG map the page used to draw itself (`?map=svg`, `localStorage["etimo-map"]
 not start) is gone. The engine is the only map. When it cannot start (no WebGL 2, or its files fail or stall for 20 s) the map
 box shows a short note in the interface language with two ways on: the Languages wheel and "try again" (`kNoMap` in
 `src/app/6-app-screens-and-startup.js`, styles block `v74` part 7 in `src/styles/v66.css`); the rest of the site never
-needed the map. `site/regional-layer.js` keeps only the shared rules (its drawing code is in git history, commit 05bafd0).
+needed the map. `site/regional-layer.js` keeps only the strength rules (its drawing code is in git history, commit 05bafd0).
 The two hand-made files only the old map used (`athos.json`, `regional-sources.json`) moved to `archive/old-map/`. The
 colour check (`scripts/merge/probe-colors.mjs`) now reads the colours the engine paints (headless Chrome with software
 WebGL); it still reads the reference copy, an old snapshot, from its SVG drawing. Some `!GL` branches remain in the
@@ -505,7 +555,7 @@ every country of the map (each card named its place; no errors).
 
 ## Calmer phone map and cards, 2026-11-13
 
-Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js` (`?v=8`).
+Every country and region, phone = `width<64rem`, desktop = `width>=64rem`. Styles: block `v74` in `src/styles/v66.css`; page code in `src/app/6-app-screens-and-startup.js`; engine in `site/map-gl.js`.
 
 | What | Phone | Desktop | Where |
 |---|---|---|---|
@@ -545,10 +595,10 @@ colours are never copied: every area takes its language's own colour from the pa
    `.venv/bin/python scripts/areas/census-areas.py <CC>` writes `site/data/<country>-areas.json` (each municipality takes
    its largest language; same-language municipalities are joined). A newer census than the image's wins. Outlines: the
    census view's own (`site/data/regional/geo/`), or a frozen open file in `scripts/areas/geo/` with a few name pairs
-   in `NAMES`; add the country to `SOURCES` in the script.
+   in `outlineNames`; add the country's `censusAreas` entry to `content/map/areas.json`.
 3. **Only without numbers: trace** the image (`scripts/areas/`, as for Montenegro and Arvanitika), fitted to the real
    outline.
-4. **Plug it in**: add the file and the country to `CENSUS_AREAS` in `scripts/map-next/build.py`. There, the broad
+4. **Plug it in**: the country's `censusAreas` entry in `content/map/areas.json` names the file. The build then lets the broad
    areas of the languages it draws stop at the border, any gap goes to the neighbouring census area, the country gets
    no extra tint, and the areas of other languages there (minorities, dialects) stay. Run
    `.venv/bin/python scripts/map-next/build.py`, then `./scripts/add-words.sh`.

@@ -20,6 +20,7 @@ import csv, difflib, glob, json, os, re, sys, unicodedata
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(ROOT, 'site', 'data')
+SRC = os.path.join(ROOT, 'data-src', 'data')
 CONTENT = os.path.join(ROOT, 'content')
 OUT = os.path.join(DATA, 'region-langs.json')
 TOP = 10            # languages kept per region; the rest are summed into one "other" row
@@ -72,7 +73,7 @@ def main():
     by_country = {}
     for p in regions:
         by_country.setdefault(p['c'], []).append(p)
-    site = set(json.load(open(os.path.join(DATA, 'languages.json'), encoding='utf-8')))
+    site = set(json.load(open(os.path.join(SRC, 'languages.json'), encoding='utf-8')))
 
     # census label -> language name
     names = {}

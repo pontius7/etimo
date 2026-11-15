@@ -2,7 +2,7 @@
 
 Branch `merge/devter`. Checked 2026-11-07 in Chrome (chrome-devtools MCP), merged site on
 `python3 -m http.server 8092 -d site`, untouched Etimo on port 8093 (`reference/etimo-artifact`).
-Screenshots: `docs/merge-qa/` (Etimo and merged pairs share a number).
+Screenshots: `archive/docs-screenshots/merge-qa/` (Etimo and merged pairs share a number).
 
 ## How to rebuild
 

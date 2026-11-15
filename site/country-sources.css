@@ -68,15 +68,15 @@ svg:has(path.ol-coast) path.coast{display:none}
 g.adm path{display:none}
 
 /* Albanian dialect legend, shown over the map while Albanian or one of its dialects is selected. */
-.alb-legend{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:12px;z-index:3;max-width:min(260px,calc(100% - 24px));padding:10px 12px;border:1px solid var(--line,#d6ddd7);border-radius:12px;background:color-mix(in srgb,var(--bg,#fafbf8) 92%,transparent);color:var(--ink,#172d24);font:500 11.5px/1.35 var(--sans,Manrope,system-ui,sans-serif);pointer-events:none;box-shadow:0 6px 18px #06110e26}
-.alb-legend b{display:block;margin-bottom:6px;font-weight:600;font-size:12px}
-.alb-legend div{display:block;margin-top:6px}
-.alb-legend span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.65;margin-bottom:2px}
-.alb-legend ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.alb-legend li{display:flex;align-items:center;gap:7px}
-.alb-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
-.alb-legend small{display:block;margin-top:8px;font-size:9.5px;opacity:.6;line-height:1.35}
-@media(max-width:600px){.alb-legend{bottom:96px;font-size:10.5px;padding:8px 10px}.alb-legend small{display:none}}
+.view-legend{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:12px;z-index:3;max-width:min(260px,calc(100% - 24px));padding:10px 12px;border:1px solid var(--line,#d6ddd7);border-radius:12px;background:color-mix(in srgb,var(--bg,#fafbf8) 92%,transparent);color:var(--ink,#172d24);font:500 11.5px/1.35 var(--sans,Manrope,system-ui,sans-serif);pointer-events:none;box-shadow:0 6px 18px #06110e26}
+.view-legend b{display:block;margin-bottom:6px;font-weight:600;font-size:12px}
+.view-legend div{display:block;margin-top:6px}
+.view-legend span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.65;margin-bottom:2px}
+.view-legend ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.view-legend li{display:flex;align-items:center;gap:7px}
+.view-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
+.view-legend small{display:block;margin-top:8px;font-size:9.5px;opacity:.6;line-height:1.35}
+@media(max-width:600px){.view-legend{bottom:96px;font-size:10.5px;padding:8px 10px}.view-legend small{display:none}}
 
 /* The search bar's empty container must not cover the side panel's close button. */
 .kfil{pointer-events:none}

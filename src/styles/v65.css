@@ -27,7 +27,7 @@
 .card.kpanel .rgwh path.rgo{fill:color-mix(in srgb,var(--ink) 13%,transparent)}
 .card.kpanel .rgwh text{text-anchor:middle;fill:var(--ink)}
 .card.kpanel .rgwh .rgc1{font:400 27px/1 var(--serif);letter-spacing:-.02em}
-.card.kpanel .rgwh .rgc2{font:600 9.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;fill:var(--mut)}
+
 /* languages with numbers */
 .card.kpanel .rgl{display:flex;flex-direction:column;align-items:stretch;gap:0;text-align:left}
 .card.kpanel .rgrows{display:flex;flex-direction:column;width:100%}

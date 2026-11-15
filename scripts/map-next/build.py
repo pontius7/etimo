@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Data for the MapLibre map (site/map-next/).
+"""Data for the MapLibre map (site/map-next/). What the page fetches goes to site/map-next/data/, the shapes the tiles are cut from to data-src/map/.
 
 Run after the normal site build, with the project's Python (it has the geometry library):
     python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py
 
 Nothing here is typed in by hand. Everything the map shows comes from the files the site already uses:
-  language areas     site/data/terr.json         (made by scripts/merge/merge-data.py from the sources and content/)
-  language list      site/data/languages.json    (pin position, family, own name, census rows)
-  language colours   site/index.html             (the one colour table build-page.py writes from the palette and content/)
-  main language of a country   the census rows above, plus the short list in site/regional-layer.js (same rule as the site)
-  family names       site/index.html (where each name sits) and scripts/merge/palette.py (its colour, light and dark)
+  language areas     data-src/data/terr.json         (made by scripts/merge/merge-data.py from the sources and content/)
+  language list      data-src/data/languages.json    (pin position, family, own name, census rows)
+  language colours   data-src/data/palette.json   (the one palette build-page.py writes from scripts/merge/palette.py and content/)
+  main language of a country   the census rows above, plus the "mainLanguage" entries of content/map/areas.json (same rule as the site)
+  family names       site/index.html (where each name sits); their colours: data-src/data/palette.json
   lighter tint       content/minority-areas.csv  (min / plu rows)
-  detailed areas     site/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
-                     montenegro-areas.json, and the census countries of CENSUS_AREAS (croatia-, bosnia-areas.json); which generic pins and zones they replace: the lists in site/regional-layer.js
+  detailed areas     data-src/data/albanian-dialects.json, vlach-areas.json, serbia-areas.json, greece-areas.json,
+                     montenegro-areas.json, and the census countries of CENSUS_AREAS (croatia-, bosnia-areas.json); which generic pins and zones they replace and how each area is treated: content/map/areas.json
   region lines       site/data/today.json        (regions inside a country)
   district lines     site/data/adm2.json
   relief             site/data/shade*.avif       (placed by RELIEF below, same numbers as scripts/relief/relief.py)
@@ -45,12 +45,15 @@ except ImportError:
     sys.exit('map-next: run with the project Python:  .venv/bin/python scripts/map-next/build.py')
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA = os.path.join(ROOT, 'site', 'data')
-OUT = os.path.join(ROOT, 'site', 'map-next', 'data')
+DATA = os.path.join(ROOT, 'site', 'data')                  # data the page fetches
+SRC = os.path.join(ROOT, 'data-src', 'data')               # data only the build reads
+MAP_SRC = os.path.join(ROOT, 'data-src', 'map')            # what this script makes for the tiles (shapes, census regions)
+OUT = os.path.join(ROOT, 'site', 'map-next', 'data')       # what the page fetches (meta.json, census-names.json, census-top.json)
 CACHE = os.path.join(ROOT, '.cache', 'map-next')
+with open(os.path.join(ROOT, 'content', 'map', 'areas.json'), encoding='utf-8') as f:
+    AREAS = json.load(f)        # the map's special cases, as data (README "How to give one country something special")
 WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-10m.json'
 sys.path.insert(0, os.path.join(ROOT, 'scripts', 'merge'))
-import palette  # noqa: E402
 import topo  # noqa: E402
 
 RELIEF = (-1490, -1670, 3150, 1660)      # x, y, width, height of the relief image in map units
@@ -69,8 +72,8 @@ BASE_MIN = 40     # a country is tinted with its main language when that languag
 CIRCLE_KM = ((1e3, 15), (1e4, 25), (1e5, 40), (1e6, 70), (1e7, 140), (float('inf'), 200))
 
 
-def load(name):
-    with open(os.path.join(DATA, name), encoding='utf-8') as f:
+def load(name, d=DATA):
+    with open(os.path.join(d, name), encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -202,20 +205,23 @@ def world(area_tree):
 
 
 # ------------------------------------------------------------------ languages
+def load_palette():
+    with open(os.path.join(SRC, 'palette.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
 def colour_table():
-    """The language colour table from the built page (one palette for the whole site)."""
-    sys.path.insert(0, os.path.join(ROOT, 'scripts'))
-    import page_code  # noqa: E402  (index.html and its code file, h/app.<hash>.js)
-    html = page_code.read(ROOT)
-    m = re.search(r'\(function\(\)\{var P=(\{[^}]*\})', html)
-    if not m:
-        sys.exit('map-next: colour table not found in site/index.html (run scripts/build-page.py first)')
-    return json.loads(m.group(1))
+    """The language colour table: data-src/data/palette.json, written by scripts/build-page.py (one palette for the whole site)."""
+    path = os.path.join(SRC, 'palette.json')
+    if not os.path.exists(path):
+        sys.exit('map-next: data-src/data/palette.json not found (run scripts/build-page.py first)')
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)['light']
 
 
 def main_languages(langs):
-    """Country name -> its main language, by the rule the site uses (regional-layer.js): the highest census
-    share, then the site's own short list for countries without a census row."""
+    """Country name -> its main language, by the rule the site uses: the highest census share, then the
+    "mainLanguage" of the country's entry in content/map/areas.json for countries without a census row."""
     best = {}
     for name, info in langs.items():
         for row in info.get('cen') or []:
@@ -224,17 +230,15 @@ def main_languages(langs):
                 p = float(m.group(1) or m.group(2))
                 if row[0] not in best or p > best[row[0]][0]:
                     best[row[0]] = (p, name)
-    js = open(os.path.join(ROOT, 'site', 'regional-layer.js'), encoding='utf-8').read()
-    m = re.search(r"const MAIN_LANG=\{(Albania:[^}]*)\}", js)
-    if not m:
-        sys.exit('map-next: the list of main languages was not found in site/regional-layer.js')
-    for a, b, v in re.findall(r"""(?:'([^']+)'|([\w ]+)):'([^']+)'""", m.group(1)):
-        k = a or b
-        if v in langs and k not in best:
-            best[k] = (100, v)
-    if 'Greek' in langs:
-        best['Greece'] = (100, 'Greek')
-    return {c: lang for c, (p, lang) in best.items() if p >= BASE_MIN and c != 'Montenegro'}
+    for c in AREAS['countries']:
+        if c.get('mainLanguage') in langs and c['name'] not in best:
+            best[c['name']] = (100, c['mainLanguage'])
+    return {c: lang for c, (p, lang) in best.items() if p >= BASE_MIN and c not in {e['name'] for e in AREAS['countries'] if e.get('noTint')}}
+
+
+def group_names(g):
+    """The names of a view's group: its own list, or the lists of its legend parts."""
+    return g.get('names') or [n for p in g['parts'] for n in p['names']]
 
 
 def area_rings(d):
@@ -255,48 +259,55 @@ def area_shape(d):
 
 
 def site_lists():
-    """Which generic pins and zones the detailed layers replace: read from the lists in site/regional-layer.js."""
-    js = open(os.path.join(ROOT, 'site', 'regional-layer.js'), encoding='utf-8').read()
-
-    def body(pattern, what):
-        m = re.search(pattern, js)
-        if not m:
-            sys.exit(f'map-next: the list {what} was not found in site/regional-layer.js')
-        return m.group(1)
-    arr = lambda n: re.findall(r"'([^']+)'", body(r"const %s=(?:new Set\()?\[(.*?)\]" % n, n))
-    obj = lambda n: dict(re.findall(r"'([^']+)':'([^']+)'", body(r"const %s=\{(.*?)\}" % n, n)))
-    aro, par = arr('ARO'), obj('PAR')
-    hide_pin = set(arr('ADIAL')) | {'Albanian'} | set(aro) | set(arr('MEG'))
-    return {'hide_pin': hide_pin, 'hide_zone': hide_pin | {'Arvanitika', 'Aromanian'} | set(par), 'dname': obj('DNAME'), 'aro': set(aro), 'meg': set(arr('MEG'))}
+    """Which generic pins and zones the detailed layers replace, and the other per-language facts, from content/map/areas.json."""
+    langs = AREAS['languages']
+    flag = lambda k: {e['name'] for e in langs if e.get(k)}
+    return {'hide_pin': flag('hidePin'), 'hide_zone': flag('hideZone'), 'source_name': {e['sourceName']: e['name'] for e in langs if e.get('sourceName')}}
 
 
 # Countries drawn from their census by municipality (scripts/areas/census-areas.py writes the file): (file, country as on the map).
 # In each, these areas replace the broad areas of the languages they draw and cover the whole country; the areas of other
-# languages there (minorities, dialects) stay. Add a country here once its file exists.
-CENSUS_AREAS = (('croatia-areas.json', 'Croatia'), ('bosnia-areas.json', 'Bosnia and Herzegovina'))
+# languages there (minorities, dialects) stay. A country has one once its entry in content/map/areas.json names the file.
+CENSUS_AREAS = tuple((c['censusAreas']['out'], c['name']) for c in AREAS['countries'] if c.get('censusAreas'))
 
 
 def detailed_areas(lists):
-    """The detailed layers: {(kind, language): shape}. The kind tells the page which rule the area follows
-    (dial = Albanian dialects, vlach = Aromanian varieties, meg = Megleno-Romanian parts, shown only when chosen,
-    area = Serbia and Greece, me = Montenegro)."""
+    """The detailed layers: {(kind, language): shape}. The kind tells the page which rule the area follows: that of its
+    view's group (a view = a family of finer areas with a legend), of "area", or of the layer's own kind."""
     out = {}
+    views = {v['id']: v for v in AREAS['views']}
 
-    def add(name, kind, rename=lambda n: n):
-        for n, rings in load(name).items():
-            n = rename(n)
-            k = kind(n) if callable(kind) else kind
+    def kind_of(layer, n):
+        v = views.get(layer.get('view'))
+        if not v:
+            return layer['kind']
+        return next((g.get('kind') for g in v['groups'] if n in group_names(g) and g.get('kind')), v['kind'])
+
+    def add(name, layer):
+        for n, rings in load(name, SRC).items():
+            n = lists['source_name'].get(n, n)
             g = rings_shape([[project(p[0], p[1]) for p in r] for r in rings])
+            k = kind_of(layer, n)
             if k and g is not None and not g.is_empty:
                 out[k, n] = solid(out[k, n].union(g)) if (k, n) in out else g
-    add('albanian-dialects.json', 'dial', lambda n: lists['dname'].get(n, n))
-    add('vlach-areas.json', lambda n: 'meg' if n in lists['meg'] else 'vlach')
-    add('serbia-areas.json', 'area')
-    add('greece-areas.json', 'area')
-    add('montenegro-areas.json', 'me')
+    for layer in AREAS['layers']:
+        add(layer['source'], layer)
     for name, _ in CENSUS_AREAS:
-        add(name, 'area')
+        add(name, {'kind': 'area'})
     return out
+
+
+def kinds_of():
+    """Kind -> how the page treats its areas: {"view": the view whose rule they follow}, {"censusReplaces": true} (broad only
+    while nothing is chosen), {"underCensus": true} (drawn beneath the census regions instead of over them)."""
+    kinds = {'area': {}}
+    for v in AREAS['views']:
+        for k in [v['kind']] + [g['kind'] for g in v['groups'] if g.get('kind')]:
+            kinds[k] = {'view': v['id'], **({'underCensus': True} if v.get('underCensus') else {})}
+    for layer in AREAS['layers']:
+        if layer.get('kind'):
+            kinds[layer['kind']] = {k: True for k in ('censusReplaces', 'underCensus') if layer.get(k)}
+    return kinds
 
 
 def census_countries(fitted, detail, countries):
@@ -306,7 +317,7 @@ def census_countries(fitted, detail, countries):
         c = next((c for c in countries if c['name'] == cname), None)
         if c is None:
             sys.exit(f'map-next: {name}: no country called {cname} on the map')
-        cs, drawn = c['shape'], set(load(name))
+        cs, drawn = c['shape'], set(load(name, SRC))
         fitted = {n: g for n, g in ((n, solid(g.difference(cs)) if n in drawn else g) for n, g in fitted.items()) if not g.is_empty}
         mine = [k for k, g in detail.items() if k[0] == 'area' and k[1] in drawn and g.intersects(cs)]
         for piece in polys(solid(cs.difference(unary_union([detail[k] for k in mine])))):
@@ -348,15 +359,15 @@ def census_regions(countries, ctree):
     the same country shapes as everything else. A feature keeps its place in the source file (`i`), which is how
     the census rows refer to it, and carries the point where its name is written (`at`, map units)."""
     src = os.path.join(DATA, 'regional', 'geo')
-    os.makedirs(os.path.join(OUT, 'regions'), exist_ok=True)
+    os.makedirs(os.path.join(MAP_SRC, 'regions'), exist_ok=True)
     done = []
     for fn in sorted(os.listdir(src)):
         cc = fn[:-5]
         if not fn.endswith('.json') or '-' in cc:      # GR-regions: no counts, nothing is drawn from it
             continue
-        out, world_file = os.path.join(OUT, 'regions', cc + '.json'), os.path.join(CACHE, 'countries-10m.json')
+        out, world_file = os.path.join(MAP_SRC, 'regions', cc + '.json'), os.path.join(CACHE, 'countries-10m.json')
         if os.path.exists(out) and os.path.getmtime(out) > max(os.path.getmtime(os.path.join(src, fn)), os.path.getmtime(world_file)):
-            done.append(cc + ' unchanged')      # delete site/map-next/data/regions/ to have them all cut again
+            done.append(cc + ' unchanged')      # delete data-src/map/regions/ to have them all cut again
             continue
         t = Topo(load(os.path.join('regional', 'geo', fn)))
         regs = [(i, g['properties'], s) for i, (g, parts) in enumerate(t.geoms('regions')) for s in [t.shape(parts)] if s is not None]
@@ -374,7 +385,7 @@ def census_regions(countries, ctree):
             c = max(polys(g), key=lambda q: q.area).representative_point()
             feats.append({'type': 'Feature', 'properties': {'i': i, 'id': props.get('region_id'), 'name': props.get('name'), 'at': [round(c.x, 2), round(c.y, 2)]},
                           'geometry': {'type': 'MultiPolygon', 'coordinates': gj_polygons(g)}})
-        size = write(os.path.join('regions', cc + '.json'), {'type': 'FeatureCollection', 'features': feats})
+        size = write(os.path.join('regions', cc + '.json'), {'type': 'FeatureCollection', 'features': feats}, MAP_SRC)
         done.append(f'{cc} {len(feats)} regions {size // 1024} KB')
     return done
 
@@ -467,8 +478,8 @@ def trimmed(arcs, countries, tree):
     return out
 
 
-def write(name, obj):
-    path = os.path.join(OUT, name)
+def write(name, obj, d=OUT):
+    path = os.path.join(d, name)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
     return os.path.getsize(path)
@@ -494,13 +505,13 @@ def tiles():
         sys.exit('map-next: tippecanoe is needed for the map tiles:  brew install tippecanoe')
     h = hashlib.sha1(f'z{TILE_Z}d14'.encode())
     for n in ('land.json', 'areas.json', 'lines.json'):
-        with open(os.path.join(OUT, n), 'rb') as f:
+        with open(os.path.join(MAP_SRC, n), 'rb') as f:
             h.update(f.read())
     tmp = TILES + '.new'
     shutil.rmtree(tmp, ignore_errors=True)
     subprocess.run([tool, '-q', '-e', tmp, '-Z0', f'-z{TILE_Z}', '-d14', '--no-feature-limit', '--no-tile-size-limit',
                     '--no-tile-compression', '--no-simplification-of-shared-nodes', '--no-tiny-polygon-reduction', '--force',
-                    *[x for n in ('land', 'areas', 'lines') for x in ('-L', f'{n}:{os.path.join(OUT, n + ".json")}')]], check=True)
+                    *[x for n in ('land', 'areas', 'lines') for x in ('-L', f'{n}:{os.path.join(MAP_SRC, n + ".json")}')]], check=True)
     with open(os.path.join(tmp, 'metadata.json'), encoding='utf-8') as f:
         bounds = [float(v) for v in json.load(f)['bounds'].split(',')]
     os.remove(os.path.join(tmp, 'metadata.json'))
@@ -510,29 +521,70 @@ def tiles():
     return {'v': h.hexdigest()[:10], 'maxzoom': TILE_Z, 'bounds': bounds, 'count': n}
 
 
-# Census region names the sources give wrongly: Romania's counties in capitals without diacritics, six Montenegrin
-# municipalities without them. Every other name is used exactly as the source gives it.
-NAME_FIX = {
-    'RO': {'ALBA': 'Alba', 'ARAD': 'Arad', 'ARGES': 'Argeș', 'BACAU': 'Bacău', 'BIHOR': 'Bihor', 'BISTRITA-NASAUD': 'Bistrița-Năsăud',
-           'BOTOSANI': 'Botoșani', 'BRAILA': 'Brăila', 'BRASOV': 'Brașov', 'BUZAU': 'Buzău', 'CALARASI': 'Călărași',
-           'CARAS-SEVERIN': 'Caraș-Severin', 'CLUJ': 'Cluj', 'CONSTANTA': 'Constanța', 'COVASNA': 'Covasna', 'DAMBOVITA': 'Dâmbovița',
-           'DOLJ': 'Dolj', 'GALATI': 'Galați', 'GIURGIU': 'Giurgiu', 'GORJ': 'Gorj', 'HARGHITA': 'Harghita', 'HUNEDOARA': 'Hunedoara',
-           'IALOMITA': 'Ialomița', 'IASI': 'Iași', 'ILFOV': 'Ilfov', 'MARAMURES': 'Maramureș', 'MEHEDINTI': 'Mehedinți', 'MURES': 'Mureș',
-           'NEAMT': 'Neamț', 'OLT': 'Olt', 'PRAHOVA': 'Prahova', 'SALAJ': 'Sălaj', 'SATU MARE': 'Satu Mare', 'SIBIU': 'Sibiu',
-           'SUCEAVA': 'Suceava', 'TELEORMAN': 'Teleorman', 'TIMIS': 'Timiș', 'TULCEA': 'Tulcea', 'VALCEA': 'Vâlcea', 'VASLUI': 'Vaslui',
-           'VRANCEA': 'Vrancea', 'BUCURESTI': 'București'},
-    'ME': {'Savnik': 'Šavnik', 'Kolasin': 'Kolašin', 'Pluzine': 'Plužine', 'Niksic': 'Nikšić', 'Zabljak': 'Žabljak', 'Rozaje': 'Rožaje'},
-}
+CENSUS_TILES = os.path.join(ROOT, 'site', 'map-next', 'census-tiles')
+# Census regions are small (Czech municipalities) and were drawn to zoom 12: their tiles are cut two zooms deeper than the others,
+# so a border is placed to a third of a pixel or better at the deepest zoom the page allows (12.4 on desktop)
+CENSUS_Z = 10
+
+
+def census_tiles():
+    """The census regions (regions/<CC>.json) as vector tiles of their own, one set per country
+    (site/map-next/census-tiles/<CC>/{z}/{x}/{y}.pbf, layer `census`), cut with the same settings as tiles(), to zoom CENSUS_Z.
+    A region keeps nothing but its id: its place in the census source file (i), which is how the census rows name it. On a
+    choice the engine shows only the countries it draws a region in (a source and two layers each) and gives every region its
+    colour and strength as that region's own state (feature state, site/map-gl.js census()): numbers only, no shapes are sent,
+    and no country's tiles are fetched or read that the choice does not draw. Returns what the page needs: the version (a hash
+    of every country's regions), the last zoom and each country's box."""
+    import hashlib
+    import shutil
+    import subprocess
+    import tempfile
+    tool = shutil.which('tippecanoe')
+    if not tool:
+        sys.exit('map-next: tippecanoe is needed for the map tiles:  brew install tippecanoe')
+    ccs = sorted(fn[:-5] for fn in os.listdir(os.path.join(MAP_SRC, 'regions')) if fn.endswith('.json'))
+    h = hashlib.sha1(f'z{CENSUS_Z}d14'.encode())
+    tmp = CENSUS_TILES + '.new'
+    shutil.rmtree(tmp, ignore_errors=True)
+    os.makedirs(tmp)
+    bounds = {}
+    with tempfile.TemporaryDirectory() as work:
+        for cc in ccs:
+            with open(os.path.join(MAP_SRC, 'regions', cc + '.json'), encoding='utf-8') as f:
+                feats = [{'type': 'Feature', 'id': ft['properties']['i'], 'properties': {}, 'geometry': ft['geometry']} for ft in json.load(f)['features']]
+            text = json.dumps({'type': 'FeatureCollection', 'features': feats}, separators=(',', ':'))
+            h.update(cc.encode() + text.encode('utf-8'))
+            src = os.path.join(work, cc + '.json')
+            with open(src, 'w', encoding='utf-8') as f:
+                f.write(text)
+            subprocess.run([tool, '-q', '-e', os.path.join(tmp, cc), '-Z0', f'-z{CENSUS_Z}', '-d14', '--no-feature-limit', '--no-tile-size-limit',
+                            '--no-tile-compression', '--no-simplification-of-shared-nodes', '--no-tiny-polygon-reduction', '--force',
+                            '-L', f'census:{src}'], check=True)
+            with open(os.path.join(tmp, cc, 'metadata.json'), encoding='utf-8') as f:
+                bounds[cc] = [float(v) for v in json.load(f)['bounds'].split(',')]
+            os.remove(os.path.join(tmp, cc, 'metadata.json'))
+    shutil.rmtree(CENSUS_TILES, ignore_errors=True)
+    os.rename(tmp, CENSUS_TILES)
+    n = sum(len(fs) for _, _, fs in os.walk(CENSUS_TILES))
+    return {'v': h.hexdigest()[:10], 'maxzoom': CENSUS_Z, 'bounds': bounds, 'count': n}
+
+
+# Census region names the sources give wrongly ("nameFixes" of a country in content/map/areas.json): Romania's counties in
+# capitals without diacritics, six Montenegrin municipalities without them. Every other name is used exactly as the source gives it.
+NAME_FIX = {e['code']: e['nameFixes'] for e in AREAS['countries'] if e.get('nameFixes')}
+STRICT_NAMES = {e['code'] for e in AREAS['countries'] if e.get('strictNames')}
 
 
 def census_extras():
     """Two small files from the census regions (regions/) and the census rows (site/data/regional/), every country:
     census-names.json  {CC: [[name, x, y, width, height], ...]}: where the page writes each region's name at deep zoom
                        (x / y = the label point inside the region, map units; width / height of its largest part)
-    census-top.json    {"langs": [...], CC: [[i, language, share], ...]}: the largest language in each region, from the
-                       same census question as the rest of that country's rows. Left out where the languages that are
-                       not listed could add up to more than it, so a region never gets a majority that the table does not show.
-    Montenegro's largest language comes from its own table on the page (regional/ME.json), so only its names are here."""
+    census-top.json    {"langs": [...], CC: [[i, language, share], ...], "ids": {CC: [region id, ...]}}: the largest language
+                       in each region, from the same census question as the rest of that country's rows. Left out where the
+                       languages that are not listed could add up to more than it, so a region never gets a majority that the
+                       table does not show. A country with a table of its own that lists every answer for every region
+                       (site/data/regional/<CC>.json: Montenegro) takes its largest language from that table, unrounded, and
+                       its region ids by place (i) are listed under "ids", so the engine can read that table by region."""
     idx = load(os.path.join('regional', 'index.json'))
     shares = {}                                   # cc -> region index -> {language: share}
     for lang, info in idx['languages'].items():
@@ -542,16 +594,26 @@ def census_extras():
                 if pct is not None:
                     shares.setdefault(cc, {}).setdefault(ix, {})[lang] = pct
     unit = lambda lon, lat: ((lon / 360) / C + CX, CY - math.asinh(math.tan(math.radians(lat))) / (2 * math.pi * C))
-    names, top, langs = {}, {'langs': []}, {}
-    for fn in sorted(os.listdir(os.path.join(OUT, 'regions'))):
+    names, top, langs, ids = {}, {'langs': []}, {}, {}
+
+    def lang_ix(lang):
+        if lang not in langs:
+            langs[lang] = len(top['langs'])
+            top['langs'].append(lang)
+        return langs[lang]
+    for fn in sorted(os.listdir(os.path.join(MAP_SRC, 'regions'))):
         cc, fix = fn[:-5], NAME_FIX.get(fn[:-5], {})
-        with open(os.path.join(OUT, 'regions', fn), encoding='utf-8') as f:
+        with open(os.path.join(MAP_SRC, 'regions', fn), encoding='utf-8') as f:
             feats = json.load(f)['features']
-        if cc == 'RO':
+        if cc in STRICT_NAMES:
             bad = sorted({ft['properties']['name'] for ft in feats} - set(fix))
             if bad:
-                sys.exit('map-next: Romanian county names with no correct spelling in NAME_FIX: ' + ', '.join(bad))
+                sys.exit(f'map-next: {cc} region names with no correct spelling in "nameFixes" of content/map/areas.json: ' + ', '.join(bad))
         nm, tp = [], []
+        full = os.path.join(DATA, 'regional', cc + '.json')
+        table = load(os.path.join('regional', cc + '.json')) if os.path.exists(full) else None
+        if table is not None:
+            ids[cc] = [None] * (1 + max(ft['properties']['i'] for ft in feats))
         for ft in feats:
             p = ft['properties']
             rings = [[unit(lon, lat) for lon, lat in poly[0]] for poly in ft['geometry']['coordinates']]
@@ -559,17 +621,23 @@ def census_extras():
             w, h = max((box(r) for r in rings), key=lambda wh: wh[0] * wh[1])      # the largest part (islands do not count)
             xs, ys = (0, w), (0, h)
             nm.append([fix.get(p['name'], p['name']), p['at'][0], p['at'][1], round(max(xs) - min(xs), 2), round(max(ys) - min(ys), 2)])
+            if table is not None:
+                # every answer for every region: the largest is the first of the highest (as the engine sorted them)
+                ids[cc][p['i']] = p['id']
+                recs = [o for o in table.get(p['id'], []) if o.get('percentage') is not None]
+                if recs:
+                    t = max(recs, key=lambda o: o['percentage'])
+                    tp.append([p['i'], lang_ix(t['language_id']), t['percentage']])
+                continue
             s = shares.get(cc, {}).get(p['i'])
-            if cc != 'ME' and s:
+            if s:
                 lang, pct = max(s.items(), key=lambda kv: kv[1])
                 if pct > 100 - sum(s.values()):
-                    if lang not in langs:
-                        langs[lang] = len(top['langs'])
-                        top['langs'].append(lang)
-                    tp.append([p['i'], langs[lang], round(pct, 2)])
+                    tp.append([p['i'], lang_ix(lang), round(pct, 2)])
         names[cc] = nm
         if tp:
             top[cc] = tp
+    top['ids'] = ids
     sizes = [write('census-names.json', names), write('census-top.json', top)]
     print(f'map-next: census names {sum(map(len, names.values()))} in {len(names)} countries ({sizes[0] // 1024} KB), '
           f'largest language known for {sum(len(v) for k, v in top.items() if k != "langs")} regions ({sizes[1] // 1024} KB)')
@@ -577,7 +645,7 @@ def census_extras():
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    terr, langs, colours = load('terr.json'), load('languages.json'), colour_table()
+    terr, langs, colours = load('terr.json', SRC), load('languages.json', SRC), colour_table()
     today = Topo(load('today.json'))
     original = {n: g for n, g in ((n, area_shape(t.get('v') or t['d'])) for n, t in terr.items()) if g is not None}
     w = world(STRtree(list(original.values())))
@@ -602,12 +670,14 @@ def main():
     fitted.update(round_areas)
     detail, removed2, filled2 = fit_areas(detailed_areas(lists), countries)
     fitted, detail = census_countries(fitted, detail, countries)
-    # Montenegro and Greece are drawn from their own detailed layers; the broad areas stop at their borders (the site's rule)
-    own = unary_union([c['shape'] for c in countries if c['name'] in ('Montenegro', 'Greece')])
+    # countries drawn from their own detailed layers ("ownAreas"): the broad areas stop at their borders (the site's rule)
+    owners = {e['name'] for e in AREAS['countries'] if e.get('ownAreas')}
+    own = unary_union([c['shape'] for c in countries if c['name'] in owners])
     fitted = {n: g for n, g in ((n, solid(g.difference(own))) for n, g in fitted.items()) if not g.is_empty}
     # where a family's speakers live outside its home areas (site/data/dia.json), one shape per family
-    fam_col = lambda fam: {th: palette.ETIMO[th].get(fam) or palette.FAM[th].get(fam) or '#8a93a3' for th in ('light', 'dark')}
-    dia, _, _ = fit_areas({fam: g for fam, g in ((fam, area_shape(d)) for fam, d in load('dia.json')['fam'].items()) if g is not None}, countries)
+    fam_cols = load_palette()['families']
+    fam_col = lambda fam: {th: fam_cols.get(fam, {}).get(th) or '#8a93a3' for th in ('light', 'dark')}
+    dia, _, _ = fit_areas({fam: g for fam, g in ((fam, area_shape(d)) for fam, d in load('dia.json', SRC)['fam'].items()) if g is not None}, countries)
 
     def props(name):
         info = langs.get(name, {})
@@ -616,11 +686,14 @@ def main():
 
     feat = lambda p, typ, coords: {'type': 'Feature', 'properties': p, 'geometry': {'type': typ, 'coordinates': coords}}
     fc = lambda feats: {'type': 'FeatureCollection', 'features': feats}
-    zone = lambda n: {**props(n), **({'tint': tint[n]} if n in tint else {}), **({'hist': 1} if (langs.get(n) or {}).get('hist') else {}),
+    hist = lambda n: bool((langs.get(n) or {}).get('hist'))
+    # id: each area's own name for the engine's per-area state (promoteId in site/map-gl.js): the language for a broad
+    # area, kind:language for a detailed one, dia:family for a family's area outside its home areas
+    zone = lambda n: {**props(n), 'id': n, **({'tint': tint[n]} if n in tint else {}), **({'hist': 1} if hist(n) else {}),
                       **({'round': 1} if n in round_areas else {})}
     areas = [feat(zone(n), 'MultiPolygon', gj_polygons(g)) for n, g in sorted(fitted.items(), key=lambda kv: -kv[1].area)]
-    areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
-    areas += [feat({'kind': 'dia', 'fam': fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
+    areas += [feat({**props(n), 'kind': k, 'key': k + ':' + n, 'id': k + ':' + n}, 'MultiPolygon', gj_polygons(g)) for (k, n), g in sorted(detail.items(), key=lambda kv: -kv[1].area)]
+    areas += [feat({'kind': 'dia', 'fam': fam, 'id': 'dia:' + fam, **fam_col(fam)}, 'MultiPolygon', gj_polygons(g)) for fam, g in dia.items()]
     drawn_whole = {cname for _, cname in CENSUS_AREAS}     # covered by their census areas: no country tint under them
     land = [feat({'name': c['name'], **({'base': colours.get(c['lang'], '#8a93a3'), 'lang': c['lang'], 'bfam': props(c['lang'])['fam']} if c['lang'] and c['name'] not in drawn_whole else {})},
                  'MultiPolygon', gj_polygons(c['shape'])) for c in countries]
@@ -639,15 +712,30 @@ def main():
         'home': [min(b[0] for b in bs), min(b[1] for b in bs), max(b[2] for b in bs), max(b[3] for b in bs)],
         # the detailed areas, for the rules the page applies when a language or a family is chosen: [kind, language, family]
         'detail': sorted([k, n, props(n)['fam']] for k, n in detail),
+        # every other area by its id, so the engine can give each its strength when a language or a family is chosen:
+        # the broad areas by family, the historical ones, the families' areas outside their home areas, and the
+        # countries tinted with their main language [country, language, its family]
+        'zones': {f: sorted(n for n in fitted if props(n)['fam'] == f) for f in sorted({props(n)['fam'] for n in fitted})},
+        'hist': sorted(n for n in fitted if hist(n)),
+        'dia': sorted(dia),
+        'tint': sorted([c['name'], c['lang'], props(c['lang'])['fam']] for c in countries if c['lang'] and c['name'] not in drawn_whole),
+        # the rules the page follows for the detailed areas (content/map/areas.json): the views, which kind follows which rule,
+        # a language's parent and its name while no view shows it, and the languages whose pins the detailed areas replace
+        'rules': {'views': AREAS['views'], 'kinds': kinds_of(),
+                  'parent': {e['name']: e['parent'] for e in AREAS['languages'] if e.get('parent')},
+                  'shownAs': {e['name']: e['shownAs'] for e in AREAS['languages'] if e.get('shownAs')},
+                  'hidePin': sorted(lists['hide_pin'])},
     }
-    sizes = {n: write(n, o) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
+    sizes = {n: write(n, o, MAP_SRC) for n, o in (('areas.json', fc(areas)), ('land.json', fc(land)), ('lines.json', fc(line_feats)))}
     meta['tiles'] = tiles()      # what the map loads: the tiles cut from the three files above (they stay for the checks)
+    print('map-next: census regions: ' + ', '.join(census_regions(countries, ctree)))
+    meta['census'] = census_tiles()      # the census view's own tiles, cut from regions/ (which stay for census_extras)
     sizes['meta.json'] = write('meta.json', meta)
-    print(f'map-next: {meta["tiles"]["count"]} tiles (zoom 0 to {TILE_Z}, version {meta["tiles"]["v"]})')
+    print(f'map-next: {meta["tiles"]["count"]} tiles (zoom 0 to {TILE_Z}, version {meta["tiles"]["v"]}), '
+          f'{meta["census"]["count"]} census tiles (version {meta["census"]["v"]})')
     for old in ('pins.json', 'families.json'):       # the page draws pins and names itself
         if os.path.exists(os.path.join(OUT, old)):
             os.remove(os.path.join(OUT, old))
-    print('map-next: census regions: ' + ', '.join(census_regions(countries, ctree)))
     print('map-next: ' + ', '.join(f'{n} {s // 1024} KB' for n, s in sizes.items()))
     print(f'map-next: {len(fitted)} language areas ({sum(1 for n in fitted if n not in terr)} of them circles, {sum(1 for n in fitted if n in tint)} in a lighter tint), '
           f'{len(detail)} detailed areas, {len(dia)} family areas outside the home areas, {len(countries)} countries '

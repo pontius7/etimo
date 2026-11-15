@@ -3,13 +3,13 @@
 .lmrow{justify-content:center}
 .lmrow .lm{margin:0 auto}
 /* map: one centred toolbar, reset pill drops below it */
-.mtl{left:50%;right:auto;transform:translateX(-50%);white-space:nowrap}
-.mtl .mreset{position:absolute;top:0;left:calc(100% + .45rem);width:42px;min-width:42px;padding:0;transform:translateX(-6px)}
-.mtl .mreset.on{transform:none}
-.mtl .mreset span{display:none}
-.mtl .gbtn.gpill:not(.mreset) span{display:inline}
-.mtl .gbtn.gpill:not(.mreset){padding:0 .95rem 0 .75rem}
-.exv2.isfs .mtl{left:50%}
+
+
+
+
+
+
+
 /* topography: softer, minor lines only when zoomed in, none while moving */
 .mapbox svg:not(.zin) .tcm{display:none}
 
