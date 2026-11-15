@@ -1354,6 +1354,20 @@ Ve.selectAll("g.pin").on("pointerenter.gl",(e,d)=>{gPh=d,gPinSync(80)}).on("poin
    kTick leaves them exactly as they are (not moved, not hidden, so the browser has nothing to lay out again). Pins are not in it: the engine has them already (gPinStep).
    An engine file without labels() (an old copy in a browser's cache) leaves everything to the page, as before. */
 let gLt=0,gLr=0,gLo=null,gLkey="",gLops=[],gLwait=0;
+/* A2, word spread: the first time the word view hands its names to the engine they appear in order of distance from the chosen
+   language (or the middle of the map), 12 ms apart and 400 ms in all, through the engine's per-name opacity (labelStates). */
+let kSP=Xe,kSR=0;
+function kSpread(L){cancelAnimationFrame(kSR);
+let I=[];
+L.forEach((q,i)=>"l"!==q.k&&I.push(i));
+if(!kSP||!I.length||Ya())return;
+kSP=!1;
+let B=Q2.node().getBoundingClientRect(),T=kV(),o=nt?[B.left+T.applyX(nt._xy[0]),B.top+T.applyY(nt._xy[1])]:[B.left+B.width/2,B.top+B.height/2],st=Math.min(12,250/I.length),t0=performance.now(),
+dist=i=>Math.hypot(L[i].x-o[0],L[i].y-o[1]),
+go=t=>{GM&&GM.labelStates(I.map((i,r)=>[i,L[i].o*Math.min(1,Math.max(0,(t-t0-st*r)/150))]));
+t-t0<st*I.length+150&&(kSR=requestAnimationFrame(go))};
+I.sort((a,b)=>dist(a)-dist(b));
+go(t0)}
 const gR2=v=>Math.round(100*v)/100;
 function gLabSync(ms){if(!GM||!GM.labels||!q.node().isConnected)return;
 gLo||(gLon=!1,gLo=new MutationObserver(()=>{gMv||gLabSync()}),[q.node(),Q2.node()].forEach(n=>gLo.observe(n,{subtree:!0,childList:!0,characterData:!0,attributes:!0,attributeFilter:["class","style","transform","x","y","r","display","opacity","data-off"]})),
@@ -1366,7 +1380,7 @@ let now=performance.now();
 if(now<gLwait)return void(gLr=requestAnimationFrame(gLabStep));
 gLwait=now+90;
 let L=gLabRead(),key=JSON.stringify(L.map(({o,...p})=>p));
-if(key!==gLkey)gLkey=key,gLops=L.map(p=>p.o),GM.labels(L);
+if(key!==gLkey)gLkey=key,gLops=L.map(p=>p.o),GM.labels(L),kSpread(L);
 else{let a=[];
 L.forEach((p,i)=>{p.o!==gLops[i]&&(gLops[i]=p.o,a.push([i,p.o]))}),a.length&&GM.labelStates(a)}
 gLon||(gLon=!0,[q,Q2].forEach(s=>s.attr("data-glab","")));
