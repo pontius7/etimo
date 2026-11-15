@@ -5284,8 +5284,11 @@ return"en"===t?(/*@ENGLISH_NAMES@*/[e.lang]||e.lang):ka((ta[e.lang]||[])[Sa[t]]|
 window.__Na=Na;
 window.__ka=ka;
 window.__ya=ya;
-function Ma(e){let t=ya();
-return"en"===t?e.place:ka((na[e.place]||[])[Sa[t]]||e.place)}
+/* a language's place, plus each country whose main language it is and that its place does not name yet (MAIN_IN, from
+   content/map/areas.json: Albanian -> Albania, Kosovo) */
+const kMainIn=/*@MAIN_IN@*/;
+function Ma(e){let t=ya(),one=p=>"en"===t?p:ka((na[p]||[])[Sa[t]]||p);
+return[e.place].concat((kMainIn[e.lang]||[]).filter(c=>(e.place||"").indexOf(c)<0)).map(one).join(", ")}
 function Ca(e){let t=ka((Yr[e]||{})[ya()]||e);
 return t.charAt(0).toUpperCase()+t.slice(1)}
 function La(e){let t=ya();
