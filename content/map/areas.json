@@ -1,0 +1,528 @@
+{
+ "about": "The map's special cases, as data. Read by scripts/map-next/build.py, scripts/areas/census-areas.py and (through meta.json) site/map-gl.js; see scripts/map-next/README.md 'How to give one country something special'.",
+ "layers": [
+  {
+   "source": "albanian-dialects.json",
+   "view": "alb"
+  },
+  {
+   "source": "vlach-areas.json",
+   "view": "vlach"
+  },
+  {
+   "source": "serbia-areas.json",
+   "kind": "area"
+  },
+  {
+   "source": "greece-areas.json",
+   "kind": "area"
+  },
+  {
+   "source": "montenegro-areas.json",
+   "kind": "me",
+   "censusReplaces": true,
+   "underCensus": true
+  }
+ ],
+ "views": [
+  {
+   "id": "alb",
+   "languages": [
+    "Northeastern Gheg",
+    "Northwestern Gheg",
+    "Central Gheg",
+    "South Gheg",
+    "Transitional Gheg",
+    "Upper Reka Gheg",
+    "Tosk Albanian",
+    "Labërisht",
+    "Çam Albanian",
+    "Arbëresh",
+    "Arvanitika",
+    "Gheg Albanian",
+    "Albanian"
+   ],
+   "umbrella": "Albanian",
+   "family": "Albanian",
+   "familyActivates": true,
+   "exclusive": true,
+   "restFamily": "Albanian",
+   "title": "ad",
+   "credit": [
+    "cra",
+    " (Karadakli230, CC BY-SA 4.0; ArnoldPlaton, CC BY-SA 3.0)"
+   ],
+   "census": "Albanian",
+   "noCensus": [
+    "AL",
+    "XK",
+    "MK",
+    "GR"
+   ],
+   "groups": [
+    {
+     "id": "gh",
+     "parts": [
+      {
+       "label": "gh",
+       "names": [
+        "Northeastern Gheg",
+        "Northwestern Gheg",
+        "Central Gheg",
+        "South Gheg",
+        "Transitional Gheg",
+        "Upper Reka Gheg"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "to",
+     "parts": [
+      {
+       "label": "to",
+       "names": [
+        "Tosk Albanian",
+        "Labërisht",
+        "Çam Albanian",
+        "Arbëresh",
+        "Arvanitika"
+       ]
+      }
+     ]
+    }
+   ],
+   "strength": {
+    "idle": {
+     "else": "rest"
+    },
+    "umbrella": {
+     "Albanian": {
+      "else": 0.82
+     },
+     "Gheg Albanian": {
+      "gh": 0.82,
+      "else": 0.14
+     }
+    },
+    "member": {
+     "gh": {
+      "self": 0.9,
+      "gh": 0.32,
+      "else": 0.14
+     },
+     "to": {
+      "self": 0.9,
+      "to": 0.32,
+      "else": 0.14
+     }
+    },
+    "other": {
+     "self": 0.9,
+     "else": 0.14
+    }
+   },
+   "kind": "dial",
+   "underCensus": true
+  },
+  {
+   "id": "vlach",
+   "languages": [
+    "Farsherot",
+    "Muscopolean",
+    "Gopesh–Malovishte",
+    "Pindian",
+    "Gramostean",
+    "Megleno-Romanian (northern)",
+    "Megleno-Romanian (central)",
+    "Megleno-Romanian (Tsarnarekan)",
+    "Aromanian",
+    "Megleno-Romanian"
+   ],
+   "restFamily": "Romance",
+   "hiddenBy": [
+    "alb"
+   ],
+   "title": "vl",
+   "credit": [
+    "crv",
+    ", CC BY-SA 3.0"
+   ],
+   "groups": [
+    {
+     "id": "a",
+     "parts": [
+      {
+       "label": "na",
+       "names": [
+        "Farsherot",
+        "Muscopolean",
+        "Gopesh–Malovishte"
+       ]
+      },
+      {
+       "label": "sa",
+       "names": [
+        "Pindian",
+        "Gramostean"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "m",
+     "kind": "meg",
+     "parts": [
+      {
+       "label": "me",
+       "names": [
+        "Megleno-Romanian (northern)",
+        "Megleno-Romanian (central)",
+        "Megleno-Romanian (Tsarnarekan)"
+       ],
+       "short": true
+      }
+     ]
+    },
+    {
+     "id": "main",
+     "names": [
+      "Megleno-Romanian"
+     ]
+    }
+   ],
+   "strength": {
+    "idle": {
+     "a": "rest",
+     "main": "rest"
+    },
+    "umbrella": {
+     "Aromanian": {
+      "a": 0.88,
+      "main": 0.25
+     },
+     "Megleno-Romanian": {
+      "m": 0.88,
+      "a": 0.22
+     }
+    },
+    "member": {
+     "a": {
+      "self": 0.92,
+      "a": 0.2,
+      "main": 0.2
+     },
+     "m": {
+      "self": 0.92,
+      "m": 0.3,
+      "a": 0.2
+     }
+    }
+   },
+   "kind": "vlach"
+  }
+ ],
+ "languages": [
+  {
+   "name": "Northeastern Gheg",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian"
+  },
+  {
+   "name": "Northwestern Gheg",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian"
+  },
+  {
+   "name": "Central Gheg",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian"
+  },
+  {
+   "name": "South Gheg",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian"
+  },
+  {
+   "name": "Transitional Gheg",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian",
+   "sourceName": "Central–Northeastern Transitional Gheg"
+  },
+  {
+   "name": "Upper Reka Gheg",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian"
+  },
+  {
+   "name": "Tosk Albanian",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian",
+   "sourceName": "Tosk"
+  },
+  {
+   "name": "Labërisht",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian",
+   "sourceName": "Lab"
+  },
+  {
+   "name": "Çam Albanian",
+   "hidePin": true,
+   "hideZone": true,
+   "shownAs": "Albanian",
+   "sourceName": "Çam"
+  },
+  {
+   "name": "Arbëresh"
+  },
+  {
+   "name": "Arvanitika",
+   "hideZone": true
+  },
+  {
+   "name": "Albanian",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Farsherot",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Muscopolean",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Gopesh–Malovishte",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Pindian",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Gramostean",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Megleno-Romanian (northern)",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Megleno-Romanian (central)",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Megleno-Romanian (Tsarnarekan)",
+   "hidePin": true,
+   "hideZone": true
+  },
+  {
+   "name": "Aromanian",
+   "hideZone": true
+  },
+  {
+   "name": "Sandžak Bosniak",
+   "hideZone": true,
+   "parent": "Bosnian"
+  }
+ ],
+ "countries": [
+  {
+   "name": "Albania",
+   "mainLanguage": "Albanian"
+  },
+  {
+   "name": "Kosovo",
+   "mainLanguage": "Albanian"
+  },
+  {
+   "name": "France",
+   "mainLanguage": "French"
+  },
+  {
+   "name": "Spain",
+   "mainLanguage": "Spanish"
+  },
+  {
+   "name": "Portugal",
+   "mainLanguage": "Portuguese"
+  },
+  {
+   "name": "Italy",
+   "mainLanguage": "Italian"
+  },
+  {
+   "name": "Romania",
+   "mainLanguage": "Romanian",
+   "code": "RO",
+   "nameFixes": {
+    "ALBA": "Alba",
+    "ARAD": "Arad",
+    "ARGES": "Argeș",
+    "BACAU": "Bacău",
+    "BIHOR": "Bihor",
+    "BISTRITA-NASAUD": "Bistrița-Năsăud",
+    "BOTOSANI": "Botoșani",
+    "BRAILA": "Brăila",
+    "BRASOV": "Brașov",
+    "BUZAU": "Buzău",
+    "CALARASI": "Călărași",
+    "CARAS-SEVERIN": "Caraș-Severin",
+    "CLUJ": "Cluj",
+    "CONSTANTA": "Constanța",
+    "COVASNA": "Covasna",
+    "DAMBOVITA": "Dâmbovița",
+    "DOLJ": "Dolj",
+    "GALATI": "Galați",
+    "GIURGIU": "Giurgiu",
+    "GORJ": "Gorj",
+    "HARGHITA": "Harghita",
+    "HUNEDOARA": "Hunedoara",
+    "IALOMITA": "Ialomița",
+    "IASI": "Iași",
+    "ILFOV": "Ilfov",
+    "MARAMURES": "Maramureș",
+    "MEHEDINTI": "Mehedinți",
+    "MURES": "Mureș",
+    "NEAMT": "Neamț",
+    "OLT": "Olt",
+    "PRAHOVA": "Prahova",
+    "SALAJ": "Sălaj",
+    "SATU MARE": "Satu Mare",
+    "SIBIU": "Sibiu",
+    "SUCEAVA": "Suceava",
+    "TELEORMAN": "Teleorman",
+    "TIMIS": "Timiș",
+    "TULCEA": "Tulcea",
+    "VALCEA": "Vâlcea",
+    "VASLUI": "Vaslui",
+    "VRANCEA": "Vrancea",
+    "BUCURESTI": "București"
+   },
+   "strictNames": true
+  },
+  {
+   "name": "Moldova",
+   "mainLanguage": "Romanian"
+  },
+  {
+   "name": "Ukraine",
+   "mainLanguage": "Ukrainian"
+  },
+  {
+   "name": "Russia",
+   "mainLanguage": "Russian"
+  },
+  {
+   "name": "Poland",
+   "mainLanguage": "Polish"
+  },
+  {
+   "name": "Czech Republic",
+   "mainLanguage": "Czech"
+  },
+  {
+   "name": "Slovakia",
+   "mainLanguage": "Slovak"
+  },
+  {
+   "name": "Iran",
+   "mainLanguage": "Persian"
+  },
+  {
+   "name": "Greece",
+   "mainLanguage": "Greek",
+   "ownAreas": true
+  },
+  {
+   "name": "Montenegro",
+   "code": "ME",
+   "noTint": true,
+   "ownAreas": true,
+   "nameFixes": {
+    "Savnik": "Šavnik",
+    "Kolasin": "Kolašin",
+    "Pluzine": "Plužine",
+    "Niksic": "Nikšić",
+    "Zabljak": "Žabljak",
+    "Rozaje": "Rožaje"
+   }
+  },
+  {
+   "name": "Croatia",
+   "code": "HR",
+   "censusAreas": {
+    "out": "croatia-areas.json",
+    "levels": [
+     "Town",
+     "Municipality"
+    ],
+    "geo": [
+     "topo",
+     "site/data/regional/geo/HR.json"
+    ]
+   }
+  },
+  {
+   "name": "Bosnia and Herzegovina",
+   "code": "BA",
+   "censusAreas": {
+    "out": "bosnia-areas.json",
+    "levels": [
+     "3"
+    ],
+    "extra": [
+     "1",
+     "BRČKO"
+    ],
+    "geo": [
+     "names",
+     "scripts/areas/geo/BIH-ADM3.geojson"
+    ],
+    "outlineNames": {
+     "DOBOJ-ISTOK": "Doboj East",
+     "FOČA - FBiH": "Foča-Ustikolina",
+     "PALE - FBiH": "Pale-Prača",
+     "GRAD MOSTAR": "Mostar",
+     "PROZOR": "Prozor-Rama",
+     "CENTAR SARAJEVO": "Centar",
+     "NOVI GRAD SARAJEVO": [
+      "Novi Grad",
+      "south"
+     ],
+     "NOVI GRAD": [
+      "Novi Grad",
+      "north"
+     ],
+     "STARI GRAD SARAJEVO": "Stari Grad",
+     "TRNOVO - FBiH": "Trnovo (BiH)",
+     "KUPRES - FBiH": "Kupres (BiH)",
+     "FOČA - RS": "Foča",
+     "KRUPA NA UNI": "Kupra na Uni",
+     "KUPRES - RS": "Kupres",
+     "NOVO GORAŽDE": "Ustiprača",
+     "PALE - RS": "Pale",
+     "VIŠEGRAD": "Republika Srpska",
+     "BRČKO DISTRIKT BOSNE I HERCEGOVINE BRČKO DISTRICT OF BOSNIA AND HERZEGOVINA": "Brcko District"
+    }
+   }
+  }
+ ]
+}

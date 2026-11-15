@@ -105,8 +105,8 @@ scripts/
 site/                         the published website (Cloudflare serves this folder as it is)
   index.html                  built from src/
   map-gl.js                   by hand: the map engine. THE SOURCE: edit this file; the page loads its hashed copy h/map-gl.<hash>.js
-  regional-layer.js           by hand (source of h/regional-layer.<hash>.js): the rules the map engine and its data build share (which areas the
-                              detailed layers stand for, how strong areas are drawn, each country's main language)
+  regional-layer.js           by hand (source of h/regional-layer.<hash>.js): how strong areas and census regions are drawn and which view a choice
+                              switches on (the special cases themselves are data: `content/map/areas.json`)
   country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources (sources of the hashed copies in h/)
   search-key.js               by hand: turns any script into Latin search keys (also part of the page)
   _headers                    by hand: caching rules for Cloudflare
@@ -450,7 +450,7 @@ Command line: `wrangler deployments list --name etimo` shows recent deploys.
   as Bosnian. Its area is not a new drawing: the settlement areas that were labelled Bosnian in
   `site/data/serbia-areas.json` (161 areas, Serbia census 2022) and `site/data/montenegro-areas.json`
   (Plav-Gusinje and Rožaje-Petnjica, 2011 settlement map) all lie inside Sandžak and now carry this name.
-  `PAR` in `site/regional-layer.js` names the parent, so the same areas also light up when Bosnian is
+  `parent` in the language's entry of `content/map/areas.json` names the parent, so the same areas also light up when Bosnian is
   picked. The speaker figure is the sum of the two whole-country census counts for Bosnian as mother
   tongue (Serbia 145,329 in 2022, Montenegro 43,470 in 2023). It has no word list yet, like Bosnian.
 
@@ -464,7 +464,7 @@ The SVG map the page used to draw itself (`?map=svg`, `localStorage["etimo-map"]
 not start) is gone. The engine is the only map. When it cannot start (no WebGL 2, or its files fail or stall for 20 s) the map
 box shows a short note in the interface language with two ways on: the Languages wheel and "try again" (`kNoMap` in
 `src/app/6-app-screens-and-startup.js`, styles block `v74` part 7 in `src/styles/v66.css`); the rest of the site never
-needed the map. `site/regional-layer.js` keeps only the shared rules (its drawing code is in git history, commit 05bafd0).
+needed the map. `site/regional-layer.js` keeps only the strength rules (its drawing code is in git history, commit 05bafd0).
 The two hand-made files only the old map used (`athos.json`, `regional-sources.json`) moved to `archive/old-map/`. The
 colour check (`scripts/merge/probe-colors.mjs`) now reads the colours the engine paints (headless Chrome with software
 WebGL); it still reads the reference copy, an old snapshot, from its SVG drawing. Some `!GL` branches remain in the
@@ -564,10 +564,10 @@ colours are never copied: every area takes its language's own colour from the pa
    `.venv/bin/python scripts/areas/census-areas.py <CC>` writes `site/data/<country>-areas.json` (each municipality takes
    its largest language; same-language municipalities are joined). A newer census than the image's wins. Outlines: the
    census view's own (`site/data/regional/geo/`), or a frozen open file in `scripts/areas/geo/` with a few name pairs
-   in `NAMES`; add the country to `SOURCES` in the script.
+   in `outlineNames`; add the country's `censusAreas` entry to `content/map/areas.json`.
 3. **Only without numbers: trace** the image (`scripts/areas/`, as for Montenegro and Arvanitika), fitted to the real
    outline.
-4. **Plug it in**: add the file and the country to `CENSUS_AREAS` in `scripts/map-next/build.py`. There, the broad
+4. **Plug it in**: the country's `censusAreas` entry in `content/map/areas.json` names the file. The build then lets the broad
    areas of the languages it draws stop at the border, any gap goes to the neighbouring census area, the country gets
    no extra tint, and the areas of other languages there (minorities, dialects) stay. Run
    `.venv/bin/python scripts/map-next/build.py`, then `./scripts/add-words.sh`.

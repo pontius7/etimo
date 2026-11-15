@@ -7,7 +7,8 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 |---|---|
 | The engine's side: layers, colours of sea / land / lines, how strong each area is when a language or family is chosen, census view, legend | `site/map-gl.js` |
 | The page's side: what pins and names show and where (the engine draws them, see below), search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
-| Lists and strengths the engine and the data build share (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace; how strong a detailed area or a census region is drawn: `restOp`, `dialOp`, `vlachOp`, `censusOp`, `hatchOp`) | top of `site/regional-layer.js` (the only copy) |
+| The map's special cases (detail views, which pins and areas the detailed layers replace, parents, main languages, census areas) | `content/map/areas.json` (the only copy; the build puts what the engine needs into `meta.json` "rules") |
+| How strong a detailed area or a census region is drawn: `restOp`, `viewOp`, `kindOp`, `censusOp`, `hatchOp` | `site/regional-layer.js` (the only copy; knows no country or language) |
 | The map data | `scripts/map-next/build.py` writes `site/map-next/data/` |
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
@@ -78,7 +79,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   building them for the first view cost it about 90 ms there.
 - **What each area gets** (`targets()` in `site/map-gl.js`): the same rules as before, one value per area: the chosen
   language, its family, the rest, historical languages, a family filter, the word view, the countries tinted with their
-  main language, and the detailed layers with the shared strengths of `site/regional-layer.js`.
+  main language, and the detailed layers with the strengths of `site/regional-layer.js`.
 - **Fades** (`fade()`): a choice takes every area from what it shows to its new value in 200 ms, the site's easing
   (`cubic-bezier(0.2, 0.8, 0.2, 1)`), one value per area and frame; a second choice during a fade starts from where it is.
   The outline under the pointer (desktop) fades in and out in 120 ms. The language areas fade in once (300 ms) when the
@@ -118,8 +119,8 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   drawn); its largest language per municipality and its region ids come from `census-top.json` (`ids`), as the other
   countries' largest language does. The table is loaded like a language's rows, once a language is chosen (it used to hold
   back the making of the map and was fetched from the page's first lines); any country listed under `ids` is read the same way.
-- **Detail views.** The Albanian dialect view and the Vlach view are entries of one list, `VIEWS` in `site/regional-layer.js`
-  (which languages switch it on, its legend groups, its credit, the language whose census figures it shows and the countries
+- **Detail views.** The Albanian dialect view and the Vlach view are entries of one list, `views` in `content/map/areas.json`
+  (which languages switch it on, how strong each group is drawn for each choice, its legend groups, its credit, the language whose census figures it shows and the countries
   it leaves out of the census). The engine draws the legend and the census from that list, with no branch of its own for
   either. The legend's heading, groups and credit go through the interface texts (`window.__lt` in
   `src/app/7-language-colours.js`: English, Albanian, Serbian Latin and Cyrillic); authors and licences stay as written.
@@ -200,3 +201,18 @@ country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.
 ## The first view
 Every language area, fitted to the screen, on phone, tablet and desktop. What appears at which scale (pins, names,
 cities, districts) is unchanged.
+
+## How to give one country something special
+Nothing in the code names a country or a language: the check in `scripts/merge/words-report.py` fails the build if it does.
+A special case is a field in that country's or language's entry of `content/map/areas.json`, and the same code runs for every
+entry that has the field:
+
+| You want | Field |
+|---|---|
+| a country tinted with its main language where the census does not settle it | `mainLanguage` (and `noTint` to leave the tint out) |
+| its broad language areas to stop at its border (it has its own detailed layer) | `ownAreas` |
+| its areas made from the census by municipality | `censusAreas` (`out`, `levels`, `geo`, `outlineNames`; see `scripts/areas/census-areas.py`) |
+| census region names corrected (and the build to fail on any other unknown name) | `nameFixes` (and `strictNames`) |
+| a detailed layer of areas (traced or from a file) | an entry of `layers` (`source`, `kind`; `censusReplaces`, `underCensus`) |
+| a finer view with a legend (dialects, varieties) | an entry of `views` (`languages`, `groups`, `strength`, `credit`) |
+| a language's own area to hide the pin or the broad area, to count as another language's, or to show under another name | `hidePin`, `hideZone`, `parent`, `shownAs` (and `sourceName` for a name the source spells differently) on its entry of `languages` |

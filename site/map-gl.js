@@ -13,7 +13,7 @@
 /* ?v= is MapLibre's version: the vendor folder is cached for a year (site/_headers), so a new MapLibre needs a new ?v= here
    (its worker file gets the version from MapLibre itself; the page's first-moment fetches read this line: scripts/build-page.py) */
 import * as maplibregl from './map-next/vendor/maplibre-gl.mjs?v=6.18.0';
-import {ADIAL, ALBSET, VSET, HIDEPIN, PAR, OP, viewOf, restOp, dialOp, vlachOp, censusOp, hatchOp, get} from './regional-layer.js';
+import {OP, prepare, viewOn, viewOf, exclusiveOf, kindOp, censusOp, hatchOp, get} from './regional-layer.js';
 
 const DATA = 'map-next/data/';
 /* Sea, land and line colours: the same values as the site's stylesheet (--sea, --land, --coast, --bord2, relief opacity). */
@@ -118,6 +118,7 @@ async function create(host, id, early) {
 
   const [meta, index] = await Promise.all([json(DATA + 'meta.json'), get('regional/index.json')]);
   const {cx, cy, c} = meta.unit;
+  const R = prepare(meta.rules), underCensus = Object.keys(R.kinds).filter(k => R.kinds[k].underCensus);
   /* map units <-> the coordinates MapLibre is given (same formula as fake() in scripts/map-next/build.py) */
   const at = (x, y) => [(x - cx) * c * 360, Math.atan(Math.sinh(-2 * Math.PI * (y - cy) * c)) * 180 / Math.PI];
   const zoomOf = s => Math.log2(s / (512 * c));      // s = screen pixels per map unit
@@ -136,12 +137,11 @@ async function create(host, id, early) {
      in the tiles: promoteId below; the lists come from meta.json): o = how strong it is drawn, e = the chosen language's
      outline, h = the outline under the pointer, i = the first view's fade. The layers' rules only read it and never
      change, so a choice or a hover re-processes no tile. */
-  const albMode = () => !!(S.sel && ALBSET.has(S.sel.lang)) || S.fam === 'Albanian';
   const HIST = new Set(meta.hist);
   function targets() {
-    const sel = S.sel, fam = S.fam, alb = albMode(), out = [];
-    /* the broad language areas, and the chosen one's outline (not while the Albanian or Vlach view replaces it) */
-    const plain = sel && !alb && !VSET.has(sel.lang);
+    const sel = S.sel, fam = S.fam, wide = exclusiveOf(R, sel, fam), out = [];
+    /* the broad language areas, and the chosen one's outline (not while a view replaces it) */
+    const plain = sel && !R.views.some(v => viewOn(v, sel, fam));
     for (const [zf, names] of Object.entries(meta.zones)) for (const n of names) out.push(['areas', n, {
       o: S.conc ? (sel && n === sel.lang ? .5 : ZONE * .3)
         : sel ? (n === sel.lang ? OP.sel : zf === sel.family ? OP.fam : OP.other)
@@ -150,25 +150,16 @@ async function create(host, id, early) {
       e: plain && n === sel.lang ? 1 : 0}]);
     /* a family's speakers outside its home areas */
     for (const df of meta.dia) out.push(['areas', 'dia:' + df, {o: sel || S.conc ? .08 : fam ? (df === fam ? ZONE * .5 : .06) : ZONE * .5}]);
-    /* a country tinted with its main language: only the chosen language's countries, none in the Albanian view */
-    for (const [cn, lang, bfam] of meta.tint) out.push(['land', cn, {o: alb || (sel && lang !== sel.lang) ? 0 : fam && bfam !== fam ? .1 : BASE}]);
-    /* The detailed layers: the strengths are the shared ones (restOp, dialOp, vlachOp in regional-layer.js) */
-    const rest = dfam => restOp(dfam, sel, fam);
-    const isSel = n => !!sel && (n === sel.lang || PAR[n] === sel.lang);
-    const rules = {
-      dial: n => dialOp(n, sel, fam, alb),
-      vlach: n => alb ? 0 : vlachOp(n, sel, fam),
-      area: (n, dfam) => alb ? 0 : isSel(n) ? OP.sel : rest(dfam),
-      /* Montenegro: broad areas while nothing is chosen; with a language chosen the municipalities show its census share */
-      me: (n, dfam) => alb ? 0 : !sel ? rest(dfam) : PAR[sel.lang] && n === sel.lang ? OP.sel : 0,
-    };
-    rules.meg = rules.vlach;
-    S.rules = rules;
+    /* a country tinted with its main language: only the chosen language's countries, none while an exclusive view is on */
+    for (const [cn, lang, bfam] of meta.tint) out.push(['land', cn, {o: wide || (sel && lang !== sel.lang) ? 0 : fam && bfam !== fam ? .1 : BASE}]);
+    /* The detailed layers: the strengths are the shared ones (kindOp in regional-layer.js) */
+    const isSel = n => !!sel && (n === sel.lang || R.parent[n] === sel.lang);
+    S.rule = (kind, n, dfam) => kindOp(R, kind, n, dfam, sel, fam);
     S.dop = {};
     for (const [kd, n, dfam] of meta.detail) {
-      const key = kd + ':' + n, o = S.dop[key] = rules[kd](n, dfam);
+      const key = kd + ':' + n, o = S.dop[key] = S.rule(kd, n, dfam);
       /* outlined: the chosen language's own detailed area */
-      out.push(['areas', key, {o, e: sel && o >= .5 && (kd === 'dial' || kd === 'vlach' || kd === 'meg' ? n === sel.lang : isSel(n)) ? 1 : 0}]);
+      out.push(['areas', key, {o, e: sel && o >= .5 && (R.kinds[kd].view ? n === sel.lang : isSel(n)) ? 1 : 0}]);
     }
     return out;
   }
@@ -245,9 +236,9 @@ async function create(host, id, early) {
         {id: 'areas', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['all', ['!', ['has', 'kind']], ['!', ['has', 'round']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', ['case', ['has', 'hist'], .11, ZONE]), IN]}},
         /* languages without a drawn area: a circle around the pin. A layer of their own, so a circle lies over the area under it instead of replacing it */
         {id: 'rounds', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', ZONE), IN]}},
-        {id: 'detail-a', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['me', 'dial']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
+        {id: 'detail-a', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', underCensus]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
         /* here: the census view, a fill and a stripe layer per country it draws in (census() below) */
-        {id: 'detail-b', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', ['vlach', 'meg', 'area']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
+        {id: 'detail-b', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', Object.keys(R.kinds).filter(k => !underCensus.includes(k))]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
         {id: 'areas-hist', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['has', 'hist'], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': ['*', .6, IN], 'line-dasharray': [2.5, 2.1]}},
         {id: 'relief', type: 'raster', source: 'relief', paint: {'raster-fade-duration': 0, 'raster-resampling': 'linear', 'raster-opacity': reliefOp(T0)}},
         /* One set of outlines: the coast is the edge of the land shapes; borders, region and district lines are cut to the same shapes. */
@@ -429,10 +420,9 @@ async function create(host, id, early) {
     const info = index.languages[key];
     if (!info) return null;
     if (!rowsOf.has(key)) {
-      const ccs = info.countries.filter(cc => cc !== 'ME');
       rowsOf.set(key, get('regional/lang/' + info.file + '.json').then(data => {
         const rows = [];
-        for (const cc of ccs) if (meta.census.bounds[cc]) for (const [i, , , pct] of data.rows[cc] || []) rows.push({cc, i, pct});
+        for (const cc of info.countries) if (meta.census.bounds[cc]) for (const [i, , , pct] of data.rows[cc] || []) rows.push({cc, i, pct});
         ready.set(key, rows);
       }).catch(e => { rowsOf.delete(key); throw e; }));
     }
@@ -492,11 +482,11 @@ async function create(host, id, early) {
     }
   }
   function census() {
-    const sel = S.sel, alb = albMode(), n = ++S.n;
+    const sel = S.sel, n = ++S.n;
     const again = p => p && p.then(() => { if (n === S.n) census(); }, () => {});
     if (!sel) { cenShow(new Set(), new Set()); return; }
     /* a detail view can show another language's figures (the Albanian dialects: Albanian's) and leave countries out */
-    const v = viewOf(sel, S.fam), key = v && v.census || sel.lang, skip = new Set(v && v.noCensus || []);
+    const v = viewOf(R, sel, S.fam), key = v && v.census || sel.lang, skip = new Set(v && v.noCensus || []);
     const eff = v && v.census ? ctx.languages.find(l => l.lang === v.census) || sel : sel;
     const want = new Map(), wantH = new Map(), put = (m, cc, i, s) => { let w = m.get(cc); if (!w) m.set(cc, w = new Map()); w.set(i, s); };
     const row = (cc, i, col, o, h) => { put(want, cc, i, {c: col || '#8a93a3', o}); if (h) put(wantH, cc, i, {h}); };
@@ -510,7 +500,7 @@ async function create(host, id, early) {
       const big = t && t[0] !== eff.lang ? ctx.languages.find(l => l.lang === t[0]) : null;
       const over = !!(pct != null && pct >= 2 && big);
       const lang = over ? big : eff;
-      row(cc, i, ctx.color(lang), censusOp(pct, over, t ? t[1] : 0, lang.family, alb, S.fam), over ? hatchOp(pct) : 0);
+      row(cc, i, ctx.color(lang), censusOp(pct, over, t ? t[1] : 0, lang.family, exclusiveOf(R, sel, S.fam) && v.family, S.fam), over ? hatchOp(pct) : 0);
     };
     for (const r of ready.get(key) || []) if (!skip.has(r.cc) && !ids[r.cc]) paintRow(r.cc, r.i, r.pct, top && top[r.cc] && top[r.cc].get(r.i) || null);
     /* a country with a table of every answer (Montenegro): every region is drawn, a language without a figure there faintly */
@@ -531,17 +521,17 @@ async function create(host, id, early) {
 
   /* ---------------------------------------------------------------- legend of a detail view (VIEWS in regional-layer.js) */
   function showLegend() {
-    const v = viewOf(S.sel, S.fam), host = box.parentNode;
+    const v = viewOf(R, S.sel, S.fam), host = box.parentNode;
     if (!host) return;
-    legend = host.querySelector('.alb-legend');
+    legend = host.querySelector('.view-legend');
     if (!v) { if (legend) legend.hidden = true; return; }
-    if (!legend) { legend = document.createElement('div'); legend.className = 'alb-legend'; host.appendChild(legend); }
+    if (!legend) { legend = document.createElement('div'); legend.className = 'view-legend'; host.appendChild(legend); }
     const dn = n => window.__dn ? window.__dn(n) : n, lt = key => window.__lt ? window.__lt(key) : key;
-    /* short: only the part in brackets ("Megleno-Romanian (northern)" -> "Northern") */
-    const name = (n, g) => g.short ? dn(n).replace(/Megleno-Romanian \((.*)\)/, (m, a) => a[0].toUpperCase() + a.slice(1)) : dn(n);
-    const item = (n, g) => '<li style="opacity:' + (S.rules[g.kind](n) > .4 ? 1 : .38) + '"><i style="background:' + (colour(n) || '#888') + '"></i>' + name(n, g) + '</li>';
+    /* short: only the part in brackets ("Name (northern)" -> "Northern") */
+    const name = (n, p) => p.short ? dn(n).replace(/^[^(]*\((.*)\)/, (m, a) => a[0].toUpperCase() + a.slice(1)) : dn(n);
+    const item = (n, p) => '<li style="opacity:' + (S.rule(p.kind, n) > .4 ? 1 : .38) + '"><i style="background:' + (colour(n) || '#888') + '"></i>' + name(n, p) + '</li>';
     legend.setAttribute('aria-label', lt(v.title));
-    legend.innerHTML = '<b>' + lt(v.title) + '</b>' + v.groups.map(g => '<div><span>' + lt(g.label) + '</span><ul>' + g.names.map(n => item(n, g)).join('') + '</ul></div>').join('') +
+    legend.innerHTML = '<b>' + lt(v.title) + '</b>' + v.groups.flatMap(g => (g.parts || []).map(p => ({...p, kind: g.kind || v.kind}))).map(p => '<div><span>' + lt(p.label) + '</span><ul>' + p.names.map(n => item(n, p)).join('') + '</ul></div>').join('') +
       '<small>' + lt(v.credit[0]) + v.credit[1] + '</small>';
     legend.hidden = false;
   }
@@ -550,7 +540,7 @@ async function create(host, id, early) {
   built = true;
   return map.etimo = {      // map.etimo: for the browser console and the checks, as window.__kgl
     map, box,
-    hidePin: HIDEPIN,
+    hidePin: R.hidePin,
     /* (re)attach to the page's map box */
     use(host, c) {
       ctx = c; H = {};
@@ -631,12 +621,14 @@ async function create(host, id, early) {
     hover(n) { if (n !== S.hover) { const was = S.hover; S.hover = n; fade([was && ['areas', was, {h: 0}], n && ['areas', n, {h: 1}]].filter(Boolean), 120); } },
     /* what lies at a point of the box: a detailed area that selects a language, a broad area, or nothing of ours */
     hit(pt) {
-      const alb = albMode();
       for (const ft of map.queryRenderedFeatures([pt.x, pt.y], {layers: ['detail-b', ...fills.map(cc => 'census-' + cc), 'detail-a', 'rounds', 'areas']})) {
         const p = ft.properties, id = ft.layer.id;
         if (id.startsWith('census-')) { const had = cen.get(id.slice(7)); if (had && had.has(ft.id)) return {t: 'census'}; continue; }      // the tiles hold every region: only a drawn one counts
         if (id === 'areas' || id === 'rounds') return {t: 'zone', name: p.name};
-        if (p.kind !== 'me' && (S.dop[p.key] || 0) > 0) return {t: 'lang', name: !alb && ADIAL.has(p.name) ? 'Albanian' : p.name};
+        if (!R.kinds[p.kind].censusReplaces && (S.dop[p.key] || 0) > 0) {
+          const as = R.shownAs[p.name];
+          return {t: 'lang', name: as && !R.views.some(v => v.umbrella === as && viewOn(v, S.sel, S.fam)) ? as : p.name};
+        }
       }
       return null;
     },
