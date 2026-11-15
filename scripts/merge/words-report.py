@@ -64,7 +64,7 @@ def no_special_cases():
     names |= {v[k] for v in areas['views'] for k in ('umbrella', 'census') if k in v} | {n for v in areas['views'] for n in v['languages']}
     hit = re.compile(r'(?<![\w])(' + '|'.join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r')(?![\w])')
     bad = []
-    for f in ('site/map-gl.js', 'site/regional-layer.js', 'scripts/map-next/build.py', 'scripts/areas/census-areas.py', 'src/app/6-app-screens-and-startup.js'):
+    for f in ('site/map-gl.js', 'site/regional-layer.js', 'scripts/map-next/build.py', 'scripts/areas/census-areas.py', 'src/app/6-app-screens-and-startup.js', 'src/app/7-language-colours.js'):
         src = open(os.path.join(ROOT, f), encoding='utf-8').read()
         if f.endswith('.py'):
             tree = ast.parse(src)

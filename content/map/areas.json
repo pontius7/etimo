@@ -538,6 +538,10 @@
      " (Albanian|albanski|албански)$",
      ""
     ]
+   ],
+   "in": [
+    "tree",
+    "legend"
    ]
   },
   {
@@ -564,7 +568,10 @@
      ""
     ]
    ],
-   "capitalise": true
+   "capitalise": true,
+   "in": [
+    "tree"
+   ]
   }
  ]
 }
