@@ -35,6 +35,8 @@ function themeOf(t) {
    which has the same colour). PIN = radius of the disc in screen pixels. How visible and how large each pin is comes
    from the page, pin by pin: o = 0 to 1, s = 1, or larger for the chosen pin and the one under the pointer. */
 const PIN = 6.4, PIN_O = ['coalesce', ['feature-state', 'o'], 0], PIN_S = ['coalesce', ['feature-state', 's'], 1], PIN_BIG = ['>', PIN_S, 1.05];
+/* The ring that goes out once from a pin when its language is chosen (pulse() below): how far it has gone, 0 to 1 (1 = done, unseen). */
+const PULSE_T = ['coalesce', ['feature-state', 't'], 1];
 /* Pin size follows the zoom, so many pins never crowd the map: where many languages show (zoom 4.2 to 5) a pin is a small seed
    of its colour with a thin light edge, no outline and no shadow; it grows smoothly into the full pin (disc, outline, soft
    shadow) only close in (zoom 8). Phones (below the site's one breakpoint, 64rem) draw them a little smaller. The chosen pin
@@ -229,6 +231,7 @@ async function create(host, id, early) {
         census: {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 12, tolerance: .25},
         relief: {type: 'image', coordinates: meta.relief},     // no url: the decoded picture is handed over (style.load below)
         pins:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
+        pulse:  {type: 'geojson', data: {type: 'FeatureCollection', features: []}},
         names:  {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
         labs:   {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: 14},
       },
@@ -263,6 +266,7 @@ async function create(host, id, early) {
         {id: 'pin-shadow', type: 'circle', source: 'pins', paint: {'circle-radius': SHADOW_R, 'circle-color': '#0a1220', 'circle-blur': .85, 'circle-opacity': SHADOW_O, 'circle-translate': [0, 1.6]}},
         {id: 'pin-disc', type: 'circle', source: 'pins', paint: {'circle-radius': PIN_R, 'circle-color': T0.pin, 'circle-opacity': PIN_O, 'circle-stroke-width': PIN_W, 'circle-stroke-color': ['case', PIN_BIG, T0.pinSel, T0.pinEdge], 'circle-stroke-opacity': PIN_O}},
         {id: 'pin-core', type: 'circle', source: 'pins', paint: {'circle-radius': CORE_R, 'circle-color': ['get', 'color'], 'circle-opacity': PIN_O}},
+        {id: 'pin-pulse', type: 'circle', source: 'pulse', paint: {'circle-radius': ['+', 7 * PF, ['*', 22 * PF, PULSE_T]], 'circle-opacity': 0, 'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-opacity': ['*', .6, ['-', 1, PULSE_T]]}},
         /* What the page writes on the map (language, family, district and city names, city dots, the word view's circles), drawn
            here so that nothing of the page is redrawn while the map moves. The page lays them out when the map comes to rest and
            hands each one over as it stands, in screen pixels and in the look its style sheet gives it (labels() below): a name keeps
@@ -351,6 +355,7 @@ async function create(host, id, early) {
     const o = ctx.px([0, 0]), m = ctx.px([1, 0])[0] - o[0];      // the page keeps a pin's place in its own pixels (_xy); back to map units
     const features = ctx.languages.map((l, i) => l._xy && {type: 'Feature', id: i, properties: {color: ctx.color(l)}, geometry: {type: 'Point', coordinates: at((l._xy[0] - o[0]) / m, (l._xy[1] - o[1]) / m)}}).filter(Boolean);
     map.getSource('pins').setData({type: 'FeatureCollection', features});
+    S.pinAt = new Map(features.map(f => [f.id, f]));
   }
   const byName = key => { const pairs = Object.entries(colourOf).flat(); return pairs.length ? ['to-color', ['match', ['get', key], ...pairs, ['get', key === 'lang' ? 'base' : 'color']]] : ['get', key === 'lang' ? 'base' : 'color']; };
   /* Light and dark, and the zoom-dependent relief: only colours change, nothing is reloaded. */
@@ -540,6 +545,20 @@ async function create(host, id, early) {
     },
     /* how visible (o) and how large (s) each pin is: [[number of the language in the page's list, o, s], ...] */
     pinStates(list) { for (const [id, o, s] of list) map.setFeatureState({source: 'pins', id}, {o, s}); },
+    /* one ring goes out from a pin (its number in the page's list) and fades, once, in 600 ms; the pin has its own one-point source */
+    pulse(i) {
+      const f = S.pinAt && S.pinAt.get(i);
+      if (!f) return;
+      map.getSource('pulse').setData({type: 'FeatureCollection', features: [{...f, id: 0}]});
+      cancelAnimationFrame(S.pulseRaf);
+      const t0 = performance.now(), step = now => {
+        if (made?.map !== map) return;
+        const t = Math.min(1, (now - t0) / 600);
+        map.setFeatureState({source: 'pulse', id: 0}, {t: 1 - (1 - t) ** 3});
+        if (t < 1) S.pulseRaf = requestAnimationFrame(step);
+      };
+      step(t0);
+    },
     /* What the page has written at this view (its language and family names, city names and pins, as boxes in pixels of the box,
        and the city names), called when the map is at rest: a census name that would lie on one of those boxes, or that repeats
        a city name written nearby, is left out until the next rest. The boxes of the names are measured in the font they are drawn in. */
