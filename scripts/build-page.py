@@ -30,6 +30,7 @@ sys.path.insert(0, MERGE)
 import palette  # noqa: E402
 import families  # noqa: E402
 import site_pages  # noqa: E402
+from bulk_import import slug  # noqa: E402  (a language's page id without its 'l-', as oa() in the page code)
 
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'site', 'index.html')
@@ -198,8 +199,9 @@ OWN = {'map-gl.js': 'H_MAPGL', 'country-sources.js': 'H_CSRCJS', 'country-source
 HASHED = {'lexicon.json': 'H_LEXICON', 'languages.json': 'H_LANGUAGES', 'world-50s.json': 'H_WORLD', 'terr.json': 'H_TERR'}
 
 
-def hashed_copies():
-    """Copy the startup data to site/h/<name>.<hash>.<ext> (cached for a year, see site/_headers)."""
+def hashed_copies(tv):
+    """Copy the startup data to site/h/<name>.<hash>.<ext> (cached for a year, see site/_headers). tv: the app's final
+    TAXONOMY and SYNONYMS tables (tables()), for the word list's parts (core_split())."""
     hdir = os.path.join(ROOT, 'site', 'h')
     os.makedirs(hdir, exist_ok=True)
     for old in os.listdir(hdir):
@@ -216,6 +218,7 @@ def hashed_copies():
         out[name] = 'h/' + hn
         if name == 'lexicon.json':
             out['_starts'] = home_starters(data, hdir)
+            out['_core'] = core_split(data, hdir, tv['TAXONOMY'], tv['SYNONYMS'])
         if name == 'terr.json':
             out['_terrd'] = terr_split(data, hdir, hn)
     return out
@@ -282,6 +285,62 @@ def terr_split(data, hdir, hn):
     with open(os.path.join(hdir, dn), 'wb') as f:
         f.write(txt)
     return 'h/' + dn
+
+
+def core_cs(meaning, ia, sa):
+    """A word's meanings that the taxonomy knows, synonyms resolved, in order (t.cs in the page code: kPut, kLexBuild)."""
+    out = []
+    for p in str(meaning).split(', '):
+        t = sa.get(p) or p
+        if t in ia and t not in out:
+            out.append(t)
+    return out
+
+
+def core_split(data, hdir, ra, sa):
+    """The core word list (lexicon.json) in parts, so a screen fetches only the words it shows:
+      site/h/core/lang/<id>.<hash>.json   one language's entries as in lexicon.json (its language page and its words)
+      site/h/core/<category>.<hash>.json  every entry with a meaning listed under that category in the taxonomy, as
+                                          [{lang, e: {index: entry}}] in lexicon order (category, meaning and word pages)
+    The index is the entry's place in its language's list, so a word's link (#w<index>-<id>) is the same from every part.
+    Returns {l: {id: hash}, c: {category: hash}}; the page's first lines carry it (window.__kCore, see preloads()). The whole
+    list stays in h/lexicon.<hash>.json for the screens that need every word (home, search, A-Z) and for the others once the
+    page is idle (kLexWhen in the page code). scripts/merge/check-core-split.py checks that the parts give back the list."""
+    L = json.loads(data)
+    cdir = os.path.join(hdir, 'core')
+    shutil.rmtree(cdir, ignore_errors=True)
+    os.makedirs(os.path.join(cdir, 'lang'))
+    ia = {m: c for c, subs in ra.items() for _, ms in subs for m in ms}
+    listed = {c: {m for _, ms in subs for m in ms} for c, subs in ra.items()}
+    out = {'l': {}, 'c': {}}
+
+    def put(rel, obj):
+        txt = json.dumps(obj, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        h = hashlib.sha1(txt).hexdigest()[:10]
+        base, ext = os.path.splitext(rel)
+        with open(os.path.join(cdir, f'{base}.{h}{ext}'), 'wb') as f:
+            f.write(txt)
+        return h
+    by_cat = {c: [] for c in ra}
+    for R in L:
+        if not R['entries']:
+            continue
+        i = slug(R['lang'])
+        assert i and i not in out['l'], f'lexicon.json: language {R["lang"]!r} has no page id of its own ({i!r})'
+        out['l'][i] = put(f'lang/{i}.json', R['entries'])
+        per = {c: {} for c in ra}
+        for k, e in enumerate(R['entries']):
+            cs = set(core_cs(e['meaning'], ia, sa))
+            for c in ra:
+                if cs & listed[c]:
+                    per[c][str(k)] = e
+        for c in ra:
+            if per[c]:
+                by_cat[c].append({'lang': R['lang'], 'e': per[c]})
+    for c in ra:
+        assert re.fullmatch(r'[a-z0-9-]+', c), f'category {c!r}: not usable as a file name'
+        out['c'][c] = put(f'{c}.json', by_cat[c])
+    return out
 
 
 def home_starters(data, hdir, k=3, n=80):
@@ -351,9 +410,11 @@ def preloads(H):
     """What the browser fetches from the first moment, before the page script runs. Every screen needs the three small
     startup files. A map screen (#map, #map-..., #mm-...) then needs the map engine and its settings (the relief is not needed for the
     first picture and would take bandwidth from the tiles), and not
-    the lexicon (8 MB of words, fetched once the map has drawn: kLexWhen in the page code); every other screen needs the
-    lexicon (the home page first one of its small starter files, home_starters()), and there the map engine is fetched quietly once the lexicon is in (before that it would slow the lexicon
-    on a slow connection), so opening the map is quick.
+    the lexicon (8 MB of words, fetched once the map has drawn: kLexWhen in the page code). A language page (#l-, #d<n>-, #w<n>-) and a category (#c-) need only
+    their part of the word list (core_split()); a meaning (#m-) fetches its part from the page code; on those the lexicon
+    follows when the page is idle. Every other screen needs the lexicon (the home page first one of its small starter files,
+    home_starters()). On screens without a map the map engine is fetched quietly once the screen's words are in (before
+    that it would slow them on a slow connection), so opening the map is quick.
     The engine's own files are the hashed copies (own_files()); MapLibre's version is read from the import line."""
     eng = open(os.path.join(ROOT, 'site', 'map-gl.js'), encoding='utf-8').read()
     mapjs = H['map-gl.js']
@@ -362,15 +423,24 @@ def preloads(H):
     worker = f'map-next/vendor/maplibre-gl-worker.mjs?v={mver}'     # MapLibre adds ?v=<its version> to its worker itself
     js = ('(function(){var h=location.hash,d=document,a=function(r,u,f){var l=d.createElement("link");l.rel=r;l.href=u;'
           'if(f){l.as="fetch";l.crossOrigin="anonymous"}d.head.appendChild(l)},map=/^#(map|mm-)/.test(h);'
+          # the word list's parts (core_split()): a language's own words (#l-, #d<n>-, #w<n>-) or a category's (#c-) come first;
+          # a meaning (#m-) asks for its category's part from the page code, which knows the taxonomy
+          f'var K=window.__kCore={jsdump(H["_core"])},pl=/^#(?:l-|[dw]\\d+-)(.+)$/.exec(h),pc=/^#c-(.+)$/.exec(h),'
+          'part=/^#(l-.+|[dw]\\d+-.+|c-.+|m-.+)$/.test(h);'
+          'if(pl&&K.l[pl[1]])a("preload","h/core/lang/"+pl[1]+"."+K.l[pl[1]]+".json",1);'
+          'if(pc&&K.c[pc[1]])a("preload","h/core/"+pc[1]+"."+K.c[pc[1]]+".json",1);'
           f'if(map){{a("modulepreload","{mapjs}");a("modulepreload","{mlib}");a("preload","map-next/data/meta.json",1);'
           f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);a("preload","data/regional/ME.json",1);'
           # the worker and, on phones, the first view's four tiles: fetched (into the HTTP cache: both are cached for a year)
           f'[{json.dumps(worker)}].concat(matchMedia("(max-width: 63.99rem)").matches?{json.dumps(first_tiles())}:[]).forEach(function(u){{fetch(u).then(function(r){{return r.arrayBuffer()}}).catch(function(){{}})}});'
           f'import("./{mapjs}").then(function(m){{window.__etimoMap=m;var go=function(){{m.prewarm&&m.prewarm()}};d.body?go():addEventListener("DOMContentLoaded",go,{{once:true}})}}).catch(function(){{}});'
           '}'
-          f'if(/^#?(words)?$/.test(h)){{var st={json.dumps(H["_starts"])};window.__kStart=st[Math.random()*st.length|0];a("preload",window.__kStart,1)}}'
-          f'if(!/^#(map|map-.+|languages|tree)$/.test(h))a("preload","{H["lexicon.json"]}",1);'
-          f'if(!map)addEventListener("etimo:lex",function(){{setTimeout(function(){{["{mapjs}","{mlib}","{worker}"].forEach(function(u){{a("prefetch",u)}})}},1500)}},{{once:true}})'
+          f'var st=window.__kStarts={json.dumps(H["_starts"])};'
+          'if(/^#?(words)?$/.test(h)){window.__kStart=st[Math.random()*st.length|0];a("preload",window.__kStart,1)}'
+          f'if(!part&&!/^#(map|map-.+|mm-.+|languages|tree)$/.test(h))a("preload","{H["lexicon.json"]}",1);'
+          # the engine follows the screen's words: the whole lexicon, or the part a language, category or meaning page shows from
+          f'if(!map){{var pf=function(){{removeEventListener("etimo:lex",pf);removeEventListener("etimo:lexpart",pf);setTimeout(function(){{["{mapjs}","{mlib}","{worker}"].forEach(function(u){{a("prefetch",u)}})}},1500)}};'
+          'addEventListener("etimo:lex",pf);addEventListener("etimo:lexpart",pf)}'
           '})()')
     # the one font file every screen draws with from the start: Manrope, latin (src/styles/fonts.css, scripts/fonts/self-host.py)
     fcss = open(os.path.join(SRC, 'styles', 'fonts.css'), encoding='utf-8').read()
@@ -394,9 +464,9 @@ def preloads(H):
 
 
 # ---------------------------------------------------------------- 2. placeholders
-def placeholders():
-    """name -> (text, how many times it must occur in the sources)"""
-    H = hashed_copies()
+def placeholders(tv):
+    """name -> (text, how many times it must occur in the sources); tv: the final tables (tables())"""
+    H = hashed_copies(tv)
     shades = dict(palette.ORIGINALS)         # the 78 originals first, then the shades of the merged and your own languages
     shades.update(devter_language_shades())
     shades.update(content_language_shades())
@@ -512,7 +582,8 @@ def tables(text):
         notes.append(f'your meanings +{len(added)} (without sr/sq labels: {[m for m in added if m not in labels]})')
     if CONTENT_LANGS:
         notes.append(f'your languages {len(CONTENT_LANGS)}')
-    return TABLE.sub(lambda m: jsdump(new[m.group(1)]) if m.group(1) in new else m.group(2), text), notes
+    tv = {k: new[k] if k in new else jsval(src[k]) for k in ('TAXONOMY', 'SYNONYMS')}
+    return TABLE.sub(lambda m: jsdump(new[m.group(1)]) if m.group(1) in new else m.group(2), text), notes, tv
 
 
 # ---------------------------------------------------------------- main
@@ -540,9 +611,9 @@ def build(out=OUT):
     if EXTRA:
         text, n = extra_family_css(text)
         notes.append(f'your families {list(EXTRA)} ({n} style rules extended)')
-    P, n_colours = placeholders()
+    text, tnotes, tv = tables(text)      # first: the word list's parts follow the final taxonomy (core_split())
+    P, n_colours = placeholders(tv)
     text = fill(text, P)
-    text, tnotes = tables(text)
     left = re.search(r'<!--@|/\*@|__ETIMO_', text)
     assert not left, f'unreplaced marker in the page: {text[left.start():left.start() + 60]!r}'
     text, app = split_app(text)

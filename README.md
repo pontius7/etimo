@@ -124,6 +124,8 @@ site/                         the published website (Cloudflare serves this fold
   h/                          built: copies with a content hash in the name, cached for a year
     dict/                     full dictionary of each language that has one
     search/                   the search index, in small pieces
+    core/                     the core word list (lexicon.json) in parts: lang/<id> per language, <category> per category
+                              (build-page.py core_split(); the page's first lines name them, window.__kCore)
 
 reference/                    untouched originals of the two apps the site was merged from; the build still
                               reads their data files, and the colour check compares against them
@@ -291,6 +293,10 @@ decided that they should follow 64rem.
 Measured and fixed on 2026-11-13 (details: `scripts/map-next/README.md`, "Tiles and loading order").
 - Map shapes go to the engine as tiles (`site/map-next/tiles/`, cut by `scripts/map-next/build.py`; needs `brew install tippecanoe`).
 - A map screen loads the map first and the lexicon after it; other screens the other way round (`preloads()` in `scripts/build-page.py`).
+- The word list also comes in parts (`core_split()` in `scripts/build-page.py`, `site/h/core/`): a language page and its words
+  fetch only that language's words (`core/lang/<id>`), a category and a meaning only that category's
+  (`core/<category>`); the whole lexicon follows once the page is idle (`kLexWhen`). Home, search and A-Z use the whole
+  lexicon, as before. `scripts/merge/check-core-split.py` (part of the build's checks) proves the parts equal the list.
 - The map engine starts from the page's first lines (`prewarm()`); the home page shows from a small starter file (`home_starters()`).
 - The page's code is its own file, `h/app.<hash>.js` (`split_app()` in `scripts/build-page.py`), cached for a year; tools that
   read its tables use `scripts/page_code.py`. Nothing is fetched at low priority: the map shows only once the page's code has

@@ -1448,7 +1448,7 @@ if(!t)return;
 let n=+t.dataset.i;
 n===Vt?Ja(g[n].id):Jt(n,!0)});
 let tn='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-function gw(){t.querySelectorAll("button[data-go]").forEach(e=>{let n=fa[e.dataset.go],r=!(n&&n.entries&&n.entries.length),a=e.parentNode;
+function gw(){t.querySelectorAll("button[data-go]").forEach(e=>{let n=fa[e.dataset.go],r=!(n&&(n.entries&&n.entries.length||kCM.l[n.id.slice(2)])),a=e.parentNode;
 e.hidden=r,a.classList.contains("acts")&&(a.hidden=r&&!a.querySelector("button:not([data-go])"))}),window.__lexReady||window.addEventListener("etimo:lex",gw,{once:!0})}
 function nn(e){$t(e),Q2.selectAll("text.plabel").classed("fade",t=>t!==e);
 let n=e.info,r=n.sp;
@@ -1566,19 +1566,99 @@ function kTerrD(){return kTDp||(kTDp=fetch(__ETIMO_H_TERRD__).then(r=>r.ok?r.jso
 function kAfterMap(ms){return new Promise(res=>{if(window.__kMapReady)return res();
 let go=()=>{clearTimeout(t),removeEventListener("etimo:mapready",go),res()},t=setTimeout(go,ms||8e3);
 addEventListener("etimo:mapready",go)})}
-function kLexWhen(){let late=()=>/^(map|map-.+|languages|tree)$/.test(location.hash.replace("#",""));
-if(!late())return Promise.resolve();
-let wheel=/^(languages|tree)$/.test(location.hash.replace("#",""));
-return new Promise(res=>{let go=()=>{removeEventListener("hashchange",chk),res()},chk=()=>{late()||go()};
-addEventListener("hashchange",chk),wheel?setTimeout(go,1500):kAfterMap().then(go)})}
+/* When the lexicon is fetched. "now": home, search, A-Z and anything else that needs every word. "map" (the map, also its word
+   view) waits for the map's first picture; "wheel" 1.5 s. "part": a language, word,
+   category or meaning page shows from its part of the list (kLang, kCat) and the lexicon follows once that is on screen and
+   nobody has touched the page for 2 s (then when the browser is idle), so it never competes with the page's first rows or
+   with a scroll. Going to a "now" screen fetches it at once; so does a part that fails to arrive (kLexGo). */
+let kLexGo=null;
+/* The address (without #) as a screen: the router's one parser (Up), also asked by the loader (kParts, kLexKind). */
+function kRoute(e){if(fa[e])return{v:"lang",
+L:fa[e]};
+let FDm=/^d(\d+)-(.+)$/.exec(e);
+if(FDm&&fa["l-"+FDm[2]])return{v:"lang",
+L:fa["l-"+FDm[2]],
+d:+FDm[1]};
+let t=/^w(\d+)-(.+)$/.exec(e);
+if(t){let e=fa["l-"+t[2]],
+n=e&&e.entries[+t[1]];
+if(e&&!kLangOk(e))return{v:"word",
+L:e,
+e:null};
+if(n)return{v:"word",
+L:e,
+e:n}}
+if(e.startsWith("m-")){let t=ma(e.slice(2));
+if(t)return{v:"concept",
+c:t}}
+if(e.startsWith("mm-")){let t=ma(e.slice(3));
+if(t)return{v:"map",
+conc:t}}
+return e.startsWith("c-")&&aa.indexOf(e.slice(2))>-1?{v:"cat",
+cat:e.slice(2)}:"languages"===e||"tree"===e?{v:"langs"}:"map"===e?{v:"map"}:e.startsWith("map-")?{v:"map",
+sel:e.slice(4)}:"az"===e?{v:"az"}:"search"===e?{v:"search"}:{v:"home"}}
+function kLexKind(){let v=kRoute(location.hash.replace("#","")).v;
+return"map"===v?"map":"langs"===v?"wheel":/^(lang|word|cat|concept)$/.test(v)?"part":"now"}
+function kLexWhen(){let k=kLexKind();if("now"===k)return Promise.resolve();
+return new Promise(res=>{let on=1,qt=0,ev=["scroll","pointerdown","keydown","touchstart","wheel"],
+go=()=>{if(!on)return;on=0,kLexGo=null,clearTimeout(qt),removeEventListener("hashchange",chk),ev.forEach(e=>removeEventListener(e,poke,!0)),res()},
+poke=()=>{clearTimeout(qt),qt=0,"part"===kLexKind()&&(qt=setTimeout(()=>window.requestIdleCallback?requestIdleCallback(go,{timeout:2e3}):go(),2e3))},
+part=()=>kPartP().then(()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)))).then(poke,go),
+k0=k,chk=()=>{let k=kLexKind();"now"===k?go():"part"===k?part():"part"===k0&&("map"===k?kAfterMap().then(go):setTimeout(go,1500))};
+kLexGo=go,ev.forEach(e=>addEventListener(e,poke,{capture:!0,passive:!0})),addEventListener("hashchange",chk);
+"map"===k?kAfterMap().then(go):"wheel"===k?setTimeout(go,1500):part()})}
+/* The core word list in parts (core_split() in scripts/build-page.py): h/core/lang/<id>.<hash>.json holds one language's
+   entries; h/core/<category>.<hash>.json every entry with a meaning listed under that category, as [{lang, e: {index: entry}}].
+   window.__kCore (the page's first lines) = {l: {id: hash}, c: {category: hash}}. kPut puts an entry at its place in its
+   language's list, as kLexBuild does, so a word keeps its link (hi); an entry a part has already put there is kept, so every
+   screen points at the same one. kLang(L) / kCat(c) fetch a part once and resolve when it is in place; kLangOk / kCatOk say
+   whether it is (always, once the whole lexicon is in). A part fills ha for every meaning listed under its category, with the
+   same words in the same order as kLexBuild (lexicon order). "etimo:lexpart" redraws the screen that waited for it. */
+let kCM=window.__kCore||{l:{},c:{}},kCP={},kFull=new WeakSet,kLD=new Set,kCD=new Set;
+function kCoreGet(k,v){let u="h/core/"+("l"===k?"lang/":"")+v+"."+kCM[k][v]+".json";
+return kCP[u]||(kCP[u]=fetch(u).then(r=>{if(!r.ok)throw Error(u+" "+r.status);return r.json()}).catch(e=>{throw delete kCP[u],e}))}
+function kPrep(e,t){let r=[];t._l=e.lang,t.meaning.split(", ").forEach(e=>{let t=sa[e]||e;ia[t]&&0>r.indexOf(t)&&r.push(t)}),t.cs=r,t.cats={},r.forEach(n=>{t.cats[ia[n]]=1})}
+function kPut(e,i,t){let o=e.entries[i];if(o&&kFull.has(o))return o;
+return kPrep(e,t),kFull.add(t),e.entries[i]=t}
+function kLangOk(e){return!!window.__lexReady||!kCM.l[e.id.slice(2)]||kLD.has(e)}
+function kCatOk(c){return!!window.__lexReady||!c||!kCM.c[c]||kCD.has(c)}
+function kLang(e){return kLangOk(e)?Promise.resolve():kCoreGet("l",e.id.slice(2)).then(S=>{if(kLangOk(e))return;
+for(let i=0;i<S.length;i++)kPut(e,i,S[i]);e.entries.length=S.length,kLD.add(e),window.dispatchEvent(new Event("etimo:lexpart"))})}
+function kCat(c){return kCatOk(c)?Promise.resolve():kCoreGet("c",c).then(S=>{if(kCatOk(c))return;
+let by={},H={};ua.forEach(e=>{by[e.lang]=e}),ra[c].forEach(s=>s[1].forEach(m=>{H[m]=[]}));
+for(const R of S){let e=by[R.lang];if(!e)continue;for(const k in R.e){let t=kPut(e,+k,R.e[k]);t.cs.forEach(n=>{H[n]&&H[n].push({L:e,e:t})})}}
+for(const m in H){let a=ha[m]||(ha[m]=[]);a.length=0;for(const x of H[m])a.push(x)}
+kCD.add(c),window.dispatchEvent(new Event("etimo:lexpart"))})}
+/* What a screen (the router's b, kRoute) needs before it shows: one item per part, true when it is in, otherwise the promise
+   of it (a word that is not in yet: false, its category follows once its language is in); home needs a starter, search and A-Z
+   the whole lexicon (false). */
+function kParts(b){let c=b.v,P=[];
+if("home"===c)return window.__lexStart||kStartGet(),[!!window.__lexStart];
+if("search"===c||"az"===c)return[!1];
+"lang"===c&&P.push(kLangOk(b.L)||kLang(b.L)),
+"word"===c&&(P.push(kLangOk(b.L)||kLang(b.L)),b.e?b.e.cs[0]&&P.push(kCatOk(ia[b.e.cs[0]])||kCat(ia[b.e.cs[0]])):P.push(!1)),
+"cat"===c&&P.push(kCatOk(b.cat)||kCat(b.cat)),
+"concept"===c&&P.push(kCatOk(ia[b.c])||kCat(ia[b.c]));
+return P}
+function kNeed(b){if(window.__lexReady)return!0;
+let P=kParts(b);
+P.forEach(p=>p&&p.catch&&p.catch(()=>{kLexGo&&kLexGo()}));
+return P.every(p=>!0===p)}
+function kPartP(){let h=()=>kParts(kRoute(location.hash.replace("#",""))),P=h();
+return Promise.all(P).then(()=>P.includes(!1)?Promise.all(h()):0)}
 /* The home page's starter (a file of home_starters() in scripts/build-page.py, chosen in the page's first lines): the same
    lists as kLexBuild makes, from its few words, each at its place in its language's list. The home page shows from these
-   (window.__lexStart) and keeps what it shows; kLexBuild then puts the full lists in place. */
+   (window.__lexStart) and keeps what it shows; kLexBuild then puts the full lists in place. A word a part has already put in
+   place is used as it is, and a meaning whose category part is in keeps its full list. Home opened from another screen before
+   the lexicon is in takes a starter too (kStartGet; window.__kStarts from the first lines). */
 function kLexStart(S){let by={};ua.forEach(e=>{by[e.lang]=e});
 for(const R of S){let e=by[R.lang];if(!e)continue;
-for(const k in R.e){let t=R.e[k],n,r;e.entries[+k]=t;
-t._l=e.lang,n=t.meaning,r=[],n.split(", ").forEach(e=>{let t=sa[e]||e;
-ia[t]&&0>r.indexOf(t)&&r.push(t)}),t.cs=r,t.cats={},t.cs.forEach(n=>{t.cats[ia[n]]=1,ha[n].push({L:e,e:t})});}}}
+for(const k in R.e){let o=e.entries[+k],t=R.e[k];
+if(o&&kFull.has(o))t=o;else e.entries[+k]=t,kPrep(e,t);
+t.cs.forEach(n=>{kCD.has(ia[n])||ha[n].push({L:e,e:t})})}}}
+let kSG=null;
+function kStartGet(){let s=window.__kStarts||[],u=window.__kStart||s[Math.random()*s.length|0];
+kSG||window.__lexReady||!u||(kSG=fetch(u).then(r=>r.ok?r.json():null).then(S=>{S&&!window.__lexReady&&(kLexStart(S),window.__lexStart=!0,window.dispatchEvent(new Event("etimo:lexstart")))}).catch(()=>{}))}
 /* The word lists from the lexicon, built in slices of about 8 ms with the main thread given back in between, so a tap or a
    map move never waits for them. The result is the one a single long run gives: the same lists, in the same order (each
    language's words sorted on their own, then the sorted languages merged; ties keep their order, as a stable sort does).
@@ -1589,9 +1669,10 @@ by={},HA={},EN=[],cmp=(e,t)=>e.k.localeCompare(t.k,"en")||e.L.lang.localeCompare
 ua.forEach(e=>{by[e.lang]=e}),Object.keys(ha).forEach(k=>{HA[k]=[]});
 {let ha=HA;
 for(const R of L){let e=by[R.lang];if(!e)continue;EN.push([e,R.entries]);
-for(let i=0;i<R.entries.length;i++){let t=R.entries[i],n,r;
-t._l=e.lang,n=t.meaning,r=[],n.split(", ").forEach(e=>{let t=sa[e]||e;
-ia[t]&&0>r.indexOf(t)&&r.push(t)}),t.cs=r,t.cats={},t.cs.forEach(n=>{t.cats[ia[n]]=1,ha[n].push({L:e,e:t})});
+for(let i=0;i<R.entries.length;i++){let t=R.entries[i],o=e.entries[i];
+/* an entry a part (kPut) has already put in place stays: the screens that show it keep pointing at it */
+if(o&&kFull.has(o))t=R.entries[i]=o;else kPrep(e,t),kFull.add(t);
+t.cs.forEach(n=>{ha[n].push({L:e,e:t})});
 if(!(i&255)&&(g=gap()))await g}}}
 let lists=[],at=new Map(EN);
 for(const e of ua){let es=at.has(e)?at.get(e):e.entries,a=[];
@@ -1653,30 +1734,10 @@ copy:v}=pi();
 (0,m.useEffect)(()=>{let e=()=>{kHN++,r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)};
 return window.addEventListener("hashchange",e),()=>window.removeEventListener("hashchange",e)},[]),
 (0,m.useEffect)(()=>{let e=()=>p(e=>e+1);
-return window.addEventListener("etimo:lex",e),window.addEventListener("etimo:lexstart",e),()=>{window.removeEventListener("etimo:lex",e),window.removeEventListener("etimo:lexstart",e)}},[]),
+return window.addEventListener("etimo:lex",e),window.addEventListener("etimo:lexstart",e),window.addEventListener("etimo:lexpart",e),()=>{window.removeEventListener("etimo:lex",e),window.removeEventListener("etimo:lexstart",e),window.removeEventListener("etimo:lexpart",e)}},[]),
 (0,m.useEffect)(()=>{let e=window.matchMedia("(prefers-color-scheme: dark)"),t=()=>o(Gp()?"dark":"light");
 return e.addEventListener?.("change",t),()=>e.removeEventListener?.("change",t)},[]);
-let b=function(e){if(fa[e])return{v:"lang",
-L:fa[e]};
-let FDm=/^d(\d+)-(.+)$/.exec(e);
-if(FDm&&fa["l-"+FDm[2]])return{v:"lang",
-L:fa["l-"+FDm[2]],
-d:+FDm[1]};
-let t=/^w(\d+)-(.+)$/.exec(e);
-if(t){let e=fa["l-"+t[2]],
-n=e&&e.entries[+t[1]];
-if(n)return{v:"word",
-L:e,
-e:n}}
-if(e.startsWith("m-")){let t=ma(e.slice(2));
-if(t)return{v:"concept",
-c:t}}
-if(e.startsWith("mm-")){let t=ma(e.slice(3));
-if(t)return{v:"map",
-conc:t}}
-return e.startsWith("c-")&&aa.indexOf(e.slice(2))>-1?{v:"cat",
-cat:e.slice(2)}:"languages"===e||"tree"===e?{v:"langs"}:"map"===e?{v:"map"}:e.startsWith("map-")?{v:"map",
-sel:e.slice(4)}:"az"===e?{v:"az"}:"search"===e?{v:"search"}:{v:"home"}}(n),
+let b=kRoute(n),
 y=ja();
 function k(e){ga.ui=e;
 try{localStorage.setItem("khl-ui",e)}catch{}
@@ -1692,7 +1753,7 @@ S="concept"===b.v?(e=b.c,()=>ha[e].slice().sort((e,t)=>Na(e.L).localeCompare(Na(
 _="langs"===b.v||"lang"===b.v?"lang":"map"!==b.v||b.conc?"search"===b.v?"search":"words":"map",
 q="sr"===a||"sc"===a,
 E=null;
-if(!window.__lexReady&&!(window.__lexStart&&"home"===b.v)&&"map"!==b.v&&"langs"!==b.v)E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("p",{className:"boot",children:y.loading})});
+if(!kNeed(b))E=(0,f.jsx)("div",{className:"wrap",children:(0,f.jsx)("p",{className:"boot",children:y.loading})});
 else if("home"===b.v)E=(0,f.jsx)(fp,{ui:a},"home"+kHN);
 else if("cat"===b.v)E=(0,f.jsx)(gp,{cat:b.cat});
 else{let e="word"===b.v?(0,f.jsx)(xp,{L:b.L,e:b.e},n):"concept"===b.v?(0,f.jsx)(yp,{c:b.c},b.c):"lang"===b.v?(0,f.jsx)(kp,{L:b.L,d:b.d},b.L.id+(null!=b.d?"d"+b.d:"")):"langs"===b.v?(0,f.jsx)(Pp,{ui:a,theme:s}):"search"===b.v?(0,f.jsx)(Jh,{},"s"+h):"map"===b.v?(0,f.jsx)(Dp,{selId:b.sel||null,conc:b.conc||null,ui:a,theme:s},(b.sel||"")+(b.conc||"")):(0,f.jsx)(wp,{});
@@ -1760,10 +1821,14 @@ t=0,
 n=document.getElementById("root");
 n&&new MutationObserver(()=>{t||(t=requestAnimationFrame(()=>{t=0,e()}))}).observe(n,{childList:!0,subtree:!0}),
 addEventListener("resize",()=>document.querySelectorAll(".kmtn").forEach(e=>e.remove())||e())}catch(e){}}();
+/* a meaning (#m-) asks for its category's part now, while the start-up files come: the first lines cannot (they do not
+   know the taxonomy); a language or category part is already on its way from them. Not kParts(kRoute(..)): kCat
+   needs the language list (ua), which is not there yet, so this only starts the fetch. */
+(function(){let m=/^#m-(.+)$/.exec(location.hash);m&&(m=ma(m[1]))&&kCM.c[ia[m]]&&kCoreGet("c",ia[m]).catch(()=>{})})();
 let Hp=document.getElementById("root");
 Hp.innerHTML='<div class="wrap"><p class="boot">'+ja().loading+"</p></div>",
 Promise.all([__ETIMO_H_LANGUAGES__,__ETIMO_H_WORLD__].map(e=>fetch(e).then(t=>{if(!t.ok)throw Error(e+" "+t.status);
 return t.json()})).concat([fetch(__ETIMO_H_TERR__).then(e=>e.ok?e.json():{}).catch(()=>({}))])).then(([t,n,r])=>{ua=Object.keys(t).map(e=>({lang:e,place:t[e].pl,family:t[e].fam,gc:t[e].gc,entries:[]})),ca=n,Object.keys(ia).forEach(e=>{ha[e]=[]}),ua.forEach(e=>{e.id="l-"+oa(e.lang),e.info=t[e.lang]||{},fa[e.id]=e}),pa=[],da=r||{},window.__lexReady=!1,Hp.innerHTML="",(0,p.createRoot)(Hp).render((0,f.jsx)(Up,{})),
-window.__kStart&&fetch(window.__kStart).then(r=>r.ok?r.json():null).then(S=>{S&&!window.__lexReady&&(kLexStart(S),window.__lexStart=!0,window.dispatchEvent(new Event("etimo:lexstart")))}).catch(()=>{}),kLexWhen().then(()=>{let u=__ETIMO_H_LEXICON__;
+window.__kStart&&kStartGet(),kLexWhen().then(()=>{let u=__ETIMO_H_LEXICON__;
 return fetch(u).then(t=>{if(!t.ok)throw Error(u+" "+t.status);
 return t.json()})}).then(kLexBuild).then(()=>{window.__lexReady=!0,window.dispatchEvent(new Event("etimo:lex"))}).catch(e=>{console.error(e),Hp.querySelector(".boot")&&(Hp.querySelector(".boot").textContent=ja().loadErr)})}).catch(e=>{console.error(e),Hp.innerHTML='<div class="wrap"><p class="boot">'+ja().loadErr+"</p></div>"});

@@ -34,16 +34,18 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 - **What loads first.** `scripts/build-page.py` (`preloads()`) writes a few lines at the top of the page: on a map screen the
   engine, its settings and the relief are fetched from the first moment and the lexicon (8 MB of words) only after the map has
   drawn ("etimo:mapready", sent by `map-gl.js` at the first quiet moment after a tile came; `kLexWhen` / `kAfterMap` in the
-  page code); the region shapes (`today.json`) and districts also wait for it. Other screens fetch the lexicon at once and
-  the engine quietly 1.5 s after the lexicon is in. The lexicon's lists are built in slices of 8 ms (`kLexBuild`).
+  page code); the region shapes (`today.json`) and districts also wait for it. A language, word, category or meaning page shows from its part (`core_split()`, `kLang`/`kCat`) and fetches
+  the lexicon once nobody has touched the page for 2 s; home, search and A-Z fetch it at once. On screens without a map the
+  engine follows quietly 1.5 s after the screen's words are in. The lexicon's lists are built in slices of 8 ms (`kLexBuild`).
 - **Map started early (2026-11-13).** On a map screen the page's first lines also start the engine (`prewarm()` in
   `site/map-gl.js`) in a hidden box the size of the screen, and fetch its worker and, on phones, the first view's four tiles
   (`first_tiles()` in `scripts/build-page.py`), all while the page's own code still downloads; `attach()` then moves the ready
   map into the page, which lays out its names a frame later. "etimo:mapready" waits until the map is drawn in the page.
   Fast phone profile over 4G: map on screen 1.7 s (full speed), 1.95 s (processor 2 times slower).
 - **Home page starter.** The home page shows its words from a small file (`home_starters()` in `scripts/build-page.py`, about
-  70 KB, one of three at random) and keeps them when the full lexicon arrives (`kLexStart`, `kHN` in the page code); other
-  screens wait for the full lexicon as before. Mid-range phone over 4G: words on screen 3.6 s -> 1.7 s.
+  70 KB, one of three at random) and keeps them when the full lexicon arrives (`kLexStart`, `kHN` in the page code); so does
+  home opened from another screen before the lexicon is in (`kStartGet`). Search and A-Z wait for the full lexicon.
+  Mid-range phone over 4G: words on screen 3.6 s -> 1.7 s.
 - **Area outlines later (2026-11-13).** The page starts with a small copy of `terr.json` (each language area's box, size and
   whether it has an outline, 7.6 KB instead of 940 KB); the outlines come in `h/terr-d.<hash>.json` with the region shapes,
   once the map has drawn (`terr_split()` in `scripts/build-page.py`, `kTerrD()` in the page code). Everything that reads an
