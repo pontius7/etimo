@@ -464,6 +464,10 @@ def preloads(H):
 
 
 # ---------------------------------------------------------------- 2. placeholders
+with open(os.path.join(ROOT, 'content', 'map', 'areas.json'), encoding='utf-8') as _f:
+    AREAS = json.load(_f)
+
+
 def placeholders(tv):
     """name -> (text, how many times it must occur in the sources); tv: the final tables (tables())"""
     H = hashed_copies(tv)
@@ -494,6 +498,11 @@ def placeholders(tv):
         'EXTRA_FAM_LABELS': (''.join(f',[{jsdump(f)},{d["label"][0]},{d["label"][1]}]' for f, d in EXTRA.items()), 1),
         'EXTRA_DOT_SELECTORS': (''.join(f'.dot.{f},' for f in EXTRA), 1),
         'EXTRA_TREE_ORDER': (''.join(f'\ndetails.vb.d1:has(>summary .dot.{f}){{order:{10 + i}}}' for i, f in enumerate(EXTRA)), 1),
+        # the map's special cases the page code applies by field (content/map/areas.json): languages left out of the tree and the
+        # wheel, name tidying rules, languages a country lists among its main ones
+        'TREE_HIDDEN': (jsdump([e['name'] for e in AREAS['languages'] if e.get('notInTree')]), 1),
+        'NAME_RULES': (jsdump(AREAS['nameRules']), 1),
+        'PROMOTED': (jsdump({c['iso3']: c['mainAlso'] for c in AREAS['countries'] if c.get('mainAlso')}), 1),
         # map colour of every language after Etimo's own 78: the merged ones, then yours
         'LANG_COLOURS': (jsdump(shades)[1:-1], 1),
     }

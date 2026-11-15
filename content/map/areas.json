@@ -291,7 +291,8 @@
   {
    "name": "Albanian",
    "hidePin": true,
-   "hideZone": true
+   "hideZone": true,
+   "notInTree": true
   },
   {
    "name": "Farsherot",
@@ -463,7 +464,11 @@
     "Niksic": "Nikšić",
     "Zabljak": "Žabljak",
     "Rozaje": "Rožaje"
-   }
+   },
+   "iso3": "MNE",
+   "mainAlso": [
+    "Bosnian"
+   ]
   },
   {
    "name": "Croatia",
@@ -523,6 +528,43 @@
      "BRČKO DISTRIKT BOSNE I HERCEGOVINE BRČKO DISTRICT OF BOSNIA AND HERZEGOVINA": "Brcko District"
     }
    }
+  }
+ ],
+ "nameRules": [
+  {
+   "family": "Albanian",
+   "replace": [
+    [
+     " (Albanian|albanski|албански)$",
+     ""
+    ]
+   ]
+  },
+  {
+   "family": "Albanian",
+   "path": "Gheg",
+   "except": [
+    "Gheg Albanian"
+   ],
+   "replace": [
+    [
+     " (Gheg|gegijski|гегијски)$",
+     ""
+    ],
+    [
+     " (dijalekat|дијалекат)$",
+     ""
+    ],
+    [
+     "^Gegnishtja e Rekës së Epërme$",
+     "Reka e Epërme"
+    ],
+    [
+     "^Gegnishtja ",
+     ""
+    ]
+   ],
+   "capitalise": true
   }
  ]
 }
