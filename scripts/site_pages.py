@@ -97,7 +97,7 @@ def readable_page(name, info, entries, colours, ident):
         facts=''.join(f'<dt>{esc(k)}</dt><dd>{esc(v)}</dd>' for k, v in facts))
 
 
-def write_readable(english):
+def write_readable(english, main_in):
     """Every language's page, their stylesheet, robots.txt, sitemap.xml and _redirects (old page addresses to new ones).
     english: data name -> name in the English interface (build-page.py english_names()). Reads the data files the build already has."""
     load = lambda n: json.load(open(os.path.join(DATA_SRC, n), encoding='utf-8'))
@@ -108,8 +108,10 @@ def write_readable(english):
     for ident in sorted(ids):
         name = ids[ident]
         os.makedirs(os.path.join(SITE, 'l', ident))
+        info = dict(languages[name])
+        info['pl'] = ', '.join([info['pl']] + [c for c in main_in.get(name, []) if c not in info['pl']])   # as the app's Ma()
         write(f'l/{ident}/index.html', readable_page(
-            english.get(name, name), languages[name], entries[name], {t: palette[t][name] for t in ('light', 'dark')}, ident))
+            english.get(name, name), info, entries[name], {t: palette[t][name] for t in ('light', 'dark')}, ident))
     styles = lambda n: open(os.path.join(ROOT, 'src', 'styles', n), encoding='utf-8').read()
     write('l/page.css', styles('fonts.css').replace('url(fonts/', 'url(/fonts/') + styles('tokens.css') + READABLE_CSS)
     # Cloudflare reads _redirects: a page address made by the old id rule moves to the new one (301)
@@ -121,6 +123,6 @@ def write_readable(english):
           + ''.join(f'<url><loc>{u}</loc></url>\n' for u in urls) + '</urlset>\n')
 
 
-def write_all(english):
+def write_all(english, main_in):
     write_manifest()
-    write_readable(english)
+    write_readable(english, main_in)
