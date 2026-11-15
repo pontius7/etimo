@@ -76,7 +76,17 @@ g.adm path{display:none}
 .view-legend li{display:flex;align-items:center;gap:7px}
 .view-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
 .view-legend small{display:block;margin-top:8px;font-size:9.5px;opacity:.6;line-height:1.35}
-@media(max-width:600px){.view-legend{bottom:96px;font-size:10.5px;padding:8px 10px}.view-legend small{display:none}}
+/* Phone (below the site's 64rem): top left under the search field, folded to its title until tapped (site/map-gl.js showLegend), so
+   it never covers the language card at the bottom or the zoom buttons at the side; open, it scrolls inside 45% of the screen.
+   Desktop (64rem and up): bottom right, always open (the rules above). */
+@media(width<64rem){.view-legend{top:68px;bottom:auto;left:max(12px,env(safe-area-inset-left,0px));right:auto;font-size:10.5px;padding:8px 10px;max-height:45vh;overflow:auto}
+.view-legend small{display:none}
+.view-legend .vl-t{all:unset;display:flex;align-items:center;gap:6px;cursor:pointer}
+.view-legend .vl-t b{margin:0}
+.view-legend .vl-t::after{content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.view-legend.shut .vl-t::after{transform:rotate(-45deg)}
+.view-legend .vl-t:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:4px}
+.view-legend.shut>:not(.vl-t){display:none}}
 
 /* The search bar's empty container must not cover the side panel's close button. */
 .kfil{pointer-events:none}

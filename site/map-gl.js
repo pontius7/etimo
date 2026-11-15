@@ -140,12 +140,16 @@ async function create(host, id, early) {
      outline, h = the outline under the pointer, i = the first view's fade. The layers' rules only read it and never
      change, so a choice or a hover re-processes no tile. */
   const HIST = new Set(meta.hist);
+  /* languages with no drawn area have a circle around their pin (scripts/map-next/build.py circles()): it shows only while that
+     language is chosen; at rest the pin alone stands for it (a disc around every such pin read as a stain on the map) */
+  const ROUND = new Set(meta.rounds || []);
   function targets() {
     const sel = S.sel, fam = S.fam, wide = exclusiveOf(R, sel, fam), out = [];
     /* the broad language areas, and the chosen one's outline (not while a view replaces it) */
     const plain = sel && !R.views.some(v => viewOn(v, sel, fam));
     for (const [zf, names] of Object.entries(meta.zones)) for (const n of names) out.push(['areas', n, {
-      o: S.conc ? (sel && n === sel.lang ? .5 : ZONE * .3)
+      o: ROUND.has(n) ? (sel && n === sel.lang ? (S.conc ? .5 : OP.sel) : 0)
+        : S.conc ? (sel && n === sel.lang ? .5 : ZONE * .3)
         : sel ? (n === sel.lang ? OP.sel : zf === sel.family ? OP.fam : OP.other)
         : fam ? (zf === fam ? ZONE * 1.1 : .12)
         : HIST.has(n) ? .11 : ZONE,
@@ -238,11 +242,11 @@ async function create(host, id, early) {
         {id: 'dia', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['==', kind, 'dia'], paint: {'fill-color': ['get', 'light'], 'fill-opacity': ['*', FS('o', ZONE * .5), IN]}},
         {id: 'areas', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['all', ['!', ['has', 'kind']], ['!', ['has', 'round']]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', ['case', ['has', 'hist'], .11, ZONE]), IN]}},
         /* languages without a drawn area: a circle around the pin. A layer of their own, so a circle lies over the area under it instead of replacing it */
-        {id: 'rounds', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', ZONE), IN]}},
+        {id: 'rounds', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['has', 'round'], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},     // unseen until its language is chosen (targets())
         {id: 'detail-a', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', underCensus]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
         /* here: the census view, a fill and a stripe layer per country it draws in (census() below) */
         {id: 'detail-b', type: 'fill', source: 'base', 'source-layer': 'areas', filter: ['in', kind, ['literal', Object.keys(R.kinds).filter(k => !underCensus.includes(k))]], paint: {'fill-color': ['get', 'color'], 'fill-opacity': ['*', FS('o', 0), IN]}},
-        {id: 'areas-hist', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['has', 'hist'], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': ['*', .6, IN], 'line-dasharray': [2.5, 2.1]}},
+        {id: 'areas-hist', type: 'line', source: 'base', 'source-layer': 'areas', filter: ['all', ['has', 'hist'], ['!', ['has', 'round']]], paint: {'line-color': ['get', 'color'], 'line-width': 1.2, 'line-opacity': ['*', .6, IN], 'line-dasharray': [2.5, 2.1]}},
         {id: 'relief', type: 'raster', source: 'relief', paint: {'raster-fade-duration': 0, 'raster-resampling': 'linear', 'raster-opacity': reliefOp(T0)}},
         /* One set of outlines: the coast is the edge of the land shapes; borders, region and district lines are cut to the same shapes. */
         {id: 'coast', type: 'line', source: 'base', 'source-layer': 'land', layout: round, paint: {'line-color': T0.coast, 'line-width': .9}},
@@ -364,6 +368,8 @@ async function create(host, id, early) {
     for (const id of ['detail-a', 'detail-b']) map.setPaintProperty(id, 'fill-color', col);
     for (const id of ['areas-hist', 'hover-edge', 'sel-edge']) if (map.getLayer(id)) map.setPaintProperty(id, 'line-color', col);
     map.setPaintProperty('pin-disc', 'circle-color', P.pin);
+    /* the pins' soft shadow is near-black: on the dark map it read as a dark disc around every pin, so only the light theme has it */
+    map.setPaintProperty('pin-shadow', 'circle-opacity', S.theme === 'dark' ? 0 : SHADOW_O);
     map.setPaintProperty('pin-disc', 'circle-stroke-color', ['case', PIN_BIG, P.pinSel, P.pinEdge]);
     map.setPaintProperty('coast', 'line-color', P.coast);
     map.setPaintProperty('border', 'line-color', P.border);
@@ -530,13 +536,20 @@ async function create(host, id, early) {
     if (!host) return;
     legend = host.querySelector('.view-legend');
     if (!v) { if (legend) legend.hidden = true; return; }
-    if (!legend) { legend = document.createElement('div'); legend.className = 'view-legend'; host.appendChild(legend); }
+    /* phones (below the site's 64rem): the key starts folded to its title under the search field, clear of the language card at the
+       bottom and the zoom buttons at the side; a tap on the title opens or folds it. Desktop: always open, as before. */
+    if (!legend) {
+      legend = document.createElement('div'); legend.className = 'view-legend';
+      if (PHONE) legend.classList.add('shut');
+      legend.addEventListener('click', e => { if (e.target.closest('.vl-t')) { legend.classList.toggle('shut'); legend.querySelector('.vl-t').setAttribute('aria-expanded', !legend.classList.contains('shut')); } });
+      host.appendChild(legend);
+    }
     const dn = n => window.__dn ? window.__dn(n) : n, lt = key => window.__lt ? window.__lt(key) : key;
     /* short: only the part in brackets ("Name (northern)" -> "Northern") */
     const name = (n, p) => p.short ? dn(n).replace(/^[^(]*\((.*)\)/, (m, a) => a[0].toUpperCase() + a.slice(1)) : dn(n);
     const item = (n, p) => '<li style="opacity:' + (S.rule(p.kind, n) > .4 ? 1 : .38) + '"><i style="background:' + (colour(n) || '#888') + '"></i>' + name(n, p) + '</li>';
     legend.setAttribute('aria-label', lt(v.title));
-    legend.innerHTML = '<b>' + lt(v.title) + '</b>' + v.groups.flatMap(g => (g.parts || []).map(p => ({...p, kind: g.kind || v.kind}))).map(p => '<div><span>' + lt(p.label) + '</span><ul>' + p.names.map(n => item(n, p)).join('') + '</ul></div>').join('') +
+    legend.innerHTML = (PHONE ? '<button type="button" class="vl-t" aria-expanded="' + !legend.classList.contains('shut') + '"><b>' + lt(v.title) + '</b></button>' : '<b>' + lt(v.title) + '</b>') + v.groups.flatMap(g => (g.parts || []).map(p => ({...p, kind: g.kind || v.kind}))).map(p => '<div><span>' + lt(p.label) + '</span><ul>' + p.names.map(n => item(n, p)).join('') + '</ul></div>').join('') +
       '<small>' + lt(v.credit[0]) + v.credit[1] + '</small>';
     legend.hidden = false;
   }
