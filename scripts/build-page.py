@@ -26,7 +26,7 @@ import csv, glob, hashlib, json, os, re, shutil, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..'))
 MERGE = os.path.join(HERE, 'merge')
-sys.path.insert(0, MERGE)
+sys.path[:0] = [MERGE, HERE]      # also when another script loads this file (scripts/merge/check-core-split.py)
 import palette  # noqa: E402
 import families  # noqa: E402
 import site_pages  # noqa: E402
