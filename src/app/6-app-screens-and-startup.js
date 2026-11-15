@@ -1668,6 +1668,25 @@ if(gap<=0)return[[-180,s],[180,n]];
 let W=gi<0?m[0][0]:m[gi][0],E=gi<0?m[m.length-1][1]:m[gi-1][1],nm=v=>((v+180)%360+360)%360-180;
 return[[nm(W),s],[E>180?nm(E):E,n]]}
 let kHN=0;
+/* A5, screen to screen: the browser's View Transitions cross-fade the old and the new screen (150 ms, main.css) and carry an element
+   from the tapped place to its place on the next screen (kVTP: what is tapped, the element it carries, where it lands, its name;
+   the element is named at the tap). Where unsupported, or with reduced motion, the screen changes at once; so it does to and from
+   the map unless something is carried (the browser must picture the old screen first, which costs the map screens a noticeable delay). */
+const kVTP=[[".row,.rt,.wr",".t>span:nth-child(2),.kw,.wv b",".wbig","kwt"]];
+let kVS=null;
+const kVM=/#(map|mm-)/;
+document.addEventListener("click",e=>{kVS&&(kVS.el.style.viewTransitionName="");
+kVS=null;
+for(let[tap,src,to,nm]of kVTP){let t=e.target.closest&&e.target.closest(tap),el=t&&(t.querySelector(src)||t.parentNode.querySelector(src));
+if(el){el.style.viewTransitionName=nm;
+kVS={el,to,nm};
+break}}},!0);
+function kVT(go,from){if(!document.startViewTransition||Ya()||!kVS&&(kVM.test(from)||kVM.test(location.href)))return go();
+let o=kVS,n=null;
+kVS=null;
+document.startViewTransition(()=>{d("395Dg").flushSync(go);
+(n=o&&document.querySelector(o.to))&&(n.style.viewTransitionName=o.nm)}).finished.finally(()=>{o&&(o.el.style.viewTransitionName="");
+n&&(n.style.viewTransitionName="")})}
 function Up(){var e,
 t;
 let[n,r]=(0,m.useState)(location.hash.replace("#","")),
@@ -1678,7 +1697,7 @@ let[n,r]=(0,m.useState)(location.hash.replace("#","")),
 [h,p]=(0,m.useState)(0),
 {done:g,
 copy:v}=pi();
-(0,m.useEffect)(()=>{let e=()=>{kHN++,r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)};
+(0,m.useEffect)(()=>{let e=ev=>kVT(()=>{kHN++,r(location.hash.replace("#","")),p(e=>e+1),window.scrollTo(0,0)},ev.oldURL);
 return window.addEventListener("hashchange",e),()=>window.removeEventListener("hashchange",e)},[]),
 (0,m.useEffect)(()=>{let e=()=>p(e=>e+1);
 return window.addEventListener("etimo:lex",e),window.addEventListener("etimo:lexstart",e),()=>{window.removeEventListener("etimo:lex",e),window.removeEventListener("etimo:lexstart",e)}},[]),
