@@ -818,8 +818,7 @@ return s}
 function Ee(e){if(!me())return void t.classList.remove("kpanel");
 t.classList.add("kpanel"),t.scrollTop=0;
 let n=e.info,r=n.sp,a=Vf(e)||"",i=nearFam(e);
-xe=function(e){let t=$f(e.id);
-return t&&t.ancestors().find(e=>1===e.depth)||Af()}(e),je=e.id;
+xe=kFamNode(e)||Af(),je=e.id;
 let s='<div class="phd" style="--pc:'+a+'"><button type="button" class="ib close" id="cx" aria-label="×">'+tn+'</button><span class="pfam"><i class="dot '+e.family+'"></i>'+ei(Ca(e.family))+"</span><h3>"+ei(Na(e))+"</h3>"+(n.an?'<p class="pan">'+ei(n.an)+"</p>":"")+'<p class="plin">'+ei(Pf(e))+'</p></div><div class="pstats"><div><small>'+ei(ye("rgn"))+"</small><b>"+ei(Ma(e))+"</b></div>"+(r?"<div><small>"+ei(ye("spk"))+"</small><b>"+ei(za(r.v))+"</b></div>":"")+(n.lv?"<div><small>"+ei(ye("st"))+"</small><b>"+ei(Aa(n.lv))+"</b></div>":"")+"</div>";
 s+=panelSecs(e,i),s+='<section class="psec pwh"><div class="pwbox">'+Se(xe,e.id,null)+'</div></section><div class="pdyn"></div><div class="acts"><button type="button" class="btn pri pgo" data-go="'+e.id+'">'+ei(ye("go"))+"</button></div>",t.innerHTML=s,gw(),delete t.dataset.sourceCountry,delete t.dataset.regionId,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Q2.selectAll("text.plabel").classed("fade",!1),$t(null),Ut(800)},Promise.all([Zf(),Df(),ff||null]).then(([r,a])=>{if(nt!==e||!t.classList.contains("kpanel"))return;
 let i=t.querySelector(".pdyn");
@@ -976,6 +975,11 @@ if(xe=a,je=null,rows.length)b+='<section class="psec rgl"><div class="rgrows">'+
 else n.length&&(b+='<section class="psec rgl"><div class="rgrows rgleg">'+n.map(l=>row({L:l,nm:"",c:null,p:null}).replace('class="rgr"','class="rgr nn"')).join("")+"</div></section>");
 let f0=document.activeElement&&document.activeElement.classList.contains("rgsel");
 t.innerHTML=h+b,kRgO=O,t.dataset.sourceCountry=e.countryName||e.country||"",t.dataset.regionId="",t.classList.add("kpanel"),t.hidden=!1,t.querySelector("#cx").onclick=()=>{t.hidden=!0,Le(null),Ut(800)};
+/* desktop: under the region's languages, the Languages wheel of its largest language's family with that language marked (the same
+   wheel as a language's own panel, Se), so it shows where the language sits in its family */
+let L0=rows.length&&(rows[0].L||fa["l-"+oa(rows[0].nm)])||(rows.find(o=>o.L)||{}).L||lit[0],fw=L0&&kFamNode(L0);
+if(me()&&fw){xe=fw,je=L0.id;
+let w=document.createElement("section");w.className="psec pwh",w.innerHTML='<div class="pwbox">'+Se(xe,L0.id,null)+"</div>",t.appendChild(w),gw()}
 let s=t.querySelector(".rgsel");
 let go=i=>{let G=kRgO[i],p=G&&kIn(G),m=p&&le(p);m&&Ge(de(p),m,{clientX:0,clientY:0,target:q.node()})};
 s&&(s.onchange=()=>go(+s.value),f0&&s.focus({preventScroll:!0}),
@@ -1120,7 +1124,10 @@ a.push([n-i,r-i,n+i,r+i])}),Ve.selectAll("g.pin").each(e=>{if(p&&!p.has(e.id)||f
 let n=t.applyX(e._xy[0]),r=t.applyY(e._xy[1]);
 if(n>-20&&n<b+20&&r>-20&&r<y+20){let e=.82*s;
 a.push([n-e,r-e,n+e,r+e])}});
-let l=Q2.selectAll("text.plabel").attr("font-size",e=>e===nt||e.cl?14:12.5).classed("act",e=>e===nt).nodes().slice().sort((e,t)=>ut(t.__data__)-ut(e.__data__)),u=e.querySelector(".zoom");
+/* language names: larger on desktop (13.5 / chosen 15 px) than on phones (11.5 / 12.5), and up to 20% larger as the map zooms
+   in (set once per layout at rest, so nothing extra runs while the map moves) */
+let LZ=Math.min(1.2,Math.max(1,1+.06*Math.log2(Math.max(1,kV().k/gOne)))),LS=kPh()?[11.5,12.5]:[13.5,15];
+let l=Q2.selectAll("text.plabel").attr("font-size",e=>(e===nt||e.cl?LS[1]:LS[0])*LZ).classed("act",e=>e===nt).nodes().slice().sort((e,t)=>ut(t.__data__)-ut(e.__data__)),u=e.querySelector(".zoom");
 if(u){let t=e.getBoundingClientRect(),n=u.getBoundingClientRect();
 a.push([n.left-t.left-4,n.top-t.top-4,n.right-t.left+4,n.bottom-t.top+4])}
 Qe.selectAll("g.city").each(e=>{let n=t.applyX(e.x),r=t.applyY(e.y);
@@ -1633,6 +1640,11 @@ let kOldM=null;
 /* when the wheel's map button opens a language (qp), the flight frames it a little closer (Ht: the area fills about 1.4 times more
    of the view than a choice on the map itself); the mark lasts 4 s, so only that flight uses it */
 let kWZ=0;
+/* a language's family in the Languages wheel (its depth-1 node); a language left out of the tree (notInTree, such as an umbrella
+   over its dialects) gets its family's node by name, so its panel shows its family's wheel, never the wheel of all families */
+function kFamNode(L){L=fa[L.id]||L;let t=$f(L.id);if(t)return t.ancestors().find(x=>1===x.depth);
+let f=L.family||(L.info||{}).fam||((L.info||{}).path||[])[0];
+return(Af().children||[]).find(x=>x.data.en===f||x.data.name===f)||null}
 function kOld(e){if(fa[e])return e;
 if(!kOldM){let k=Object.keys(fa);if(!k.length)return e;kOldM={};
 for(let i of k){let o=fa[i].lang.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");"l-"+o!==i&&(kOldM[o]=i.slice(2))}}
