@@ -21,6 +21,7 @@ if want page; then
 python3 scripts/build-page.py
 fi
 if want checks; then
+python3 scripts/merge/check-core-split.py   # the word list's parts (site/h/core) = the whole list, word for word
 .venv/bin/python scripts/merge/check-overlaps.py | tail -1
 python3 scripts/merge/words-report.py
 # Colour check: map = palette = wheel for every language, originals identical to the reference.
