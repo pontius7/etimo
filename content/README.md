@@ -32,7 +32,7 @@ building, so the sheet is checked and de-duplicated like any CSV. An error sayin
 
 Any CSV (or `.csv.gz` for files over ~90 MB) in `content/words/` is split automatically:
 
-- **Core**: rows whose meaning is a meaning the site already shows go into `site/data/lexicon.json`
+- **Core**: rows whose meaning is a meaning the site already shows go into `data-src/data/lexicon.json`
   and land in their category (at most 3 imported words per language and meaning). Dictionary glosses
   such as `(noun) steam, vapor | mist` are matched on their first gloss pieces.
 - **Full dictionary**: every other row goes to `site/h/dict/<language>.<hash>.json`, loaded only when

@@ -37,7 +37,8 @@ import topo as T  # noqa: E402
 E_DIR = os.path.join(ROOT, 'reference', 'etimo-artifact', 'data')
 D_DIR = os.path.join(ROOT, 'reference', 'devter-artifact', 'data')
 D_HTML = os.path.join(ROOT, 'reference', 'devter-artifact', 'index.html')
-OUT = os.path.join(ROOT, 'site', 'data')
+OUT = os.path.join(ROOT, 'site', 'data')                # what the page fetches
+BUILT = os.path.join(ROOT, 'data-src', 'data')          # what only the build reads (README "data-src/")
 
 
 def load(d, name):
@@ -45,8 +46,8 @@ def load(d, name):
         return json.load(f)
 
 
-def dump(name, obj):
-    path = os.path.join(OUT, name)
+def dump(name, obj, d=OUT):
+    path = os.path.join(d, name)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
     print(f'  wrote data/{name} ({os.path.getsize(path):,} bytes)')
@@ -773,17 +774,17 @@ def main():
         langs[r['lang']]['fam'] = r['family']
         langs[r['lang']]['pl'] = r['place']
     langs = {r['lang']: langs[r['lang']] for r in lex}  # same order as the lexicon
-    dump('languages.json', langs)
-    dump('lexicon.json', lex)
-    dump('terr.json', terr)
+    dump('languages.json', langs, BUILT)
+    dump('lexicon.json', lex, BUILT)
+    dump('terr.json', terr, BUILT)
     if _IMPORT:
         import bulk_import
         bulk_import.write_import_report(os.path.join(CONTENT, 'import-report.txt'), _IMPORT['report'],
-                                        _IMPORT['dict_sizes'], os.path.getsize(os.path.join(OUT, 'lexicon.json')),
+                                        _IMPORT['dict_sizes'], os.path.getsize(os.path.join(BUILT, 'lexicon.json')),
                                         _IMPORT['search'])
         print('  wrote content/import-report.txt')
     assert len(lex) == len(langs) and all(r['lang'] in langs for r in lex)
-    dump('dia.json', merge_dia(terr, langs))
+    dump('dia.json', merge_dia(terr, langs), BUILT)
     dump('today.json', merge_today())
     for n in ('adm2.json', 'micro.json', 'ethno.json'):
         copy_verbatim(n)

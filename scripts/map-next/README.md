@@ -9,13 +9,13 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 | The page's side: what pins and names show and where (the engine draws them, see below), search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
 | The map's special cases (detail views, which pins and areas the detailed layers replace, parents, main languages, census areas) | `content/map/areas.json` (the only copy; the build puts what the engine needs into `meta.json` "rules") |
 | How strong a detailed area or a census region is drawn: `restOp`, `viewOp`, `kindOp`, `censusOp`, `hatchOp` | `site/regional-layer.js` (the only copy; knows no country or language) |
-| The map data | `scripts/map-next/build.py` writes `site/map-next/data/` |
+| The map data | `scripts/map-next/build.py` writes `site/map-next/data/` (what the page fetches) and `data-src/map/` (the shapes the tiles are cut from) |
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
 - Rebuild after any content or colour change: `python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py`
   (needs tippecanoe for the tiles: `brew install tippecanoe`)
   (about 45 seconds; the census regions are only cut again when their source changed. Delete
-  `site/map-next/data/regions/` to cut them all again; their tiles, `site/map-next/census-tiles/`, are cut from them on every run).
+  `data-src/map/regions/` to cut them all again; their tiles, `site/map-next/census-tiles/`, are cut from them on every run).
 - What feeds the data: the same files as the site. The list is at the top of `build.py`.
 - How precise the outlines are, and what counts as a drawing error at a border: the constants at the top of `build.py`.
 

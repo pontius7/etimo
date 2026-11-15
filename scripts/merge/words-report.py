@@ -9,7 +9,7 @@ meanings are suggested).
 import csv, difflib, glob, json, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
-SITE = os.path.join(ROOT, 'site')
+SRC = os.path.join(ROOT, 'data-src', 'data')
 import sys
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 import page_code  # noqa: E402  (the tables are in the page's code file, h/app.<hash>.js)
@@ -20,9 +20,9 @@ lit = json.loads(subprocess.run(['node', os.path.join(HERE, 'jslit.js'), json.du
     check=True, capture_output=True, text=True).stdout)
 where = {m: (cat, sub) for cat, subs in lit['ra']['val'].items() for sub, ms in subs for m in ms}
 syn = lit['sa']['val']
-langs = json.load(open(os.path.join(SITE, 'data', 'languages.json'), encoding='utf-8'))
-terr = json.load(open(os.path.join(SITE, 'data', 'terr.json'), encoding='utf-8'))
-fam = {r['lang']: r['family'] for r in json.load(open(os.path.join(SITE, 'data', 'lexicon.json'), encoding='utf-8'))}
+langs = json.load(open(os.path.join(SRC, 'languages.json'), encoding='utf-8'))
+terr = json.load(open(os.path.join(SRC, 'terr.json'), encoding='utf-8'))
+fam = {r['lang']: r['family'] for r in json.load(open(os.path.join(SRC, 'lexicon.json'), encoding='utf-8'))}
 rows = unmapped = 0
 for f in sorted(glob.glob(os.path.join(ROOT, 'content', 'words', '*.csv'))):
     print(f'\n{os.path.relpath(f, ROOT)}')

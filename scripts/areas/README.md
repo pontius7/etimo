@@ -6,8 +6,8 @@ so the shapes land on the right places, and prints how well the fit agrees.
 
 | output | script | reference |
 |---|---|---|
-| `site/data/greece-areas.json`, key `Arvanitika` | `trace-arvanitika.py` | map supplied by the site owner (red = Arvanites) |
-| `site/data/montenegro-areas.json` | `trace-montenegro.py` | Wikimedia Commons, `MontenegroLanguage2011.PNG` (Lazar Ilic), 2011 census by settlement |
+| `data-src/data/greece-areas.json`, key `Arvanitika` | `trace-arvanitika.py` | map supplied by the site owner (red = Arvanites) |
+| `data-src/data/montenegro-areas.json` | `trace-montenegro.py` | Wikimedia Commons, `MontenegroLanguage2011.PNG` (Lazar Ilic), 2011 census by settlement |
 
 ```
 python3 -m venv .areas-venv && .areas-venv/bin/pip install -r scripts/areas/requirements.txt

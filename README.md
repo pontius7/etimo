@@ -27,7 +27,7 @@ owner's own content (word selections and glosses, traced language areas, colours
 ## One command: `./build`
 
 `./build` runs every stage in order (data, page, map data and tiles, page again, checks) and only the stages whose inputs
-changed (fingerprints in `.cache/build-state.json`; the map's in `site/map-next/inputs.sha256`, committed with the site).
+changed (fingerprints in `.cache/build-state.json`; the data stage's and the map's in `data-src/data/inputs.sha256` and `data-src/map/inputs.sha256`, committed with the site).
 `./build --all` forces everything; `./build --check` also exits 1 if `site/` differs from what is committed (this is what
 `.github/workflows/check.yml` runs on every pull request). The map stage needs `.venv` and `tippecanoe`; it fails with a
 message when the map data is older than its inputs and the tools are missing. `./scripts/add-words.sh` still works as
@@ -41,7 +41,8 @@ before (`./build` calls it one part at a time: `add-words.sh data`, `page`, `che
 | `src/` | **The page's source**: the page, its styles and the app script, as ordinary files | yes, to change how the site looks or behaves |
 | `scripts/` | The build (`add-words.sh`) and its checks | only to change how the site is built |
 | `reference/` | Untouched originals of the two apps the site was merged from | never |
-| `site/` | The website that gets published | no (see the table below) |
+| `site/` | The website that gets published: only what a visitor's browser can fetch | no (see the table below) |
+| `data-src/` | What the build reads and writes but nobody fetches: the merged word list and language areas, the traced area files, the map shapes the tiles are cut from. Same names as before, one folder over | no, built (the traced area files by hand, `scripts/areas/`) |
 | `docs/` | Merge spec, QA notes, screenshots | notes only |
 | `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`), what the 2026-11-14 clean-up removed (`removed-2026-11-14/`: two outline files, MapLibre's style sheet, the old map's code and unused style rules as patches). Rule: anything removed that could be reused goes here, not in the bin | when reusing them |
 
@@ -51,11 +52,11 @@ What produces each part of `site/`:
 |---|---|
 | `index.html` | `scripts/build-page.py`, from the files in `src/` |
 | `l/<language>/index.html` (a plain readable page per language, for search engines and sharing), `l/page.css`, `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `icon.svg` | `scripts/site_pages.py`, called by `build-page.py`; the site address is `SITE_URL` there |
-| `data/languages.json`, `lexicon.json`, `terr.json`, `dia.json` and the other map data | `scripts/merge/merge-data.py` |
+| `data/` (the map data the page fetches: `today.json`, `adm2.json`, `micro.json`, `ethno.json`, `world-50m.json`, `region-langs.json`) and, in `data-src/data/`, `languages.json`, `lexicon.json`, `terr.json`, `dia.json` (the page fetches hashed copies from `h/`) | `scripts/merge/merge-data.py` |
 | `h/` (startup files, full dictionaries, search index, and the copies of `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`; all with a content hash in the name) | `merge-data.py`, `bulk_import.py`, `build-page.py` (`own_files()`) |
 | `data/regional/`, `data/tables/` (census and regional tables) | `scripts/build-regional.py`, run only when that source data changes |
 | `data/shade.avif`, `shade-s.avif`, `shade.webp` (relief) | `scripts/relief/build.sh`, run only to change the relief's look |
-| `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers`, `data/greece-areas.json`, `data/montenegro-areas.json` | written by hand or traced (`scripts/areas/`); these are the only files in `site/` you edit directly |
+| `map-gl.js`, `regional-layer.js`, `country-data.js`, `country-sources.js`, `country-sources.css`, `search-key.js`, `_headers` | written by hand; these are the only files in `site/` you edit directly (the traced area files are in `data-src/data/`) |
 
 `./scripts/add-words.sh` runs the first three rows and every check. Running it twice changes nothing.
 
@@ -94,7 +95,7 @@ scripts/
     merge-data.py             all map and word data in site/data and site/h (areas, coast-gap fill, country clip)
     bulk_import.py            the large word lists: full dictionaries and the search index
     dedupe.py, fetch-sheets.py, topo.py   helpers for the two above
-    palette.py, families.py   the sources of colours (the 78 originals, family colours, shade rules) and of the family list; the build writes them all into site/data/palette.json
+    palette.py, families.py   the sources of colours (the 78 originals, family colours, shade rules) and of the family list; the build writes them all into data-src/data/palette.json
     devter-synonyms.json      synonym table used when content/meanings.csv adds a meaning
     region-langs.py           languages with numbers per region (census tables + content/region-languages.csv)
     check-overlaps.py         check: no two language areas overlap
@@ -112,13 +113,11 @@ site/                         the published website (Cloudflare serves this fold
   country-data.js, country-sources.js, country-sources.css   by hand: census tables and their sources (sources of the hashed copies in h/)
   search-key.js               by hand: turns any script into Latin search keys (also part of the page)
   _headers                    by hand: caching rules for Cloudflare
-  data/                       map data
-    languages.json, lexicon.json, terr.json, dia.json, micro.json, ethno.json, adm2.json   built by merge-data.py
+  data/                       map data the page fetches
+    micro.json, ethno.json, adm2.json                                                      built by merge-data.py
     region-langs.json         built by region-langs.py: languages, speakers and shares per region (region card)
-    world-50m.json, world-50s.json, today.json                                             outlines and borders
-    albanian-dialects.json, vlach-areas.json, serbia-areas.json                            traced area layers
-    greece-areas.json, montenegro-areas.json, athos.json                                   traced (scripts/areas/)
-    montenegro-municipalities.geojson, country-sources.json, regional-sources.json         census geography and sources
+    world-50m.json, today.json                                                             outlines and borders
+    country-sources.json                                                                   census sources
     shade.avif, shade-s.avif, shade.webp                                                   relief (scripts/relief/)
     regional/, tables/        built by build-regional.py: census data per country
   h/                          built: copies with a content hash in the name, cached for a year
@@ -126,6 +125,19 @@ site/                         the published website (Cloudflare serves this fold
     search/                   the search index, in small pieces
     core/                     the core word list (lexicon.json) in parts: lang/<id> per language, <category> per category
                               (build-page.py core_split(); the page's first lines name them, window.__kCore)
+
+data-src/                     read by the build, never fetched by the page (the same names as in site/, one folder over)
+  data/                       languages.json, lexicon.json, terr.json, dia.json   built by merge-data.py
+                              palette.json              built by build-page.py (the one palette)
+                              world-50s.json            outlines (the page fetches its hashed copy)
+                              albanian-dialects.json, vlach-areas.json, serbia-areas.json   traced area layers
+                              greece-areas.json, montenegro-areas.json                      traced (scripts/areas/)
+                              bosnia-areas.json, croatia-areas.json                         made from census numbers (scripts/areas/census-areas.py)
+                              montenegro-municipalities.geojson                             census geography
+                              inputs.sha256             fingerprint of the data stage's inputs (./build)
+  map/                        areas.json, land.json, lines.json   the map shapes the tiles are cut from (map-next/build.py)
+                              regions/                  the census regions the census tiles are cut from
+                              inputs.sha256             fingerprint of the map stage's inputs (./build)
 
 reference/                    untouched originals of the two apps the site was merged from; the build still
                               reads their data files, and the colour check compares against them
@@ -179,7 +191,7 @@ these names and none defines them again; the map engine (`site/map-gl.js`, `them
 the same file (the `THEMES` table there is only the fallback). Moving them there changed no colour: all values were
 compared in Chrome before and after, light, dark and high contrast.
 
-**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours are edited. The build writes the result to `site/data/palette.json` (every language and family, light and dark): the page's colour table, the colour check and the map build read that one file (the page gets it inline, it is not fetched).
+**Languages and families:** `scripts/merge/palette.py` and `scripts/merge/families.py` are the only places these colours are edited. The build writes the result to `data-src/data/palette.json` (every language and family, light and dark): the page's colour table, the colour check and the map build read that one file (the page gets it inline, it is not fetched).
 
 - A **family** has one colour per theme (light, dark). Five come from the original Etimo and never
   change, four were chosen for the merge, and any further family is defined in `content/families.json`.
@@ -325,7 +337,7 @@ the preview.
 | `app/4-app-search-and-helpers.js` | search, colour helpers, the city list, category screens |
 | `app/5-full-dictionary.js` | full dictionaries and Latin-friendly search; `kWin` draws only the rows near the screen on long lists (language page, A-Z) and keeps the page length with two spacers (written by hand, with readable names) |
 | `app/6-app-screens-and-startup.js` | language page, tree, wheel, the map (`Dp`), settings, startup |
-| `app/7-language-colours.js` | how colours are lifted for dark mode and read by the page; the colours themselves are filled in from `site/data/palette.json`'s source (`scripts/merge/palette.py`) |
+| `app/7-language-colours.js` | how colours are lifted for dark mode and read by the page; the colours themselves are filled in from `data-src/data/palette.json`'s source (`scripts/merge/palette.py`) |
 
 Three things to know:
 
@@ -368,7 +380,7 @@ Each was reproduced in Chrome before it was changed and re-measured after.
 | Blank land at the coast that read as sea (the Karaburun peninsula by Izmir, strips along many coasts): hand-drawn areas stop short of the coastline | `merge-data.py` (`fill_coast_gaps`) gives narrow blank coastal land to the nearest drawn area, only inside countries that are at least 60% mapped. 921 pieces, 29 languages. The result is cached in `.cache/` until an area changes |
 | Mount Athos (328 km2) showed as a crude dark shape: it is missing from the Greek regions file | `site/data/athos.json` is added to Central Macedonia when the map loads |
 | The hand-drawn Montenegrin area reached 710 km2 past Montenegro's border and cut strips out of the Bosnian, Serbian and Albanian areas there | `merge-data.py` (`clip_to_country`) keeps it inside Montenegro's outline |
-| Arvanitika was one rough blob | redrawn from the owner's reference map (`site/data/greece-areas.json`) |
+| Arvanitika was one rough blob | redrawn from the owner's reference map (`data-src/data/greece-areas.json`) |
 
 Checked and found correct (not changed): language areas, pins and wheel slices match in both
 themes on a fresh load; no console errors on the home, map, language, dictionary and wheel screens;
@@ -409,12 +421,12 @@ Each was checked in Chrome at phone size (390 x 844) and desktop (1440 x 900), l
 
 ## Montenegro and Arvanitika: areas traced from reference maps
 
-- **Montenegro** (`site/data/montenegro-areas.json`): four broad areas (Serbian, Montenegrin, Albanian,
+- **Montenegro** (`data-src/data/montenegro-areas.json`): four broad areas (Serbian, Montenegrin, Albanian,
   Bosnian) generalised from the 2011 census settlement map on Wikimedia Commons. They span municipalities
   and carry the colour while no language is selected. The 25 municipalities stay as they were, on top:
   borders, labels, hover and click. Selecting a language shows its census share per municipality, as before.
   Romani and the no-data classes are left out; Bosniak counts as Bosnian.
-- **Arvanitika** (`site/data/greece-areas.json`): traced from the owner's reference map.
+- **Arvanitika** (`data-src/data/greece-areas.json`): traced from the owner's reference map.
 
 How they are traced, and how to re-trace from another image: `scripts/areas/README.md`.
 
@@ -456,7 +468,7 @@ Command line: `wrangler deployments list --name etimo` shows recent deploys.
   (`phoneHome` in the same file, screens under 640 px only). Desktop is unchanged.
 - **Sandžak Bosniak** is a language entry in `content/languages/sandzak-bosniak.json` with the same `path`
   as Bosnian. Its area is not a new drawing: the settlement areas that were labelled Bosnian in
-  `site/data/serbia-areas.json` (161 areas, Serbia census 2022) and `site/data/montenegro-areas.json`
+  `data-src/data/serbia-areas.json` (161 areas, Serbia census 2022) and `data-src/data/montenegro-areas.json`
   (Plav-Gusinje and Rožaje-Petnjica, 2011 settlement map) all lie inside Sandžak and now carry this name.
   `parent` in the language's entry of `content/map/areas.json` names the parent, so the same areas also light up when Bosnian is
   picked. The speaker figure is the sum of the two whole-country census counts for Bosnian as mother

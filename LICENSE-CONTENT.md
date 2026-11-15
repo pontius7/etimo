@@ -13,7 +13,7 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/
   and the hand-made rows of `content/meanings.csv`, `content/language-aliases.csv`, `content/region-languages.csv`);
 - the language entries in `content/languages/` and the families in `content/families.json`;
 - the language areas the owner traced or drew for Etimo, as far as they are the owner's own work (the Arvanitika area in
-  `site/data/greece-areas.json`, traced from a map the owner supplied). Areas traced from someone else's map (the
+  `data-src/data/greece-areas.json`, traced from a map the owner supplied). Areas traced from someone else's map (the
   Montenegro areas, from a Wikimedia Commons map) or made from census numbers are derived from those sources: see
   [DATA-SOURCES.md](DATA-SOURCES.md);
 - the colours, the interface texts and the written text of the site and of the documentation.

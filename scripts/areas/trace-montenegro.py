@@ -54,7 +54,7 @@ share = {k: float((klass == i).sum()) / country.sum() for i, k in enumerate(LANG
 print('raw area share:', {k: round(v, 3) for k, v in share.items()}, 'no colour: %.3f' % (1 - sum(share.values())))
 
 # ---------- fit the image to the real outline ----------
-gj = json.load(open(REPO + '/site/data/montenegro-municipalities.geojson'))
+gj = json.load(open(REPO + '/data-src/data/montenegro-municipalities.geojson'))
 CL = math.cos(math.radians(42.7))
 real = unary_union([make_valid(shape(f['geometry'])) for f in gj['features']]).buffer(0.003).buffer(-0.003)
 real = unary_union([Polygon(p.exterior) for p in getattr(real, 'geoms', [real]) if p.area > 1e-5]).simplify(0.0004)   # outline only: no gaps between municipalities
