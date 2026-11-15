@@ -1244,11 +1244,13 @@ if(!vt()||!hf)return J(),De(null);
 He||(He=requestAnimationFrame(()=>{He=0;
 let t=Ue(o),n=le(t);
 n?(Y(o,n),De(de(t))):(J(),De(null))}))}
-/* click or tap on the map: a detailed area chooses its language; on the first view a broad area does; further in, the place opens */
+/* click or tap on the map: on the first view a detailed or broad area chooses its language; further in, the place opens, the
+   same in every country and view (a dialect view such as the Albanian one no longer takes the tap from the region card; its
+   languages stay in its key and in the region card's list) */
 function gClick(ev){let o=ev.originalEvent,t=o&&o.target;
 if(!o||t.closest&&t.closest("g.pin,.clu"))return;
 let h=GM.hit(ev.point);
-if(h&&"lang"===h.t){let l=gLang(h);
+if(h&&"lang"===h.t&&!(vt()&&hf)){let l=gLang(h);
 return void(l&&kt&&(J(),kt.select(l.id)))}
 if(!vt()||!hf){let l=h&&"zone"===h.t&&gLang(h);
 return void(l&&(J(),nn(l),Ht(l,950)))}
