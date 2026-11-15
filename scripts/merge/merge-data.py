@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Merge Devter's data into Etimo's data folder layout.
 
-Reads  reference/etimo-artifact/data/*  and  reference/devter-artifact/data/*
+Reads  data-src/original/etimo/data/*  and  data-src/original/devter/data/*
 Writes site/data/{lexicon,languages,terr,dia,today,adm2,micro,ethno}.json
 
-Rerunnable and idempotent: output depends only on the two reference folders.
-Never touches reference/ or files owned by other branches (regional-*, countries/*).
+Rerunnable and idempotent: output depends only on the two folders in data-src/original/.
+Never touches data-src/original/ or files owned by other branches (regional-*, countries/*).
 
 Steps
   1. languages.json  key union (Etimo first, then Devter). No name collisions (asserted).
@@ -34,9 +34,9 @@ ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 sys.path.insert(0, HERE)
 import topo as T  # noqa: E402
 
-E_DIR = os.path.join(ROOT, 'reference', 'etimo-artifact', 'data')
-D_DIR = os.path.join(ROOT, 'reference', 'devter-artifact', 'data')
-D_HTML = os.path.join(ROOT, 'reference', 'devter-artifact', 'index.html')
+E_DIR = os.path.join(ROOT, 'data-src', 'original', 'etimo', 'data')
+D_DIR = os.path.join(ROOT, 'data-src', 'original', 'devter', 'data')
+D_HTML = os.path.join(ROOT, 'data-src', 'original', 'devter', 'index.html')
 OUT = os.path.join(ROOT, 'site', 'data')                # what the page fetches
 BUILT = os.path.join(ROOT, 'data-src', 'data')          # what only the build reads (README "data-src/")
 
@@ -344,7 +344,7 @@ def clip_to_country(terr, lang, geojson):
     from shapely.geometry import Polygon
     from shapely.validation import make_valid
     parts = []
-    for f in load(E_DIR, geojson)['features']:
+    for f in load(BUILT, geojson)['features']:
         g = f['geometry']
         for poly in ([g['coordinates']] if g['type'] == 'Polygon' else g['coordinates']):
             parts.append(make_valid(Polygon([ETIMO.fwd(lon, lat) for lon, lat in poly[0]])))

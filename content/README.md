@@ -1,6 +1,6 @@
 # Adding words, languages, dialects and families
 
-Everything you add lives in this folder. The original apps in `reference/` are never touched;
+Everything you add lives in this folder. The original apps (frozen in `data-src/original/`, complete in `archive/reference/`) are never touched;
 the build merges your files on top of them every time, so rerunning never duplicates anything.
 
 ## 1. Add words

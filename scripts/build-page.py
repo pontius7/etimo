@@ -35,7 +35,7 @@ from bulk_import import slug  # noqa: E402  (a language's page id without its 'l
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'site', 'index.html')
 DATA_SRC = site_pages.DATA_SRC
-D_DATA = os.path.join(ROOT, 'reference', 'devter-artifact', 'data')
+D_DATA = os.path.join(ROOT, 'data-src', 'original', 'devter', 'data')
 NEW, OLD, EXTRA, VAR = families.NEW, families.ETIMO, families.EXTRA, palette.VAR
 LAST = families.DEVTER[-1]   # the frozen styles hold rules for every family up to this one
 

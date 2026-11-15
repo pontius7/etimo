@@ -1,6 +1,6 @@
 # Language areas traced from reference maps
 
-Two hand-kept data files in `site/data/` were traced from reference images, not drawn by hand.
+Two hand-kept data files in `data-src/data/` were traced from reference images, not drawn by hand.
 Run a script again only to re-trace from a new image. Each fits the image to the real outline first,
 so the shapes land on the right places, and prints how well the fit agrees.
 

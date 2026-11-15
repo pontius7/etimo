@@ -40,11 +40,10 @@ before (`./build` calls it one part at a time: `add-words.sh data`, `page`, `che
 | `content/` | **Your additions**: words, languages, dialects, families, meanings | yes, this is where you work |
 | `src/` | **The page's source**: the page, its styles and the app script, as ordinary files | yes, to change how the site looks or behaves |
 | `scripts/` | The build (`add-words.sh`) and its checks | only to change how the site is built |
-| `reference/` | Untouched originals of the two apps the site was merged from | never |
 | `site/` | The website that gets published: only what a visitor's browser can fetch | no (see the table below) |
-| `data-src/` | What the build reads and writes but nobody fetches: the merged word list and language areas, the traced area files, the map shapes the tiles are cut from. Same names as before, one folder over | no, built (the traced area files by hand, `scripts/areas/`) |
-| `docs/` | Merge spec, QA notes, screenshots | notes only |
-| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`), what the 2026-11-14 clean-up removed (`removed-2026-11-14/`: two outline files, MapLibre's style sheet, the old map's code and unused style rules as patches). Rule: anything removed that could be reused goes here, not in the bin | when reusing them |
+| `data-src/` | What the build reads and writes but nobody fetches: the merged word list and language areas, the traced area files, the map shapes the tiles are cut from (same names as before, one folder over), and `original/`: the few files of the two original apps that the build and the colour check read, frozen | no, built (the traced area files by hand, `scripts/areas/`) |
+| `docs/` | Merge spec and QA notes | notes only |
+| `archive/` | Kept from retired parts, not published or built: German words from the old German interface (`german/`), hand-made files of the old map (`old-map/`), what the 2026-11-14 clean-up removed (`removed-2026-11-14/`: two outline files, MapLibre's style sheet, the old map's code and unused style rules as patches), the two original apps the site was merged from (`reference/`, 133 MB, untouched; only the few files the build reads are kept, in `data-src/original/`), and the old screenshots of the QA notes (`docs-screenshots/`). Rule: anything removed that could be reused goes here, not in the bin | when reusing them |
 
 What produces each part of `site/`:
 
@@ -139,10 +138,11 @@ data-src/                     read by the build, never fetched by the page (the 
                               regions/                  the census regions the census tiles are cut from
                               inputs.sha256             fingerprint of the map stage's inputs (./build)
 
-reference/                    untouched originals of the two apps the site was merged from; the build still
-                              reads their data files, and the colour check compares against them
-docs/                         merge spec, QA notes, screenshots (history, not needed to build)
-archive/                      kept from retired parts (German words, old-map files); not published, not built
+  original/                   frozen from the two original apps (etimo/, devter/): merge-data.py merges them, the colour
+                              check opens etimo/ and compares colours with it. Never edit.
+docs/                         merge spec and QA notes (history, not needed to build)
+archive/                      kept from retired parts (German words, old-map files, the original apps in reference/,
+                              the old screenshots in docs-screenshots/); not published, not built
 ```
 
 ## Everyday tasks
@@ -181,7 +181,7 @@ a colour check fails. First run sets up Python in `.venv` (needs Python 3, Node 
 | `region-langs.py` | every row of `content/region-languages.csv` and `region-aliases.csv` names a country and a region the map has (a misspelling stops the build and suggests the closest names) and gives a number, a year and a source |
 | `check-overlaps.py` | no two language areas on the map overlap |
 | `words-report.py` | every new word landed in a language, a family and a category |
-| `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like `reference/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
+| `check-colors.py` | opens the site in Chrome in light and dark and fails, naming the language, unless: map colour = palette = wheel colour for every language; dialect and minority areas = their language's colour; the 78 original languages look exactly like the original app in `data-src/original/etimo/` (except the four recoloured on purpose, listed as `RECOLOURED` in the script); every family has a colour |
 
 ## Colours: one source
 
@@ -198,7 +198,7 @@ compared in Chrome before and after, light, dark and high contrast.
 - A **language** has its own colour: Etimo's table for its 78 languages (`ORIGINALS` in `scripts/merge/palette.py`; the old copy is in `archive/palette-originals/`),
   and for every other language a shade of its family colour. Override one with `"color": "#rrggbb"` in its JSON.
 - Changing one of the 78 original colours: edit it in `ORIGINALS` in `scripts/merge/palette.py` and add the name to
-  `RECOLOURED` in `scripts/merge/check-colors.py`, otherwise the check fails because it no longer matches `reference/`.
+  `RECOLOURED` in `scripts/merge/check-colors.py`, otherwise the check fails because it no longer matches `data-src/original/etimo/`.
 - The build writes that one table into the page. Map areas, dialect areas, pins, the wheel, the tree,
   cards and dots all read it, in both themes.
 - Rule for dots: a dot beside a **family name** is the family colour; a language's **area, pin and

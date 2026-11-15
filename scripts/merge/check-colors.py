@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Colour consistency check. Serves site/ and reference/etimo-artifact, paints both in a headless Chrome
+"""Colour consistency check. Serves site/ and data-src/original/etimo, paints both in a headless Chrome
 (dark + light) and asserts:
   (a) every language's map fill equals its palette value (the `P` table in site/index.html, lifted in dark mode)
   (b) the wheel segment colour equals the map colour, for every language the wheel names
@@ -15,6 +15,7 @@ import palette  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SRC = os.path.join(ROOT, 'data-src', 'data')
+ORIGINAL = os.path.join(ROOT, 'data-src', 'original', 'etimo')
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHOTS = sys.argv[sys.argv.index('--shots') + 1] if '--shots' in sys.argv else None
 
@@ -66,7 +67,7 @@ RECOLOURED = {'Croatian', 'Bosnian', 'Montenegrin', 'Serbian'}
 
 def main():
     site = serve(os.path.join(ROOT, 'site'))
-    ref = serve(os.path.join(ROOT, 'reference', 'etimo-artifact'))
+    ref = serve(ORIGINAL)
     tmp = tempfile.mkdtemp(prefix='etimo-colors-')
     jobs = {}
     port = 9500 + os.getpid() % 300
@@ -84,7 +85,7 @@ def main():
     shutil.rmtree(tmp, ignore_errors=True)
 
     langs = json.load(open(os.path.join(SRC, 'languages.json')))
-    ref_langs = json.load(open(os.path.join(ROOT, 'reference', 'etimo-artifact', 'data', 'languages.json')))
+    ref_langs = json.load(open(os.path.join(ORIGINAL, 'data', 'languages.json')))
     # the palette: data-src/data/palette.json (written by build-page.py). The page's own inline table must be the same one.
     pal = json.load(open(os.path.join(SRC, 'palette.json'), encoding='utf-8'))
     P = pal['light']

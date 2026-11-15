@@ -45,7 +45,7 @@ NAMES_ONLY = ('site/map-next/tiles', 'site/map-next/census-tiles', 'site/h/dict'
 
 STAGES = {
     'data': {
-        'roots': ['content', 'reference', 'scripts/merge', 'site/data', 'data-src/data'],
+        'roots': ['content', 'data-src/original', 'scripts/merge', 'site/data', 'data-src/data'],
         'skip': lambda rel: rel.startswith(('site/data/', 'data-src/data/')) and rel.count('/') == 2 and os.path.basename(rel) in DATA_BUILT,
     },
     'page': {
@@ -63,7 +63,7 @@ STAGES = {
                   'scripts/merge/palette.py', 'scripts/merge/families.py', 'scripts/merge/topo.py'],
     },
     'checks': {
-        'roots': ['content', 'reference', 'scripts', 'src', 'site', 'data-src'],
+        'roots': ['content', 'scripts', 'src', 'site', 'data-src'],
     },
 }
 ORDER = ['data', 'page', 'map', 'page', 'checks']

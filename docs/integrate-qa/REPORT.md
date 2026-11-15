@@ -12,4 +12,4 @@
 | 8 | Dark + 390px | PASS | Night mode on (bg rgb(8,15,13)); 390x844 no horizontal page overflow (scrollWidth 390); panel/nav/chips fit. Screenshots 08-*.png. |
 | 9 | Pan/zoom with Czech | PASS | Wheel zoom (scale ->5.3), drag, +/- buttons: no new errors. Only a11y warning: "Blocked aria-hidden on an element because its descendant retained focus ... Element with focus: <input#sq> Ancestor: <div#root>". |
 
-Screenshots: 03-modal.png, 04-montenegrin.png, 07-sq-czech-modal.png, 08-dark-desktop.png, 08-dark-mobile.png (02 failed to save: tool path restriction, so files saved via cwd then moved).
+Screenshots (in `archive/docs-screenshots/integrate-qa/`): 03-modal.png, 04-montenegrin.png, 07-sq-czech-modal.png, 08-dark-desktop.png, 08-dark-mobile.png (02 failed to save: tool path restriction, so files saved via cwd then moved).
