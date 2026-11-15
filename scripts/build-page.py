@@ -430,7 +430,7 @@ def preloads(H):
           'if(pl&&K.l[pl[1]])a("preload","h/core/lang/"+pl[1]+"."+K.l[pl[1]]+".json",1);'
           'if(pc&&K.c[pc[1]])a("preload","h/core/"+pc[1]+"."+K.c[pc[1]]+".json",1);'
           f'if(map){{a("modulepreload","{mapjs}");a("modulepreload","{mlib}");a("preload","map-next/data/meta.json",1);'
-          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);a("preload","data/regional/ME.json",1);'
+          f'a("modulepreload","{rl}");a("preload","data/regional/index.json",1);'
           # the worker and, on phones, the first view's four tiles: fetched (into the HTTP cache: both are cached for a year)
           f'[{json.dumps(worker)}].concat(matchMedia("(max-width: 63.99rem)").matches?{json.dumps(first_tiles())}:[]).forEach(function(u){{fetch(u).then(function(r){{return r.arrayBuffer()}}).catch(function(){{}})}});'
           f'import("./{mapjs}").then(function(m){{window.__etimoMap=m;var go=function(){{m.prewarm&&m.prewarm()}};d.body?go():addEventListener("DOMContentLoaded",go,{{once:true}})}}).catch(function(){{}});'

@@ -73,7 +73,7 @@ if(M&&(l==='sr'||l==='sq'))return(window.__ka||function(x){return x})(M[l==='sr'
 return za(c)};
 window.__dn=function(n){try{var s=window.__Na?window.__Na({lang:n}):n;
 return s.replace(/ (Albanian|albanski|албански)$/,'')}catch(e){return n}};
-window.__lt=function(k){var T={en:{ad:'Albanian dialects',gh:'Gheg',to:'Tosk',vl:'Vlach languages',na:'North Aromanian',sa:'South Aromanian',me:'Megleno-Romanian'},sq:{ad:'Dialektet e shqipes',gh:'Gegnisht',to:'Toskërisht',vl:'Gjuhët vllahe',na:'Arumune veriore',sa:'Arumune jugore',me:'Meglenorumune'},sr:{ad:'Albanski dijalekti',gh:'Gegijski',to:'Toskijski',vl:'Aromunski i meglenorumunski',na:'Severnoaromunski',sa:'Južnoaromunski',me:'Meglenorumunski'}};
+window.__lt=function(k){var T={en:{ad:'Albanian dialects',gh:'Gheg',to:'Tosk',vl:'Vlach languages',na:'North Aromanian',sa:'South Aromanian',me:'Megleno-Romanian',cra:'Areas after Gjinari 1988 and later work, via Wikimedia Commons',crv:'Areas after Koryakov 2001 (Atlas of Romance languages), via Wikimedia Commons'},sq:{ad:'Dialektet e shqipes',gh:'Gegnisht',to:'Toskërisht',vl:'Gjuhët vllahe',na:'Arumune veriore',sa:'Arumune jugore',me:'Meglenorumune',cra:'Zonat sipas Gjinarit 1988 dhe punimeve të mëvonshme, përmes Wikimedia Commons',crv:'Zonat sipas Koryakovit 2001 (Atlasi i gjuhëve romane), përmes Wikimedia Commons'},sr:{ad:'Albanski dijalekti',gh:'Gegijski',to:'Toskijski',vl:'Aromunski i meglenorumunski',na:'Severnoaromunski',sa:'Južnoaromunski',me:'Meglenorumunski',cra:'Oblasti prema Đinariju 1988. i kasnijim radovima, preko Vikimedijine ostave',crv:'Oblasti prema Korjakovu 2001. (Atlas romanskih jezika), preko Vikimedijine ostave'}};
 var l=window.__ya?window.__ya():'en',v=(T[l]||T.en)[k]||T.en[k];
 return window.__ka?window.__ka(v):v};
 })();

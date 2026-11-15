@@ -7,14 +7,15 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
 |---|---|
 | The engine's side: layers, colours of sea / land / lines, how strong each area is when a language or family is chosen, census view, legend | `site/map-gl.js` |
 | The page's side: what pins and names show and where (the engine draws them, see below), search, language card, and the link to the engine (`kV`, `kGo`, `kTick`, `gStart` ...) | `src/app/6-app-screens-and-startup.js` (search for `GL`) |
-| Lists and strengths the engine and the data build share (Albanian dialects, Vlach varieties, which pins and areas the detailed layers replace; how strong a detailed area or a census region is drawn: `restOp`, `dialOp`, `vlachOp`, `censusOp`, `hatchOp`) | top of `site/regional-layer.js` (the only copy) |
+| The map's special cases (detail views, which pins and areas the detailed layers replace, parents, main languages, census areas) | `content/map/areas.json` (the only copy; the build puts what the engine needs into `meta.json` "rules") |
+| How strong a detailed area or a census region is drawn: `restOp`, `viewOp`, `kindOp`, `censusOp`, `hatchOp` | `site/regional-layer.js` (the only copy; knows no country or language) |
 | The map data | `scripts/map-next/build.py` writes `site/map-next/data/` |
 | The few style rules the engine's box needs | `src/styles/v64.css` |
 
 - Rebuild after any content or colour change: `python3 scripts/build-page.py && .venv/bin/python scripts/map-next/build.py`
   (needs tippecanoe for the tiles: `brew install tippecanoe`)
   (about 45 seconds; the census regions are only cut again when their source changed. Delete
-  `site/map-next/data/regions/` to cut them all again).
+  `site/map-next/data/regions/` to cut them all again; their tiles, `site/map-next/census-tiles/`, are cut from them on every run).
 - What feeds the data: the same files as the site. The list is at the top of `build.py`.
 - How precise the outlines are, and what counts as a drawing error at a border: the constants at the top of `build.py`.
 
@@ -80,7 +81,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   building them for the first view cost it about 90 ms there.
 - **What each area gets** (`targets()` in `site/map-gl.js`): the same rules as before, one value per area: the chosen
   language, its family, the rest, historical languages, a family filter, the word view, the countries tinted with their
-  main language, and the detailed layers with the shared strengths of `site/regional-layer.js`.
+  main language, and the detailed layers with the strengths of `site/regional-layer.js`.
 - **Fades** (`fade()`): a choice takes every area from what it shows to its new value in 200 ms, the site's easing
   (`cubic-bezier(0.2, 0.8, 0.2, 1)`), one value per area and frame; a second choice during a fade starts from where it is.
   The outline under the pointer (desktop) fades in and out in 120 ms. The language areas fade in once (300 ms) when the
@@ -88,8 +89,7 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   site's own setting) every fade lasts at most 100 ms.
 - **Camera.** A flight to a language, a region, a family or a pin, and back home, takes 400 to 700 ms by how far it goes
   (zoom steps plus screens panned: `kFly` in the page code), with the site's easing.
-- The census view is unchanged (it still sends its shapes on every choice); it is built once the fade's first frame is
-  drawn, so its work does not hold that frame back.
+- The census view: see "Census view as tiles plus state" below.
 - Tried and dropped: the strengths as a few numbers in the engine's global state (`setGlobalStateProperty`) read by a
   per-area rule. MapLibre re-processes every tile whenever global state that a per-area rule reads changes: 14 times in
   one 200 ms fade. Per-area values set each frame cost under 1 ms of script a frame and no tile.
@@ -100,6 +100,36 @@ The map of the site is drawn by MapLibre GL (open-source map engine, BSD licence
   Albanian or Vlach legend (one frame of about 30 ms). The map at rest is pixel for pixel as before for 23 choices
   (languages on every part of the map, a circle, a historical language, minority areas, the detailed layers, families,
   the word view) on phone and desktop, light and dark. Map ready: about 50 ms later on the slowed phone (2.08 -> 2.13 s).
+
+## Census view as tiles plus state (2026-11-14)
+- **Tiles.** `build.py` (`census_tiles()`) cuts each country's census regions (`data/regions/<CC>.json`) into tiles of their
+  own, `site/map-next/census-tiles/<CC>/{z}/{x}/{y}.pbf` (layer `census`, zoom 0 to 10, about 380 files): two zooms deeper
+  than the other tiles because the regions are small and were drawn to zoom 12 before. A region keeps only its id, its place
+  in the census rows (`i`). Version and each country's box: `meta.json` `census`.
+- **A choice sends numbers.** `census()` in `map-gl.js` works out each region's colour (`c`), strength (`o`) and stripes (`h`)
+  as before (`censusOp`, `hatchOp`) and gives them to the region as its own state (`setFeatureState`), only where they
+  changed; a region no longer drawn loses its state. No shape is sent, no GeoJSON is cut again.
+- **Only the countries drawn.** Each country is two engine sources over the same tiles (`census-<CC>` for the fill,
+  `census-h-<CC>` for the stripes). A country's fill layer is on the map only while the choice draws a region there, its stripe
+  layer only while it draws stripes there, so a choice fetches and reads the tiles of its own countries only (as the old way
+  sent only theirs); taking a layer off costs nothing. Fills stay under stripes, between the detailed layers, as before.
+- **Stripes.** One picture per colour (`hatch-<colour>`), never redrawn in place: MapLibre's `updateImage` leaves the old
+  colour in the picture's one-pixel frame in the engine's picture sheet, which showed as seams in the stripes. A new colour is
+  a new picture for the stripe layers, which reads only the stripe sources again.
+- **Hit testing**: the tiles hold every region, so a region counts as census only where the choice draws it (`hit()`).
+- **Montenegro** keeps its own table (`regional/ME.json`, every language for every municipality, so every municipality is
+  drawn); its largest language per municipality and its region ids come from `census-top.json` (`ids`), as the other
+  countries' largest language does. The table is loaded like a language's rows, once a language is chosen (it used to hold
+  back the making of the map and was fetched from the page's first lines); any country listed under `ids` is read the same way.
+- **Detail views.** The Albanian dialect view and the Vlach view are entries of one list, `views` in `content/map/areas.json`
+  (which languages switch it on, how strong each group is drawn for each choice, its legend groups, its credit, the language whose census figures it shows and the countries
+  it leaves out of the census). The engine draws the legend and the census from that list, with no branch of its own for
+  either. The legend's heading, groups and credit go through the interface texts (`window.__lt` in
+  `src/app/7-language-colours.js`: English, Albanian, Serbian Latin and Cyrillic); authors and licences stay as written.
+- Checked against the old way (24 views: every census country with a language that has rows there, stripes, the Albanian
+  view, a far language, light and dark; phone and desktop): the same picture except single pixels along region borders
+  (0.001 to 0.18% of the screen; the old cut simplified borders by up to a quarter pixel and left one-pixel slivers between
+  neighbours), and the same hit test except at those slivers and on the coast line.
 
 ## No old map any more
 The old SVG map was retired on 2026-11-13 (main README, "Old map retired"). When the engine cannot start, the map box shows
@@ -173,3 +203,18 @@ country shapes (Natural Earth 1:10m). A colour always ends on a drawn line.
 ## The first view
 Every language area, fitted to the screen, on phone, tablet and desktop. What appears at which scale (pins, names,
 cities, districts) is unchanged.
+
+## How to give one country something special
+Nothing in the code names a country or a language: the check in `scripts/merge/words-report.py` fails the build if it does.
+A special case is a field in that country's or language's entry of `content/map/areas.json`, and the same code runs for every
+entry that has the field:
+
+| You want | Field |
+|---|---|
+| a country tinted with its main language where the census does not settle it | `mainLanguage` (and `noTint` to leave the tint out) |
+| its broad language areas to stop at its border (it has its own detailed layer) | `ownAreas` |
+| its areas made from the census by municipality | `censusAreas` (`out`, `levels`, `geo`, `outlineNames`; see `scripts/areas/census-areas.py`) |
+| census region names corrected (and the build to fail on any other unknown name) | `nameFixes` (and `strictNames`) |
+| a detailed layer of areas (traced or from a file) | an entry of `layers` (`source`, `kind`; `censusReplaces`, `underCensus`) |
+| a finer view with a legend (dialects, varieties) | an entry of `views` (`languages`, `groups`, `strength`, `credit`) |
+| a language's own area to hide the pin or the broad area, to count as another language's, or to show under another name | `hidePin`, `hideZone`, `parent`, `shownAs` (and `sourceName` for a name the source spells differently) on its entry of `languages` |

@@ -4,15 +4,15 @@
 Each municipality takes the language most of its people speak (the largest census figure among the site's languages;
 answers such as "Serbo-Croatian" or "other" do not count). Municipalities with the same language are joined into one
 area. The file has the same form as the other detailed layers ({language: rings}), so the map build
-(scripts/map-next/build.py, its CENSUS_AREAS list) draws it like them; the colour is the language's own, from the
+(scripts/map-next/build.py, from the same entries of content/map/areas.json) draws it like them; the colour is the language's own, from the
 palette. A reference image of the same census is only for checking the result, never a source of colours.
 
   .venv/bin/python scripts/areas/census-areas.py HR     # Croatia, 2021 census, 555 towns and municipalities
   .venv/bin/python scripts/areas/census-areas.py BA     # Bosnia and Herzegovina, 2013 census, 141 municipalities + Brcko
 
-Census rows: site/data/tables/<CC>.json (scripts/build-regional.py). Municipality outlines, per country in SOURCES:
+Census rows: site/data/tables/<CC>.json (scripts/build-regional.py). Municipality outlines, per country ("censusAreas" in content/map/areas.json):
 Croatia from site/data/regional/geo/HR.json (the census view's own outlines, joined by the census row id); Bosnia and
-Herzegovina from geoBoundaries (BIH ADM3, public domain), kept in scripts/areas/geo/, joined by name (NAMES pairs the
+Herzegovina from geoBoundaries (BIH ADM3, public domain), kept in scripts/areas/geo/, joined by name ("outlineNames" pairs the
 few names that differ). A municipality without an outline leaves a gap that goes to the neighbour it shares most
 border with. Needs shapely (the project's .venv).
 """
@@ -23,18 +23,13 @@ from shapely.ops import unary_union
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(ROOT, 'site', 'data')
 
-SOURCES = {
-    'HR': {'out': 'croatia-areas.json', 'levels': ('Town', 'Municipality'), 'geo': ('topo', os.path.join(DATA, 'regional', 'geo', 'HR.json'))},
-    'BA': {'out': 'bosnia-areas.json', 'levels': ('3',), 'extra': ('1', 'BRČKO'), 'geo': ('names', os.path.join(ROOT, 'scripts', 'areas', 'geo', 'BIH-ADM3.geojson'))},
-}
-# census name -> outline name, where they differ (Bosnia); (name, 'north'/'south') picks one of two outlines with that name
-NAMES = {'BA': {'DOBOJ-ISTOK': 'Doboj East', 'FOČA - FBiH': 'Foča-Ustikolina', 'PALE - FBiH': 'Pale-Prača', 'GRAD MOSTAR': 'Mostar',
-                'PROZOR': 'Prozor-Rama', 'CENTAR SARAJEVO': 'Centar', 'NOVI GRAD SARAJEVO': ('Novi Grad', 'south'),
-                'NOVI GRAD': ('Novi Grad', 'north'), 'STARI GRAD SARAJEVO': 'Stari Grad', 'TRNOVO - FBiH': 'Trnovo (BiH)',
-                'KUPRES - FBiH': 'Kupres (BiH)', 'FOČA - RS': 'Foča', 'KRUPA NA UNI': 'Kupra na Uni', 'KUPRES - RS': 'Kupres',
-                'NOVO GORAŽDE': 'Ustiprača',          # the municipality's name until 2005
-                'PALE - RS': 'Pale', 'VIŠEGRAD': 'Republika Srpska',  # the source names Višegrad's outline wrongly
-                'BRČKO DISTRIKT BOSNE I HERCEGOVINE BRČKO DISTRICT OF BOSNIA AND HERZEGOVINA': 'Brcko District'}}
+# Per country, from its entry in content/map/areas.json ("censusAreas"): the output file, the census levels used, the outlines
+# and (outlineNames) the census names whose outline has another name; [name, 'north'/'south'] picks one of two outlines.
+_AREAS = json.load(open(os.path.join(ROOT, 'content', 'map', 'areas.json'), encoding='utf-8'))['countries']
+SOURCES = {c['code']: {**c['censusAreas'], 'geo': (c['censusAreas']['geo'][0], os.path.join(ROOT, c['censusAreas']['geo'][1]))}
+           for c in _AREAS if c.get('censusAreas')}
+NAMES = {c['code']: {k: tuple(v) if isinstance(v, list) else v for k, v in c['censusAreas'].get('outlineNames', {}).items()}
+         for c in _AREAS if c.get('censusAreas')}
 
 
 def norm(s):

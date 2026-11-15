@@ -41,7 +41,7 @@ DATA_BUILT = {'lexicon.json', 'languages.json', 'terr.json', 'dia.json', 'today.
               'ethno.json', 'region-langs.json',
               'palette.json'}      # site/data files the build writes (scripts/merge; palette.json by build-page.py): not data-stage inputs
 # folders whose files carry a content hash in their name (or are cut by a tool): only the list of names counts
-NAMES_ONLY = ('site/map-next/tiles', 'site/h/dict', 'site/h/search', 'site/h/core', 'site/fonts')
+NAMES_ONLY = ('site/map-next/tiles', 'site/map-next/census-tiles', 'site/h/dict', 'site/h/search', 'site/h/core', 'site/fonts')
 
 STAGES = {
     'data': {
@@ -56,9 +56,9 @@ STAGES = {
                   'site/map-next/data/meta.json', 'site/map-next/tiles/3'],
     },
     'map': {
-        # what scripts/map-next/build.py reads (see its docstring): site/data, regional-layer.js, the minority list, and the
+        # what scripts/map-next/build.py reads (see its docstring): site/data, the map's special cases, the minority list, and the
         # colour table and family names that build-page.py writes into the page (content/languages, families, src/app, palette)
-        'roots': ['site/data', 'site/regional-layer.js', 'content/minority-areas.csv', 'content/families.json',
+        'roots': ['site/data', 'content/map', 'content/minority-areas.csv', 'content/families.json',
                   'content/languages', 'src/app', 'scripts/map-next', 'scripts/build-page.py', 'scripts/page_code.py',
                   'scripts/merge/palette.py', 'scripts/merge/families.py', 'scripts/merge/topo.py'],
     },
