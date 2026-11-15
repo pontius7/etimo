@@ -8,12 +8,16 @@ import re
 import shutil
 import urllib.parse
 
-from bulk_import import slug     # the id of a language, as in the app's addresses (#l-<id>)
+from bulk_import import slug, old_slug     # the id of a language, as in the app's addresses (#l-<id>), and the rule before 2026-11-15
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 SITE = os.path.join(ROOT, 'site')
 DATA_SRC = os.path.join(ROOT, 'data-src', 'data')       # the build's own data, not served (README "data-src/")
 SITE_URL = 'https://etimo.nikocevic7.workers.dev'    # the one place the site's address is written
+SHARE_IMAGE = 'og.jpg'    # the picture link previews show: the map without names, made by scripts/og-image.mjs (run by hand)
+SHARE_TAGS = (f'<meta property="og:image" content="{SITE_URL}/{SHARE_IMAGE}"><meta property="og:image:width" content="1200">'
+              f'<meta property="og:image:height" content="630"><meta property="og:image:alt" content="Etimo: a map of languages">'
+              f'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE_URL}/{SHARE_IMAGE}">')
 
 
 def write(name, text):
@@ -63,7 +67,7 @@ READABLE_PAGE = '''<!doctype html>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{url}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Etimo"><meta property="og:title" content="{name} · Etimo">
-<meta property="og:description" content="{desc}"><meta property="og:url" content="{url}"><meta name="twitter:card" content="summary">
+<meta property="og:description" content="{desc}"><meta property="og:url" content="{url}">{share}
 <link rel="icon" href="/icon.svg"><link rel="stylesheet" href="/l/page.css">
 <style>:root{{--fc:{light}}}@media (prefers-color-scheme:dark){{:root{{--fc:{dark}}}}}</style>
 </head><body>
@@ -89,12 +93,13 @@ def readable_page(name, info, entries, colours, ident):
     rows = ''.join('<tr>' + ''.join(f'<td>{esc(e.get(k) or "")}</td>' for k in ('word', 'ipa', 'meaning')) + '</tr>\n'
                    for e in entries[:READABLE_WORDS])
     return READABLE_PAGE.format(
-        name=esc(name), desc=esc(desc), url=f'{SITE_URL}/l/{ident}/', ident=ident, rows=rows, **colours,
+        name=esc(name), desc=esc(desc), url=f'{SITE_URL}/l/{ident}/', ident=ident, rows=rows, share=SHARE_TAGS, **colours,
         facts=''.join(f'<dt>{esc(k)}</dt><dd>{esc(v)}</dd>' for k, v in facts))
 
 
-def write_readable():
-    """Every language's page, their stylesheet, robots.txt and sitemap.xml. Reads the data files the build already has on disk."""
+def write_readable(english):
+    """Every language's page, their stylesheet, robots.txt, sitemap.xml and _redirects (old page addresses to new ones).
+    english: data name -> name in the English interface (build-page.py english_names()). Reads the data files the build already has."""
     load = lambda n: json.load(open(os.path.join(DATA_SRC, n), encoding='utf-8'))
     languages, lexicon, palette = load('languages.json'), load('lexicon.json'), load('palette.json')
     entries = {e['lang']: e['entries'] for e in lexicon}
@@ -104,15 +109,18 @@ def write_readable():
         name = ids[ident]
         os.makedirs(os.path.join(SITE, 'l', ident))
         write(f'l/{ident}/index.html', readable_page(
-            name, languages[name], entries[name], {t: palette[t][name] for t in ('light', 'dark')}, ident))
+            english.get(name, name), languages[name], entries[name], {t: palette[t][name] for t in ('light', 'dark')}, ident))
     styles = lambda n: open(os.path.join(ROOT, 'src', 'styles', n), encoding='utf-8').read()
     write('l/page.css', styles('fonts.css').replace('url(fonts/', 'url(/fonts/') + styles('tokens.css') + READABLE_CSS)
+    # Cloudflare reads _redirects: a page address made by the old id rule moves to the new one (301)
+    moved = sorted((old_slug(n), i) for i, n in ids.items() if old_slug(n) != i)
+    write('_redirects', ''.join(f'/l/{o}/ /l/{i}/ 301\n/l/{o} /l/{i}/ 301\n' for o, i in moved))
     write('robots.txt', f'User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n')
     urls = [f'{SITE_URL}/'] + [f'{SITE_URL}/l/{i}/' for i in sorted(ids)]
     write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + ''.join(f'<url><loc>{u}</loc></url>\n' for u in urls) + '</urlset>\n')
 
 
-def write_all():
+def write_all(english):
     write_manifest()
-    write_readable()
+    write_readable(english)

@@ -5121,7 +5121,7 @@ let sa=/*@table SYNONYMS*/{"woods":"forest",
 "mother-in-law (wife's mother)":"mother-in-law",
 "son-in-law (or sister's husband)":"son-in-law",
 "daughter-in-law (or brother's wife)":"daughter-in-law"}/*@end*/;
-function oa(e){return e.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function oa(e){return e.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 let la=__ETIMO_FAMILIES__,
 ua=[],
 ca=null,
@@ -5280,7 +5280,7 @@ function za(e){if(null==e||"en"===ya())return e;
 let t=_a[e];
 return Ea(t&&t[Sa[ya()]]?t[Sa[ya()]]:function(e){return"en"===ya()?e:e.replace(/(\d),(?=\d{3})/g,"$1.")}(String(e).replace(/(\d)\.(\d)/g,"$1,$2")))}
 function Na(e){let t=ya();
-return"en"===t?({"Labërisht": "Lab Albanian", "Arbëresh": "Arberesh", "Çam Albanian": "Cham Albanian"}[e.lang]||e.lang):ka((ta[e.lang]||[])[Sa[t]]||e.lang)}
+return"en"===t?(/*@ENGLISH_NAMES@*/[e.lang]||e.lang):ka((ta[e.lang]||[])[Sa[t]]||e.lang)}
 window.__Na=Na;
 window.__ka=ka;
 window.__ya=ya;

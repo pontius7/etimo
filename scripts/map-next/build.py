@@ -67,6 +67,7 @@ DETAIL_VIEW = 0.15   # elsewhere on the map: about 1 km
 DETAIL_FAR = 1.0     # the margin around it, only there to fill tall or wide screens
 NEAR = 25
 THIN = 0.6        # an overshoot or a gap narrower than twice this (about 7.5 km) is treated as a drawing error
+SPILL = 4 * THIN  # a piece across a border that is a small part of its area (under a fifth) and narrower than twice this (about 30 km) is a spill-over
 BASE_MIN = 40     # a country is tinted with its main language when that language has at least this share (%)
 # a language without a drawn area gets a circle around its pin, by number of speakers (same steps as the site): (below, km)
 CIRCLE_KM = ((1e3, 15), (1e4, 25), (1e5, 40), (1e6, 70), (1e7, 140), (float('inf'), 200))
@@ -435,8 +436,8 @@ def fit_areas(original, countries):
                 if not shapes[ci].intersects(K):
                     continue
                 for part in polys(shapes[ci].intersection(K)):
-                    if part.area < .2 * K.area and part.buffer(-THIN).is_empty:
-                        removed += 1                # a little of the area lying across the border
+                    if part.area < .2 * K.area and part.buffer(-SPILL).is_empty:
+                        removed += 1                # a little of the area lying across the border (a spill-over)
                     elif part.area > 1e-6:
                         inside[ci].append([name, part])
     filled = 0
@@ -667,6 +668,21 @@ def main():
     lists, tint = site_lists(), tints()
     fitted, removed, filled = fit_areas({n: g for n, g in original.items() if n not in lists['hide_zone']}, countries)
     round_areas = circles(langs, fitted, lists, countries, ctree)
+    # a hole a broad area keeps where the source cut out a language that has no area of its own (now its circle): filled again,
+    # since the circle shows only while that language is chosen and the hole read as a dark disc around its pin
+    rl = list(round_areas.values()); rtree = STRtree(rl)
+    def covered(ring):        # a circle covers at least a quarter of the hole
+        h = Polygon(ring)
+        return any(rl[i].intersection(h).area >= .25 * h.area for i in rtree.query(h))
+    def fill_holes(g):
+        out = []
+        for P in polys(g):
+            if not P.interiors:
+                out.append(P); continue
+            keep = [r for r in P.interiors if not covered(r)]
+            out.append(Polygon(P.exterior, keep) if len(keep) < len(P.interiors) else P)
+        return solid(unary_union(out))
+    fitted = {n: fill_holes(g) for n, g in fitted.items()}
     fitted.update(round_areas)
     detail, removed2, filled2 = fit_areas(detailed_areas(lists), countries)
     fitted, detail = census_countries(fitted, detail, countries)
@@ -717,6 +733,7 @@ def main():
         # countries tinted with their main language [country, language, its family]
         'zones': {f: sorted(n for n in fitted if props(n)['fam'] == f) for f in sorted({props(n)['fam'] for n in fitted})},
         'hist': sorted(n for n in fitted if hist(n)),
+        'rounds': sorted(round_areas),     # circles around a pin (no drawn area): drawn only for the chosen language
         'dia': sorted(dia),
         'tint': sorted([c['name'], c['lang'], props(c['lang'])['fam']] for c in countries if c['lang'] and c['name'] not in drawn_whole),
         # the rules the page follows for the detailed areas (content/map/areas.json): the views, which kind follows which rule,

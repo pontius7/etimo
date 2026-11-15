@@ -152,8 +152,8 @@
 @media (width<64rem){#langs .sbwrap{justify-content:flex-start;padding-top:clamp(.75rem,5dvh,2.25rem)}}
 
 /* ---- Phone Languages page: the choice bar, quieter. It shows only once a language or group has been chosen (ACT in qp), as a
-   slim see-through pill in the page's own colours: the family dot, the name, a round map button (its label kept for screen
-   readers). Desktop: no bar (the single map button, as before). */
+   slim see-through pill in the page's own colours: the family dot, the name, a map button with its icon and the word "Map" (the
+   menu's word; its full label "On map" for screen readers). Desktop: no bar (the single map button, as before). */
 @media (width<64rem){
   #langs .wbar{width:min(calc(100% - 2rem),22rem);gap:.25rem;padding:.25rem;border-radius:999px;color:var(--ink);
     background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:saturate(1.3) blur(14px);backdrop-filter:saturate(1.3) blur(14px);
@@ -163,9 +163,8 @@
   #langs .wbo small{font-size:.625rem;opacity:.55}
   #langs .wbo b{font-size:1rem}
   #langs .wbo svg{width:16px;height:16px;opacity:.4}
-  #langs .wbm{position:relative;min-height:40px;width:40px;padding:0;justify-content:center;border-radius:50%;background:color-mix(in srgb,var(--wf,var(--ink)) 18%,transparent)}
-  #langs .wbm span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  #langs .wbm svg{width:17px;height:17px}
+  #langs .wbm{min-height:40px;gap:.35rem;padding:0 .9rem 0 .7rem;justify-content:center;border-radius:999px;background:color-mix(in srgb,var(--wf,var(--ink)) 18%,transparent);font:600 .8125rem/1 var(--sans);letter-spacing:.01em}
+  #langs .wbm svg{width:16px;height:16px}
   #langs :is(.wbo,.wbm):focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 }
 @keyframes wbup{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
@@ -198,3 +197,7 @@
    under it ("Nearby in this family", census rows) showed behind and above the button. It now has its own opaque band with a hairline
    on top: nothing is drawn through it, and scrolled to the end the last row sits fully above it. Phone sheet unchanged. */
 @media (width>=64rem){.mapbox .card.mcard.kpanel .acts{background:var(--bg)!important;border-top:1px solid var(--line)}}
+
+/* Tree counts (phone and desktop alike): a group's number shows only while it is closed. Opening a group hides its own number and
+   every number inside it (sub-groups, nested groups), so an open list reads as names only. */
+details.vb[open] .vc,.vtree .vgn .vc{display:none}

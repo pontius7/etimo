@@ -276,7 +276,7 @@ def merge_languages():
 
 def merge_lexicon(langs):
     e, d = load(E_DIR, 'lexicon.json'), load(D_DIR, 'lexicon.json')
-    slug = lambda s: re.sub(r'^-|-$', '', re.sub(r'[^a-z0-9]+', '-', s.lower()))
+    from bulk_import import slug
     se, sd = {slug(r['lang']) for r in e}, {slug(r['lang']) for r in d}
     assert not (se & sd), f'id slug collision: {se & sd}'
     rom = devter_romanize(d)

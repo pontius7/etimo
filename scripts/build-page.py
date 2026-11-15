@@ -469,6 +469,11 @@ with open(os.path.join(ROOT, 'content', 'map', 'areas.json'), encoding='utf-8') 
     AREAS = json.load(_f)
 
 
+def english_names():
+    """data name -> name in the English interface (content/map/areas.json, field englishName); the app and site_pages.py use it"""
+    return {e['name']: e['englishName'] for e in AREAS['languages'] if e.get('englishName')}
+
+
 def placeholders(tv):
     """name -> (text, how many times it must occur in the sources); tv: the final tables (tables())"""
     H = hashed_copies(tv)
@@ -503,6 +508,7 @@ def placeholders(tv):
         # wheel, name tidying rules, languages a country lists among its main ones
         'TREE_HIDDEN': (jsdump([e['name'] for e in AREAS['languages'] if e.get('notInTree')]), 1),
         'NAME_RULES': (jsdump(AREAS['nameRules']), 1),
+        'ENGLISH_NAMES': (jsdump(english_names()), 1),
         'PROMOTED': (jsdump({c['iso3']: c['mainAlso'] for c in AREAS['countries'] if c.get('mainAlso')}), 1),
         # map colour of every language after Etimo's own 78: the merged ones, then yours
         'LANG_COLOURS': (jsdump(shades)[1:-1], 1),
@@ -514,6 +520,7 @@ def placeholders(tv):
         P[key] = (H[name], 1)
     P['H_TERRD'] = (jsdump(H['_terrd']), 1)
     P['SITE_URL'] = (site_pages.SITE_URL, 2)
+    P['SHARE_TAGS'] = (site_pages.SHARE_TAGS, 1)
     return P, len(shades)
 
 
@@ -630,7 +637,7 @@ def build(out=OUT):
     notes.append(f'app code {app}')
     with open(out, 'w', encoding='utf-8', newline='') as f:
         f.write(text)
-    site_pages.write_all()
+    site_pages.write_all(english_names())
     print(f'wrote {os.path.relpath(out, ROOT)} ({len(text):,} chars) from src/; families {len(OLD) + len(NEW)}, '
           f'language colours +{n_colours}' + ''.join('; ' + x for x in notes + tnotes))
 

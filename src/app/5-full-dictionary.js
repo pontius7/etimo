@@ -56,6 +56,7 @@ function kWin(n, key, est) {
   (0, m.useLayoutEffect)(() => {
     let el = ref.current;
     if (!el) return;
+    el.setAttribute('data-kwin', '');     // marks a windowed list for the Cmd/Ctrl+F handler (kFind in 6-app-screens-and-startup.js)
     let A = an.current;
     an.current = null;
     if (A) {

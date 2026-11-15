@@ -370,6 +370,8 @@ sq:"Në hartë",
 
 sr:"Na karti",
 sc:"На карти"}[ya()]||"On map",
+/* the phone bar's map button: its visible label, the menu's own word for the map */
+OMs={en:"Map",sq:"Harta",sr:"Karta",sc:"Карта"}[ya()]||"Map",
 mbu=q=>{let L=q&&q.d.data.L,
 g=!L&&root.depth?root:null;
 mb.hidden=!L&&!g;
@@ -377,7 +379,7 @@ wb.hidden=mb.hidden||!ACT;
 if(mb.hidden)return;
 mb.innerHTML=ii.map+"<span>"+ei(OM)+"</span><em><i></i>"+ei(L?q.d.data.name:root.data.name)+"</em>";
 mb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||"");
-mb.onclick=()=>{if(L){Ja("map-"+L.id.slice(2));
+mb.onclick=()=>{if(L){kWZ=performance.now(),Ja("map-"+L.id.slice(2));
 return}
 Uf={fam:root.fam,
 sub:root.depth>1,
@@ -387,7 +389,7 @@ Ja("map")};
    map button shows it (or the whole family) on the map. Desktop keeps the single button (.wmap). */
 let sub=L&&q.d.parent&&q.d.parent.depth?q.d.parent.data.name:"";
 wb.style.setProperty("--wf",t[L?q.d.fam:root.fam]||""),
-wb.innerHTML=(L?'<button type="button" class="wbo">':'<div class="wbo">')+"<i></i><span>"+(sub?"<small>"+ei(sub)+"</small>":"")+"<b>"+ei(L?q.d.data.name:root.data.name)+"</b></span>"+(L?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>':"</div>")+'<button type="button" class="wbm">'+ii.map+"<span>"+ei(OM)+"</span></button>",
+wb.innerHTML=(L?'<button type="button" class="wbo">':'<div class="wbo">')+"<i></i><span>"+(sub?"<small>"+ei(sub)+"</small>":"")+"<b>"+ei(L?q.d.data.name:root.data.name)+"</b></span>"+(L?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>':"</div>")+'<button type="button" class="wbm" aria-label="'+ei(OM)+'">'+ii.map+"<span>"+ei(OMs)+"</span></button>",
 wb.querySelector(".wbm").onclick=mb.onclick,
 L&&(wb.querySelector(".wbo").onclick=()=>Ja(L.id))},
 paint=()=>{P.classed("sel",q=>"leaf"===q.kind&&q.d.data.L.id===SL);
@@ -1464,8 +1466,10 @@ Kt=gHome(),gOne=Math.min(1,gFit||Kt.k);
 function phoneHome(){let ys=x.filter(e=>e._xy[0]>0&&e._xy[0]<b).map(e=>e._xy[1]),u=Math.min(...ys),c=Math.max(...ys),top=64,free=y-top-12,k=Math.max(1,Math.min(1.15,.8*free/Math.max(1,c-u)));
 return Fh.translate(b/2,top+free/2).scale(k).translate(-b/2,-(u+c)/2)}
 function Ut(e){kGo(Kt,kFly(Kt,e||620))}
-function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,i=Math.max(n[2]-n[0],b/c),s=Math.max(n[3]-n[1],y/c);
-Wt(r-.75*i,a-.75*s,r+.75*i,a+.75*s,t)}
+function Ht(e,t){let n=U(e),r=(n[0]+n[2])/2,a=(n[1]+n[3])/2,c=e.info&&e.info.nest?24:10,i=Math.max(n[2]-n[0],b/c),s=Math.max(n[3]-n[1],y/c),
+h=performance.now()-kWZ<4e3?.55:.75;
+kWZ=0;
+Wt(r-h*i,a-h*s,r+h*i,a+h*s,t)}
 function Wt(e,t,n,r,a,i){let s=ge(),o=b-s,l=y-52-w(),u=Math.max(1,Math.min(i||40,.86/Math.max((n-e)/o,(r-t)/l,1e-6)));
 let TT=Fh.translate(s+o/2,52+l/2).scale(u).translate(-(e+n)/2,-(t+r)/2);
 kGo(TT,kFly(TT,a))}
@@ -1621,7 +1625,26 @@ addEventListener("etimo:mapready",go)})}
    with a scroll. Going to a "now" screen fetches it at once; so does a part that fails to arrive (kLexGo). */
 let kLexGo=null;
 /* The address (without #) as a screen: the router's one parser (Up), also asked by the loader (kParts, kLexKind). */
-function kRoute(e){if(fa[e])return{v:"lang",
+/* Old addresses: before 2026-11-15 a language id dropped accented letters (#l-arb-resh); now they keep their base letter
+   (#l-arberesh, oa()). An address that ends in an old id is read as the new one, so shared links keep working. */
+let kOldM=null;
+/* when the wheel's map button opens a language (qp), the flight frames it a little closer (Ht: the area fills about 1.4 times more
+   of the view than a choice on the map itself); the mark lasts 4 s, so only that flight uses it */
+let kWZ=0;
+function kOld(e){if(fa[e])return e;
+if(!kOldM){let k=Object.keys(fa);if(!k.length)return e;kOldM={};
+for(let i of k){let o=fa[i].lang.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");"l-"+o!==i&&(kOldM[o]=i.slice(2))}}
+for(let o in kOldM)if(e===o||e.endsWith("-"+o))return e.slice(0,e.length-o.length)+kOldM[o];
+return e}
+/* Cmd/Ctrl+F on a screen with a windowed list (only the rows near the screen exist, so the browser's own find misses the rest):
+   the first press goes to the site's own filter, which searches every word and finds other scripts from Latin typing (the
+   language page's field, else the find field in the bar, else the Search screen); a second press while a field has focus is the browser's find. */
+function kFind(ev){if(!(ev.metaKey||ev.ctrlKey)||ev.altKey||ev.shiftKey||"f"!==ev.key.toLowerCase()||!document.querySelector("[data-kwin]"))return;
+let q=[document.getElementById("wq"),document.querySelector(".kfil input")].find(x=>x&&x.getClientRects().length);
+if(document.activeElement&&"INPUT"===document.activeElement.tagName)return;
+ev.preventDefault();if(!q)return Ja("search");q.focus({preventScroll:!0});q.scrollIntoView({block:"nearest"});q.select()}
+document.addEventListener("keydown",kFind);
+function kRoute(e){e=kOld(e);if(fa[e])return{v:"lang",
 L:fa[e]};
 let FDm=/^d(\d+)-(.+)$/.exec(e);
 if(FDm&&fa["l-"+FDm[2]])return{v:"lang",
