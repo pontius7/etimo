@@ -214,3 +214,22 @@ details.vb[open] .vc,.vtree .vgn .vc{display:none}
    name beside a thin slice stays readable, for every region and language. Phone: unchanged (bottom sheet). */
 @media (width>=64rem){.mapbox .card.mcard.kpanel,.mapbox .card.kpanel{width:min(440px,38%)!important;max-width:none!important}
 .card.kpanel .rgwh .rgwl text{font-size:13px}}
+
+/* Desktop (64rem and up). Settings sheet drops from the top, under the language button (kSheet in the page code): rounded
+   lower corners, a narrow centred panel instead of a full-width strip. Phone: unchanged (sheet-top in v65.css). */
+@media (width>=64rem){
+.sheet-x.sheet-dtop{left:0!important;right:0!important;margin:0 auto;width:min(36rem,calc(100vw - 2rem))!important;border-radius:0 0 20px 20px!important;border-top:0!important;border-bottom:1px solid var(--line)!important;max-height:min(88vh,46rem);padding:1.25rem 1.5rem 1.5rem!important;box-shadow:0 24px 60px -24px color-mix(in srgb,var(--ink) 35%,transparent)}
+.sheet-x.sheet-dtop .sgrab{display:none}
+/* the Languages page is a top-level screen: no back arrow on desktop (the nav is right there). Phone keeps it. */
+.bar .ib.bk-dt{display:none}
+/* opening a sheet hides the page scrollbar; the fixed, centred nav would slide by half its width. Hold it in place. */
+body[data-scroll-locked] .tabbar{left:calc(50% - var(--removed-body-scroll-bar-size,0px) / 2)}
+}
+
+/* v75  Languages wheel, desktop (64rem and up): hover focus (hov() in qp). The slice under the mouse lifts out, its branch stays
+   full and the rest steps back; slightly longer, eased transitions so the move reads as one calm motion. Phone: unchanged. */
+@media (width>=64rem){
+#langs .wa,#langs .lay text{transition-duration:.22s,.22s,.15s;transition-timing-function:cubic-bezier(.22,1,.36,1)}
+#langs .wa:hover{filter:brightness(1.06) drop-shadow(0 2px 6px rgb(0 0 0 / .18))}
+}
+@media (width>=64rem) and (prefers-reduced-motion:reduce){#langs .wa,#langs .lay text{transition:none}}
