@@ -413,6 +413,13 @@ return}
 a.classList.remove("whint");
 a.hidden=!1;
 a.textContent=q.d.data.name+" · "+(l.sbOpen||"tap again to open")},
+/* desktop (>=64rem), mouse, nothing chosen: the slice under the pointer lifts a little out along its middle (its names with it),
+   its own branch (the families above it, the languages under it) stays full, the rest of the wheel steps back. Styles only
+   (translate, opacity) on the elements already drawn; the transitions are v75 in src/styles/v66.css; leaving runs paint(). */
+hov=q=>{if(SL||rm||!window.matchMedia||!matchMedia("(min-width: 64rem)").matches)return;
+let up=new Set(q.d.ancestors()),m=(q.a0+q.a1)/2,k=("leaf"===q.kind||"tick"===q.kind?.022:.014)*R,tr=(Math.sin(m)*k).toFixed(2)+"px "+(-Math.cos(m)*k).toFixed(2)+"px";
+P.each(function(x){let n=x.d,rel=up.has(n)||n.ancestors().includes(q.d),o=rel?"":"tick"===x.kind||"leaf"===x.kind?".38":".55",t=x===q?tr:"";
+this.style.translate=t,this.style.opacity=o,(x.lts||[]).forEach(e=>{e.style.translate=t,e.style.opacity=o&&".45"})})},
 act=q=>{ACT=1;
 if("tick"===q.kind){r(q.d.ancestors().find(x=>1===x.depth));
 return}
@@ -423,7 +430,7 @@ let id=q.d.data.L.id;
 if(SL===id||q.lab&&!(!window.matchMedia||!matchMedia("(min-width: 64rem)").matches))Ja(id);
 else{SL=id;
 paint()}};
-P.on("click",(ev,q)=>act(q)).on("keydown",(ev,q)=>{("Enter"===ev.key||" "===ev.key)&&(ev.preventDefault(),act(q))}).on("pointerenter",(ev,q)=>{"mouse"===ev.pointerType&&(a.hidden=!1,a.textContent=q.d.data.name+(q.d.data.L?"":" · "+q.d.value))}).on("pointerleave",ev=>{"mouse"===ev.pointerType&&paint()});
+P.on("click",(ev,q)=>act(q)).on("keydown",(ev,q)=>{("Enter"===ev.key||" "===ev.key)&&(ev.preventDefault(),act(q))}).on("pointerenter",(ev,q)=>{"mouse"===ev.pointerType&&(a.hidden=!1,a.textContent=q.d.data.name+(q.d.data.L?"":" · "+q.d.value),hov(q))}).on("pointerleave",ev=>{"mouse"===ev.pointerType&&paint()});
 Ep&&arcs.some(x=>"leaf"===x.kind&&x.d.data.L.id===Ep)&&(SL=Ep,Ep=null),
 paint(),
 PRV={root,arcs};
